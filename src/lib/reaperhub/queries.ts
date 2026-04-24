@@ -497,3 +497,49 @@ export async function signUp(email: string, password: string, username: string) 
     return { success: false, error: err.message };
   }
 }
+
+
+export async function removeFromLibrary(itemId: string) {
+  try {
+    const user = await getCurrentUser();
+    if (!user) {
+      const lib = JSON.parse(localStorage.getItem('guest_library') || '[]');
+      const updated = lib.filter((i: any) => i.id !== itemId && i.media_id !== itemId);
+      localStorage.setItem('guest_library', JSON.stringify(updated));
+      return { success: true };
+    }
+    const { error } = await supabase
+      .from('library_items')
+      .delete()
+      .eq('id', itemId)
+      .eq('user_id', user.id);
+    if (error) throw error;
+    return { success: true };
+  } catch (err: any) {
+    console.error('Error removing from library:', err);
+    return { success: false, message: err.message };
+  }
+}
+
+export async function updateMediaEntry(
+  itemId: string,
+  updates: { status?: string; rating?: number; review?: string }
+) {
+  try {
+    const user = await getCurrentUser();
+    if (!user) return { success: false };
+    const { error } = await supabase
+      .from('library_items')
+      .update(updates)
+      .eq('id', itemId)
+      .eq('user_id', user.id);
+    if (error) throw error;
+    if (updates.status === 'completed') {
+      await awardXPAndCoins(25, 10, 'Completed a title', 'complete_title');
+    }
+    return { success: true };
+  } catch (err: any) {
+    console.error('Error updating media entry:', err);
+    return { success: false, message: err.message };
+  }
+}

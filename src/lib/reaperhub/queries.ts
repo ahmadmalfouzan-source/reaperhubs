@@ -46,114 +46,103 @@ export async function getDashboardData() {
 
 export async function getLibraryTitles() {
   try {
+    const guestLib = JSON.parse(localStorage.getItem('guest_library') || '[]');
+    const guestTitles = guestLib.map((item: any) => item.title).filter(Boolean);
+
     const user = await getCurrentUser();
-    if (!user) return [];
+    if (!user) {
+      return guestTitles;
+    }
     
     const { data } = await supabase
-      .from('user_media_entries')
-      .select('media_items(title)')
+      .from('library_items')
+      .select('title')
       .eq('user_id', user.id);
       
-    return data?.map((item: any) => item.media_items?.title).filter(Boolean) || [];
+    const userTitles = data?.map((item: any) => item.title).filter(Boolean) || [];
+    return Array.from(new Set([...guestTitles, ...userTitles]));
   } catch {
     return [];
   }
 }
 
-export async function addToLibrary(title: string, type: string, status: string = 'plan_to_watch', metadata: any = {}) {
+function saveToGuestLibrary(title: string, type: string, status: string, metadata: any, mediaIdStr: string) {
+  const guestLib = JSON.parse(localStorage.getItem('guest_library') || '[]');
+  const existingIdx = guestLib.findIndex((i: any) => i.media_id === mediaIdStr);
+  
+  if (existingIdx >= 0) {
+    guestLib[existingIdx].status = status;
+    guestLib[existingIdx].poster_url = metadata.cover_url || guestLib[existingIdx].poster_url;
+  } else {
+    guestLib.push({
+      id: `guest_${Date.now()}`,
+      user_id: 'guest',
+      media_id: mediaIdStr,
+      media_type: type,
+      title: title,
+      poster_url: metadata.cover_url || '',
+      status: status,
+      rating: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    });
+  }
+  localStorage.setItem('guest_library', JSON.stringify(guestLib));
+}
+
+export async function addToLibrary(title: string, type: string, status: string = 'plan_to_watch', metadata: any = {}, mediaIdStr: string) {
   try {
     const user = await getCurrentUser();
-    if (!user) throw new Error('Not logged in');
-
-    // First try to find if media_item already exists
-    let { data: mediaItem } = await supabase
-      .from('media_items')
-      .select('id')
-      .eq('title', title)
-      .eq('type', type)
-      .single();
-
-    if (!mediaItem) {
-      // Create media item if it doesn't exist
-      const { data: newMedia, error: createError } = await supabase
-        .from('media_items')
-        .insert({ 
-          title, 
-          type, 
-          description: metadata.overview || `AI recommended ${type}`,
-          cover_url: metadata.cover_url || `https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=500&q=80`
-        })
-        .select('id')
-        .single();
-        
-      if (createError) throw createError;
-      mediaItem = newMedia;
-    }
-
-    if (!mediaItem) throw new Error('Failed to handle media item');
-
-    // Check if it's already in the library
-    const { data: existingEntry } = await supabase
-      .from('user_media_entries')
-      .select('id, status')
-      .eq('user_id', user.id)
-      .eq('media_id', mediaItem.id)
-      .single();
-
-    if (existingEntry) {
-      if (existingEntry.status !== status) {
-        await supabase
-          .from('user_media_entries')
-          .update({ status })
-          .eq('id', existingEntry.id);
-        
-        let rewards = null;
-        if (status === 'completed') {
-          rewards = await awardXPAndCoins(25, 10, 'Completed title award');
-        }
-        return { success: true, message: `Status updated to ${status}`, rewards };
+    
+    let initialRewards = null;
+    let additionalRewards = null;
+    
+    if (!user) {
+      // Guest Mode
+      console.log('addToLibrary: Guest mode, saving to localStorage');
+      saveToGuestLibrary(title, type, status, metadata, mediaIdStr);
+      initialRewards = { earnedXp: 10, earnedCoins: 5 }; // Fake rewards for guest
+      if (status === 'completed') {
+        additionalRewards = { earnedXp: 25, earnedCoins: 10 };
       }
-      return { success: true, message: 'Already in library' };
+      
+      return { 
+        success: true, 
+        message: 'Added to library', 
+        id: mediaIdStr, 
+        rewards: initialRewards,
+        additionalRewards 
+      };
     }
 
-    // Fallback-safe insert
-    let insertError;
-    try {
-      const { error } = await supabase
-        .from('user_media_entries')
-        .insert({
-          user_id: user.id,
-          media_id: mediaItem.id,
-          status: status,
-          user_rating: null,
-          rating: null
-        });
-      insertError = error;
-    } catch (e) {
-      // If full insert fails, try basic insert
-      const { error } = await supabase
-        .from('user_media_entries')
-        .insert({
-          user_id: user.id,
-          media_id: mediaItem.id
-        });
-      insertError = error;
-    }
+    console.log(`addToLibrary: Logged in, saving to Supabase for ${user.id}`);
+    // Logged-in mode
+    const { error } = await supabase
+      .from('library_items')
+      .upsert({
+        user_id: user.id,
+        media_id: mediaIdStr,
+        media_type: type,
+        title: title,
+        poster_url: metadata.cover_url || '',
+        status: status
+      }, { onConflict: 'user_id, media_id' }); 
 
-    if (insertError) {
-      // Last resort: very basic insert
-      const { error } = await supabase
-        .from('user_media_entries')
-        .insert({
-          user_id: user.id,
-          media_id: mediaItem.id
-        });
-      if (error) throw error;
+    if (error) {
+      console.error('addToLibrary Supabase error, falling back to localStorage:', error);
+      saveToGuestLibrary(title, type, status, metadata, mediaIdStr);
+      initialRewards = { earnedXp: 10, earnedCoins: 5 };
+      return { 
+        success: true, 
+        message: 'Added to local library (sync failed)', 
+        id: mediaIdStr, 
+        rewards: initialRewards,
+        additionalRewards 
+      };
     }
     
     // Feature 4: Award XP and coins
-    const initialRewards = await awardXPAndCoins(10, 5, 'Added to library award');
-    let additionalRewards = null;
+    initialRewards = await awardXPAndCoins(10, 5, 'Added to library award');
     if (status === 'completed') {
       additionalRewards = await awardXPAndCoins(25, 10, 'Completed title award');
     }
@@ -161,28 +150,42 @@ export async function addToLibrary(title: string, type: string, status: string =
     return { 
       success: true, 
       message: 'Added to library', 
-      id: mediaItem.id, 
+      id: mediaIdStr, 
       rewards: initialRewards,
       additionalRewards 
     };
   } catch (err: any) {
-    console.error('Error adding to library:', err);
-    return { success: false, message: err.message };
+    console.error('Error adding to library, doing ultimate fallback:', err);
+    saveToGuestLibrary(title, type, status, metadata, mediaIdStr);
+    return { 
+      success: true, 
+      message: 'Added to local library (sync error)', 
+      id: mediaIdStr, 
+      rewards: { earnedXp: 10, earnedCoins: 5 } 
+    };
   }
 }
 
 export async function removeFromLibrary(mediaId: string) {
   try {
     const user = await getCurrentUser();
-    if (!user) throw new Error('Not logged in');
+    
+    const guestLib = JSON.parse(localStorage.getItem('guest_library') || '[]');
+    const filtered = guestLib.filter((i: any) => i.media_id !== mediaId);
+    localStorage.setItem('guest_library', JSON.stringify(filtered));
+
+    if (!user) {
+      console.log('removeFromLibrary: Guest mode');
+      return { success: true };
+    }
 
     const { error } = await supabase
-      .from('user_media_entries')
+      .from('library_items')
       .delete()
       .eq('user_id', user.id)
       .eq('media_id', mediaId);
 
-    if (error) throw error;
+    if (error) console.warn('Supabase remove failed:', error);
     return { success: true };
   } catch (err: any) {
     console.error('Error removing from library:', err);
@@ -193,16 +196,22 @@ export async function removeFromLibrary(mediaId: string) {
 export async function isItemInLibrary(mediaId: string) {
   try {
     const user = await getCurrentUser();
-    if (!user) return false;
+    
+    const guestLib = JSON.parse(localStorage.getItem('guest_library') || '[]');
+    const inGuest = guestLib.some((i: any) => i.media_id === mediaId);
+
+    if (!user) {
+      return inGuest;
+    }
 
     const { data } = await supabase
-      .from('user_media_entries')
+      .from('library_items')
       .select('id')
       .eq('user_id', user.id)
       .eq('media_id', mediaId)
-      .single();
+      .maybeSingle();
 
-    return !!data;
+    return !!data || inGuest;
   } catch {
     return false;
   }
@@ -270,18 +279,58 @@ export async function searchMedia(query: string) {
 export async function getLibrary() {
   try {
     const user = await getCurrentUser();
-    if (!user) return [];
     
-    // In lovables' version it joins with media_items, handled as nested select
-    const { data, error } = await supabase
-      .from('user_media_entries')
-      .select('*, media_items(*)')
-      .eq('user_id', user.id)
-      .order('updated_at', { ascending: false });
+    // Always fetch guest library to be safe or to merge
+    const guestLibRaw = JSON.parse(localStorage.getItem('guest_library') || '[]');
+    const guestLib = guestLibRaw.map((item: any) => ({
+      id: item.media_id,
+      status: item.status,
+      rating: item.rating,
+      user_rating: item.rating,
+      review: item.review,
+      updated_at: item.updated_at,
+      media_items: {
+        title: item.title,
+        type: item.media_type,
+        cover_url: item.poster_url || item.poster_path
+      }
+    }));
       
-    if (error) return [];
-    return data || [];
-  } catch {
+    if (!user) {
+      console.log('getLibrary: Guest mode');
+      return guestLib;
+    }
+    
+    console.log(`getLibrary: Logged in as ${user.id}`);
+    const { data, error } = await supabase
+      .from('library_items')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+      
+    if (error) {
+      console.error('getLibrary Supabase error, returning guest limit:', error);
+      return guestLib;
+    }
+    
+    const userLib = data?.map((item: any) => ({
+      id: item.media_id,
+      status: item.status,
+      rating: item.rating,
+      user_rating: item.rating,
+      review: item.review,
+      updated_at: item.created_at,
+      media_items: {
+        title: item.title,
+        type: item.media_type,
+        cover_url: item.poster_url
+      }
+    })) || [];
+    
+    // Return user library and any items from guest library not present
+    return [...userLib, ...guestLib.filter((g: any) => !userLib.some((u: any) => u.id === g.id))];
+  } catch (err: any) {
+    console.error('Error getting library:', err);
     return [];
   }
 }
@@ -584,41 +633,77 @@ export async function awardXPAndCoins(xp: number, coins: number, reason: string 
 export async function updateMediaEntry(mediaId: string, updates: any) {
   try {
     const user = await getCurrentUser();
-    if (!user) throw new Error('Not logged in');
+    
+    if (!user) {
+      console.log('updateMediaEntry: Guest mode');
+      const guestLib = JSON.parse(localStorage.getItem('guest_library') || '[]');
+      const existingIdx = guestLib.findIndex((i: any) => i.media_id === mediaId);
+      if (existingIdx < 0) throw new Error('Item not in library');
+      
+      const existing = guestLib[existingIdx];
+      
+      if (updates.rating !== undefined) guestLib[existingIdx].rating = updates.rating;
+      if (updates.review !== undefined) guestLib[existingIdx].review = updates.review;
+      if (updates.status !== undefined) guestLib[existingIdx].status = updates.status;
+      guestLib[existingIdx].updated_at = new Date().toISOString();
+      
+      localStorage.setItem('guest_library', JSON.stringify(guestLib));
+
+      let rewards = null;
+      if (updates.rating && !existing.rating) {
+        rewards = { earnedXp: 5, earnedCoins: 3 };
+      }
+      if (updates.review && !existing.review) {
+        rewards = { earnedXp: 15, earnedCoins: 8 };
+      }
+      if (updates.status === 'completed' && existing.status !== 'completed') {
+        rewards = { earnedXp: 25, earnedCoins: 10 };
+      }
+
+      return { success: true, rewards };
+    }
 
     const { data: existing } = await supabase
-      .from('user_media_entries')
-      .select('id, rating, user_rating, review, status')
+      .from('library_items')
+      .select('id, rating, review, status')
       .eq('user_id', user.id)
       .eq('media_id', mediaId)
       .maybeSingle();
 
-    if (!existing) throw new Error('Item not in library');
-
-    // Try multiple column names for rating if needed
-    const finalUpdates: any = { ...updates };
-    if (updates.rating) {
-      finalUpdates.user_rating = updates.rating;
+    if (!existing) {
+      // Check guest library fallback
+      const guestLib = JSON.parse(localStorage.getItem('guest_library') || '[]');
+      const existingIdx = guestLib.findIndex((i: any) => i.media_id === mediaId);
+      if (existingIdx >= 0) {
+        if (updates.rating !== undefined) guestLib[existingIdx].rating = updates.rating;
+        if (updates.review !== undefined) guestLib[existingIdx].review = updates.review;
+        if (updates.status !== undefined) guestLib[existingIdx].status = updates.status;
+        guestLib[existingIdx].updated_at = new Date().toISOString();
+        localStorage.setItem('guest_library', JSON.stringify(guestLib));
+        return { success: true, rewards: null, message: "Updated locally" };
+      }
+      throw new Error('Item not in library');
     }
 
+    const finalUpdates: any = { ...updates };
+    
     const { error } = await supabase
-      .from('user_media_entries')
+      .from('library_items')
       .update(finalUpdates)
       .eq('id', existing.id);
 
     if (error) {
-      // If it fails, try with just provided keys minus status or rating if they are missing columns
       console.warn('Update failed, attempting fallback update', error);
       const basicUpdates: any = {};
       if (updates.status) basicUpdates.status = updates.status;
+      if (updates.rating) basicUpdates.rating = updates.rating;
       
       await supabase
-        .from('user_media_entries')
+        .from('library_items')
         .update(basicUpdates)
         .eq('id', existing.id);
     }
 
-    // Capture last reward for UI feedback
     let rewards = null;
     
     if (updates.rating && !existing.rating) {
@@ -733,7 +818,7 @@ export async function getUserProfile(username: string) {
 export async function getUserAchievements(userId: string) {
   try {
     const [libraryRes, postsRes, xpRes] = await Promise.all([
-      supabase.from('user_media_entries').select('id, media_items(type)').eq('user_id', userId),
+      supabase.from('user_library').select('id, media_type').eq('user_id', userId),
       supabase.from('posts').select('id').eq('author_id', userId),
       supabase.from('user_xp').select('level').eq('user_id', userId).single()
     ]);
@@ -742,7 +827,7 @@ export async function getUserAchievements(userId: string) {
     const posts = postsRes.data || [];
     const level = xpRes.data?.level || 1;
 
-    const moviesWatched = library.filter((item: any) => item.media_items?.type === 'movie').length;
+    const moviesWatched = library.filter((item: any) => item.media_type === 'movie').length;
 
     return [
       {

@@ -64,12 +64,24 @@ export default function Dashboard() {
   }, [fetchDashboard]);
 
   const handleAdd = async (item: any) => {
-    const res = await addToLibrary(item.title, item.type);
+    if (!item.tmdbId) {
+      toast.error('Cannot add item: Missing ID');
+      return;
+    }
+    const res = await addToLibrary(item.title, item.type, 'plan_to_watch', {
+      cover_url: item.poster,
+      overview: item.reason
+    }, String(item.tmdbId));
+    
     if (res.success) {
       setAddedIds(prev => new Set(prev).add(item.title));
-      toast.success(`${item.title} archived successfully.`);
+      if (res.rewards) {
+        toast.success(`+${res.rewards.earnedXp} XP! Item added to library!`, { icon: '✨' });
+      } else {
+        toast.success(`Item added to library!`);
+      }
     } else {
-      toast.error("Archive failed. System interference.");
+      toast.error(res.message || "Archive failed. System interference.");
     }
   };
 
@@ -200,6 +212,9 @@ export default function Dashboard() {
                       src={item.poster} 
                       alt={item.title} 
                       className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=300&q=80';
+                      }}
                     />
                   ) : (
                     <div className="w-full h-full bg-surface-2 flex items-center justify-center text-muted">No Intelligence</div>

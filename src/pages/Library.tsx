@@ -22,16 +22,13 @@ export default function Library() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    getCurrentUser().then(user => {
-      if (!user) navigate('/login');
-    });
-
+    // Guest mode is allowed, so we don't redirect to login here
     getLibrary().then(data => {
       setItems(data);
       setFilteredItems(data);
       setLoading(false);
     });
-  }, [navigate]);
+  }, []);
 
   useEffect(() => {
     if (activeStatus === 'all') {
@@ -151,7 +148,14 @@ export default function Library() {
                 <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none"></div>
                 
                 {item.media_items?.cover_url ? (
-                  <img src={item.media_items.cover_url} alt="Cover" className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105" />
+                  <img 
+                    src={item.media_items.cover_url} 
+                    alt="Cover" 
+                    className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105" 
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=300&q=80';
+                    }}
+                  />
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center text-xs text-muted bg-surface-2">
                     <Play className="w-8 h-8 mb-2 opacity-10" />

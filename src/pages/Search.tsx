@@ -36,7 +36,7 @@ function DiscoverImage({ title, type }: { title: string; type: string }) {
     </div>
   );
 
-  return <img src={url} alt={title} className="w-full h-full object-cover transition-transform group-hover:scale-110" />;
+  return <img src={url} alt={title} className="w-full h-full object-cover transition-transform group-hover:scale-110" onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=300&q=80'; }} />;
 }
 
 type MediaType = 'movie' | 'tv' | 'game' | 'all';
@@ -163,12 +163,21 @@ export default function Search() {
   }, [mediaType, selectedGenre, sortBy, handleSearch]);
 
   const handleAdd = async (item: any) => {
-    const res = await addToLibraryQuery(item.title, item.type);
+    const res = await addToLibraryQuery(item.title, item.type, 'plan_to_watch', {
+      overview: item.overview,
+      cover_url: item.cover_url
+    }, String(item.id));
     if (res.success) {
       setAddedIds(prev => new Set(prev).add(item.title));
-      toast.success(`${item.title} added to your library.`);
+      if (res.rewards) {
+        toast.success(`+${res.rewards.earnedXp} XP! Item added to library!`, {
+          icon: '✨'
+        });
+      } else {
+        toast.success(`Item added to library!`);
+      }
     } else {
-      toast.error("Archive failed. System interference.");
+      toast.error(res.message || "Failed to add to library.");
     }
   };
 
@@ -318,7 +327,7 @@ export default function Search() {
                   className="relative group rounded-2xl overflow-hidden bg-surface-2 cursor-pointer touch-manipulation aspect-[2/3] shadow-lg border border-border/50"
                 >
                 {item.cover_url ? (
-                  <img src={item.cover_url} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  <img src={item.cover_url} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=300&q=80'; }} />
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center text-xs text-muted bg-surface">
                     <span className="text-4xl mb-2 opacity-50">🎬</span>

@@ -23,7 +23,6 @@ export default function MediaDetail() {
   const [inLibrary, setInLibrary] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [localMediaId, setLocalMediaId] = useState<string | null>(null);
-  const [libraryEntry, setLibraryEntry] = useState<any>(null);
   const [rating, setRating] = useState(0);
   const [review, setReview] = useState('');
   const [status, setStatus] = useState('plan_to_watch');
@@ -78,7 +77,6 @@ export default function MediaDetail() {
         const entry = localItem.user_media_entries[0];
         setLocalMediaId(localItem.id);
         setInLibrary(true);
-        setLibraryEntry(entry);
         setRating(entry.rating || 0);
         setReview(entry.review || '');
         setStatus(entry.status || 'plan_to_watch');
@@ -97,7 +95,6 @@ export default function MediaDetail() {
         const res = await removeFromLibrary(localMediaId);
         if (res.success) {
           setInLibrary(false);
-          setLibraryEntry(null);
           toast.success("Successfully purged from your archive.");
         } else {
           toast.error("Purge failed. System interference detected.");
@@ -106,14 +103,14 @@ export default function MediaDetail() {
         const res = await addToLibrary(media.title || media.name, type, status, {
           overview: media.overview,
           cover_url: type === 'game' ? media.cover_url : getTMDBImageUrl(media.poster_path)
-        });
+        }, id || '');
         if (res.success) {
           setInLibrary(true);
-          if (res.id) setLocalMediaId(res.id);
-          toast.success("New intel added to your library.");
-          // Refresh to get full entry
-          window.location.reload(); 
-        } else {
+          if (res.rewards) {
+            toast.success(`+${res.rewards.earnedXp} XP! Item added to library!`, { icon: '✨' });
+          } else {
+            toast.success("Item added to library!");
+          }
           toast.error("Archive failure. Check your connection.");
         }
       }
@@ -172,6 +169,7 @@ export default function MediaDetail() {
             src={backdrop} 
             alt="Backdrop" 
             className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" 
+            onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=1200&q=80'; }}
           />
         ) : (
           <div className="w-full h-full bg-surface-2"></div>
@@ -207,7 +205,7 @@ export default function MediaDetail() {
         <div className="space-y-8">
           <div className="relative group rounded-3xl overflow-hidden shadow-2xl border border-border/50">
             {poster ? (
-              <img src={poster} alt={media.title || media.name} className="w-full object-cover" />
+              <img src={poster} alt={media.title || media.name} className="w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=500&q=80'; }} />
             ) : (
               <div className="aspect-[2/3] bg-surface-2 flex items-center justify-center text-muted">No Poster</div>
             )}
@@ -352,6 +350,7 @@ export default function MediaDetail() {
                         src={person.profile_path ? getTMDBImageUrl(person.profile_path) : `https://ui-avatars.com/api/?name=${encodeURIComponent(person.name)}&background=random`} 
                         alt={person.name} 
                         className="w-full h-full object-cover" 
+                        onError={(e) => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(person.name)}&background=random`; }}
                       />
                     </div>
                     <p className="font-bold text-xs truncate text-white">{person.name}</p>

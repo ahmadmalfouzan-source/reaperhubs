@@ -17,7 +17,7 @@ export async function getDashboardData() {
     const [xpRes, coinsRes, postsRes, notifRes] = await Promise.all([
       supabase.from('user_xp').select('xp_total, xp_current_level').eq('user_id', user.id).single(),
       supabase.from('user_coins').select('coins').eq('user_id', user.id).single(),
-      supabase.from('posts').select('*').eq('author_id', user.id).order('created_at', { ascending: false }).limit(5),
+      supabase.from('posts').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(5),
       supabase.from('notifications').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(5)
     ]);
 
@@ -67,7 +67,6 @@ export async function awardXPAndCoins(
     const user = await getCurrentUser();
     if (!user) return null;
 
-    // Read current XP for level tracking (read-only)
     const { data: xpData } = await supabase
       .from('user_xp')
       .select('xp_total, xp_current_level')
@@ -76,7 +75,6 @@ export async function awardXPAndCoins(
 
     const currentLevel = xpData?.xp_current_level || 1;
 
-    // Use the approved RPCs instead of direct upserts
     const xpRpc = await supabase.rpc('award_xp', {
       p_user_id: user.id,
       p_event_type: eventType,
@@ -94,7 +92,6 @@ export async function awardXPAndCoins(
       }
     }
 
-    // Re-read XP to get new level
     const { data: newXpData } = await supabase
       .from('user_xp')
       .select('xp_total, xp_current_level')
@@ -191,22 +188,28 @@ export async function getLibraryItems() {
 
 export async function getFeedItems() {
   try {
+    // posts table uses: user_id, body, post_type, is_private
     const { data: postsData, error } = await supabase
       .from('posts')
-      .select('*, users!author_id(username, display_name, avatar_url)')
+      .select('*, users!user_id(username, display_name, avatar_url)')
       .eq('is_private', false)
+      .eq('is_deleted', false)
       .order('created_at', { ascending: false })
       .limit(50);
 
     if (error) throw error;
-    return postsData || [];
+    return (postsData || []).map((p: any) => ({
+      ...p,
+      content: p.body,
+      author_id: p.user_id,
+    }));
   } catch (err) {
     console.error('Error fetching feed:', err);
     return [];
   }
 }
 
-export async function createPost(content: string, mediaType: string | null = null) {
+export async function createPost(content: string, postType: string = 'status') {
   try {
     const user = await getCurrentUser();
     if (!user) throw new Error('Not logged in');
@@ -214,10 +217,12 @@ export async function createPost(content: string, mediaType: string | null = nul
     const { data, error } = await supabase
       .from('posts')
       .insert({
-        author_id: user.id,
-        content,
-        media_type: mediaType,
+        user_id: user.id,
+        body: content,
+        post_type: postType,
         is_private: false,
+        is_deleted: false,
+        contains_spoilers: false,
         like_count: 0,
         comment_count: 0
       })

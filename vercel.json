@@ -1,7 +1,6 @@
 {
   "rewrites": [
     { "source": "/api/games/:path*", "destination": "/api/games" },
-    { "source": "/api/tmdb/:path*", "destination": "/api/tmdb" },
-    { "source": "/((?!api/).*)", "destination": "/index.html" }
+    { "source": "/api/tmdb/:path*", "destination": "/api/tmdb" }
   ]
 }

@@ -329,8 +329,17 @@ export async function getProfileByUsername(username: string) {
       .select('*')
       .eq('username', username)
       .single();
-    return data || null;
   } catch {
+    if (!data) return null;
+    
+    // Fetch posts by this user
+    const { data: posts } = await supabase
+      .from('posts')
+      .select('*')
+      .eq('user_id', data.id)
+      .order('created_at', { ascending: false });
+    
+    return { user: data, posts: posts || [] };
     return null;
   }
 }

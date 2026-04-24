@@ -57,12 +57,17 @@ export async function getLibraryTitles() {
   }
 }
 
-export async function awardXPAndCoins(xp: number, coins: number, reason: string = 'Action award') {
+export async function awardXPAndCoins(
+  xp: number,
+  coins: number,
+  reason: string = 'Action award',
+  eventType: string = 'add_to_library'
+) {
   try {
     const user = await getCurrentUser();
     if (!user) return null;
 
-    // Read current XP for level calculation (read-only is allowed)
+    // Read current XP for level tracking (read-only)
     const { data: xpData } = await supabase
       .from('user_xp')
       .select('xp_total, xp_current_level')
@@ -72,22 +77,21 @@ export async function awardXPAndCoins(xp: number, coins: number, reason: string 
     const currentLevel = xpData?.xp_current_level || 1;
 
     // Use the approved RPCs instead of direct upserts
-    const [xpRpc, coinsRpc] = await Promise.all([
-      supabase.rpc('award_xp', {
-        p_user_id: user.id,
-        p_event_type: 'custom',
-        p_xp_amount: xp
-      }),
-      coins > 0
-        ? supabase.rpc('increment_coins', { uid: user.id, amount: coins })
-        : Promise.resolve({ error: null })
-    ]);
+    const xpRpc = await supabase.rpc('award_xp', {
+      p_user_id: user.id,
+      p_event_type: eventType,
+      p_xp_amount: xp
+    });
 
     if (xpRpc.error) {
       console.error('award_xp RPC error:', xpRpc.error);
     }
-    if (coinsRpc.error) {
-      console.error('increment_coins RPC error:', coinsRpc.error);
+
+    if (coins > 0) {
+      const coinsRpc = await supabase.rpc('increment_coins', { uid: user.id, amount: coins });
+      if (coinsRpc.error) {
+        console.error('increment_coins RPC error:', coinsRpc.error);
+      }
     }
 
     // Re-read XP to get new level
@@ -154,7 +158,8 @@ export async function addToLibrary(
     const rewards = await awardXPAndCoins(
       status === 'completed' ? 35 : 10,
       status === 'completed' ? 15 : 5,
-      status === 'completed' ? 'Completed title award' : 'Added to library'
+      status === 'completed' ? 'Completed title award' : 'Added to library',
+      status === 'completed' ? 'complete_title' : 'add_to_library'
     );
 
     return { success: true, rewards };
@@ -221,7 +226,7 @@ export async function createPost(content: string, mediaType: string | null = nul
 
     if (error) throw error;
 
-    await awardXPAndCoins(5, 2, 'Posted a transmission');
+    await awardXPAndCoins(5, 2, 'Posted a transmission', 'post_created');
     return { data, error: null, success: true };
   } catch (error: any) {
     console.error('Error creating post:', error);
@@ -320,7 +325,7 @@ export async function updateLibraryItemStatus(itemId: string, status: string) {
     if (error) throw error;
 
     if (status === 'completed') {
-      await awardXPAndCoins(25, 10, 'Completed a title');
+      await awardXPAndCoins(25, 10, 'Completed a title', 'complete_title');
     }
 
     return { success: true };

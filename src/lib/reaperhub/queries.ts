@@ -266,7 +266,7 @@ export async function awardXPAndCoins(xp: number, coins: number, reason: string)
 
 
     await Promise.all([
-            supabase.rpc('award_xp', { uid: user.id, amount: xp })
+            supabase.rpc('award_xp', { uid: user.id, amount: xp }),
       supabase.rpc('increment_coins', { uid: user.id, amount: coins })
     ]);
 

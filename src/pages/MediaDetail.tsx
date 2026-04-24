@@ -111,6 +111,7 @@ export default function MediaDetail() {
           } else {
             toast.success("Item added to library!");
           }
+          toast.error("Archive failure. Check your connection.");
         }
       }
     } catch (err) {

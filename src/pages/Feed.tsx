@@ -72,8 +72,8 @@ export default function Feed() {
       const { error } = await supabase
         .from('posts')
         .insert({
-          user_id: user.id,
-          body: content,
+          author_id: user.id,
+          content,
           media_type: finalMediaType,
           is_private: false
         });
@@ -83,7 +83,7 @@ export default function Feed() {
         const { error: retryError } = await supabase
           .from('posts')
           .insert({
-            user_id: user.id,
+            author_id: user.id,
             content: finalMediaType ? `[${finalMediaType}] ${content}` : content,
             is_private: false
           });

@@ -342,7 +342,6 @@ export async function getProfileByUsername(username: string) {
     return null;
   }
   }
-}
 export async function getUserAchievements(userId: string) {
   try {
     const { data } = await supabase

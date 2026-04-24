@@ -78,7 +78,6 @@ export default function Feed() {
       toast.error("Transmission failed. Field interference detected.");
     } finally {
       setPosting(false);
-    }  setPosting(false);
     }
   };
 

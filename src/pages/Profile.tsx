@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { 
   getProfileByUsername, 
   getUserAchievements, 
-  getLibrary, 
+  getLibraryItems, 
   getCurrentUser, 
   updateProfile,
   followUser,

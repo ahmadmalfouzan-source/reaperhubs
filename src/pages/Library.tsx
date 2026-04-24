@@ -137,7 +137,7 @@ export default function Library() {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
           {filteredItems.map((item) => {
             const mediaType = item.media_items?.type || 'movie';
-            const detailPath = `/media/${mediaType}/${item.media_items?.tmdb_id || item.media_items?.rawg_id || item.media_item_id}`;
+            const detailPath = `/media/${mediaType}/${item.id}`;
             
             return (
               <div 

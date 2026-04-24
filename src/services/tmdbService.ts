@@ -1,4 +1,5 @@
-const BASE_URL = '/api/tmdb';
+const BASE_URL = 'https://api.themoviedb.org/3';
+const API_KEY = import.meta.env.VITE_TMDB_API_KEY || '';
 
 export interface TMDBMedia {
   id: number;
@@ -14,9 +15,9 @@ export interface TMDBMedia {
 
 export async function searchTMDB(query: string, type: 'movie' | 'tv' | 'multi' = 'multi', page = 1) {
   if (!query) return [];
-  
-  const url = `${BASE_URL}/search/${type}?query=${encodeURIComponent(query)}&page=${page}`;
-  
+
+  const url = `${BASE_URL}/search/${type}?query=${encodeURIComponent(query)}&page=${page}&api_key=${API_KEY}`;
+
   try {
     const response = await fetch(url);
     const data = await response.json();
@@ -34,13 +35,13 @@ export async function discoverTMDB(options: {
   page?: number;
 }) {
   const { type, genreId, sortBy = 'popularity.desc', page = 1 } = options;
-  
-  let url = `${BASE_URL}/discover/${type}?sort_by=${sortBy}&page=${page}`;
-  
+
+  let url = `${BASE_URL}/discover/${type}?sort_by=${sortBy}&page=${page}&api_key=${API_KEY}`;
+
   if (genreId && genreId !== 'all') {
     url += `&with_genres=${genreId}`;
   }
-  
+
   try {
     const response = await fetch(url);
     const data = await response.json();
@@ -52,8 +53,8 @@ export async function discoverTMDB(options: {
 }
 
 export async function getTMDBGenres(type: 'movie' | 'tv') {
-  const url = `${BASE_URL}/genre/${type}/list`;
-  
+  const url = `${BASE_URL}/genre/${type}/list?api_key=${API_KEY}`;
+
   try {
     const response = await fetch(url);
     const data = await response.json();
@@ -71,8 +72,8 @@ export function getTMDBImageUrl(path: string | null | undefined, size: 'w300' | 
 }
 
 export async function getMediaDetails(id: string, type: 'movie' | 'tv') {
-  const url = `${BASE_URL}/${type}/${id}?append_to_response=credits,recommendations,videos`;
-  
+  const url = `${BASE_URL}/${type}/${id}?append_to_response=credits,recommendations,videos&api_key=${API_KEY}`;
+
   try {
     const response = await fetch(url);
     if (!response.ok) throw new Error('Failed to fetch details');
@@ -85,8 +86,8 @@ export async function getMediaDetails(id: string, type: 'movie' | 'tv') {
 
 export async function getTMDBItemByTitle(title: string, type: string) {
   const tmdbType = type.toLowerCase() === 'series' || type.toLowerCase() === 'tv' ? 'tv' : 'movie';
-  const url = `${BASE_URL}/search/${tmdbType}?query=${encodeURIComponent(title)}`;
-  
+  const url = `${BASE_URL}/search/${tmdbType}?query=${encodeURIComponent(title)}&api_key=${API_KEY}`;
+
   try {
     const response = await fetch(url);
     const data = await response.json();

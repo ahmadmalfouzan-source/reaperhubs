@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { getLibrary, getCurrentUser } from '../lib/reaperhub/queries';
+import { getLibraryItems, getCurrentUser } from '../lib/reaperhub/queries';
 import { Library as LibraryIcon, Search, Play, Ghost, Sparkles } from 'lucide-react';
 import Skeleton from '../components/Skeleton';
 import { cn } from '../lib/utils';
@@ -23,7 +23,7 @@ export default function Library() {
 
   useEffect(() => {
     // Guest mode is allowed, so we don't redirect to login here
-    getLibrary().then(data => {
+    getLibraryItems.then(data => {
       setItems(data);
       setFilteredItems(data);
       setLoading(false);

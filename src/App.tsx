@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Link, useNavigate, useLocation } from 're
 import { Home, Compass, Search, Library, Bell, Settings, User, LogOut, ChevronDown, Trophy } from 'lucide-react';
 import { cn } from './lib/utils';
 import { useEffect, useState, useRef } from 'react';
+import type { ReactNode } from 'react';
 import { supabase } from './lib/supabase';
 import { getUnreadNotificationCount } from './lib/reaperhub/queries';
 
@@ -16,8 +17,10 @@ import SettingsPage from './pages/Settings';
 import ProfilePage from './pages/Profile';
 import LeaderboardPage from './pages/Leaderboard';
 import SignUpPage from './pages/SignUp';
+import MediaDetailPage from './pages/MediaDetail';
+import { Toaster } from 'sonner';
 
-function Layout({ children }: { children: React.ReactNode }) {
+function Layout({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -178,12 +181,12 @@ function Layout({ children }: { children: React.ReactNode }) {
                   {menuOpen && (
                     <div className="absolute right-0 mt-2 w-56 bg-surface border border-border rounded shadow-xl overflow-hidden py-1 z-50">
                       <div className="px-4 py-3 border-b border-border">
-                        <p className="text-sm font-bold truncate">{profile?.username || 'User'}</p>
+                        <p className="text-sm font-bold truncate">{profile?.display_name || profile?.username || user.email?.split('@')[0] || 'Agent'}</p>
                         <p className="text-xs text-muted truncate">{user.email}</p>
                       </div>
                       
                       <Link 
-                        to={profile?.username ? `/profile/${profile.username}` : '#'} 
+                        to={profile?.username ? `/profile/${profile.username}` : "/profile"} 
                         className="flex items-center gap-2 px-4 py-2 hover:bg-surface-2 transition-colors text-sm"
                       >
                         <User className="w-4 h-4" />
@@ -281,7 +284,7 @@ function Layout({ children }: { children: React.ReactNode }) {
         </Link>
         {user ? (
           <Link 
-            to={profile?.username ? `/profile/${profile.username}` : '#'} 
+            to={profile?.username ? `/profile/${profile.username}` : '/profile'} 
             className={cn("flex flex-col items-center p-2 w-full", location.pathname.includes('/profile') ? "text-primary" : "text-muted")}
           >
             <User className="w-6 h-6 mb-1" />
@@ -314,11 +317,15 @@ export default function App() {
           <Route path="/library" element={<LibraryPage />} />
           <Route path="/notifications" element={<NotificationsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
           <Route path="/profile/:username" element={<ProfilePage />} />
           <Route path="/leaderboard" element={<LeaderboardPage />} />
           <Route path="/signup" element={<SignUpPage />} />
+          <Route path="/media/:type/:id" element={<MediaDetailPage />} />
+          <Route path="/media/:id" element={<MediaDetailPage />} />
         </Routes>
       </Layout>
+      <Toaster position="top-right" theme="dark" closeButton richColors />
     </BrowserRouter>
   );
 }

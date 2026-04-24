@@ -1,6 +1,4 @@
-const TMDB_API_KEY = 'e09c714c70283f7112fa2b6f7391a9db'; // Placeholder for user
-const BASE_URL = 'https://api.themoviedb.org/3';
-const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w300';
+const BASE_URL = '/api/tmdb';
 
 export interface TMDBMedia {
   id: number;
@@ -17,7 +15,7 @@ export interface TMDBMedia {
 export async function searchTMDB(query: string, type: 'movie' | 'tv' | 'multi' = 'multi', page = 1) {
   if (!query) return [];
   
-  const url = `${BASE_URL}/search/${type}?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&page=${page}`;
+  const url = `${BASE_URL}/search/${type}?query=${encodeURIComponent(query)}&page=${page}`;
   
   try {
     const response = await fetch(url);
@@ -37,7 +35,7 @@ export async function discoverTMDB(options: {
 }) {
   const { type, genreId, sortBy = 'popularity.desc', page = 1 } = options;
   
-  let url = `${BASE_URL}/discover/${type}?api_key=${TMDB_API_KEY}&sort_by=${sortBy}&page=${page}`;
+  let url = `${BASE_URL}/discover/${type}?sort_by=${sortBy}&page=${page}`;
   
   if (genreId && genreId !== 'all') {
     url += `&with_genres=${genreId}`;
@@ -54,7 +52,7 @@ export async function discoverTMDB(options: {
 }
 
 export async function getTMDBGenres(type: 'movie' | 'tv') {
-  const url = `${BASE_URL}/genre/${type}/list?api_key=${TMDB_API_KEY}`;
+  const url = `${BASE_URL}/genre/${type}/list`;
   
   try {
     const response = await fetch(url);
@@ -66,7 +64,38 @@ export async function getTMDBGenres(type: 'movie' | 'tv') {
   }
 }
 
-export function getTMDBImageUrl(path: string) {
-  if (!path) return null;
-  return `${IMAGE_BASE_URL}${path}`;
+export function getTMDBImageUrl(path: string | null | undefined, size: 'w300' | 'w500' | 'original' = 'w500') {
+  if (!path) return 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=500&q=80';
+  if (path.startsWith('http')) return path;
+  return `https://image.tmdb.org/t/p/${size}${path}`;
+}
+
+export async function getMediaDetails(id: string, type: 'movie' | 'tv') {
+  const url = `${BASE_URL}/${type}/${id}?append_to_response=credits,recommendations,videos`;
+  
+  try {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Failed to fetch details');
+    return await response.json();
+  } catch (error) {
+    console.error('TMDB Details Error:', error);
+    return null;
+  }
+}
+
+export async function getTMDBItemByTitle(title: string, type: string) {
+  const tmdbType = type.toLowerCase() === 'series' || type.toLowerCase() === 'tv' ? 'tv' : 'movie';
+  const url = `${BASE_URL}/search/${tmdbType}?query=${encodeURIComponent(title)}`;
+  
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+    if (data.results && data.results.length > 0) {
+      return { ...data.results[0], media_type: tmdbType };
+    }
+    return null;
+  } catch (error) {
+    console.error('TMDB Search Error:', error);
+    return null;
+  }
 }

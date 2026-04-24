@@ -1,8 +1,43 @@
-import { useEffect, useState, useCallback } from 'react';
-import { searchMedia, addToLibrary } from '../lib/reaperhub/queries';
+import { useEffect, useState, useCallback, useRef } from 'react';
+import { addToLibrary as addToLibraryQuery } from '../lib/reaperhub/queries';
 import { getDiscoverPicks } from '../services/geminiService';
-import { searchTMDB, discoverTMDB, getTMDBGenres, getTMDBImageUrl } from '../services/tmdbService';
+import { searchTMDB, discoverTMDB, getTMDBGenres, getTMDBImageUrl, getTMDBItemByTitle } from '../services/tmdbService';
+import { searchGames as searchRAWG, mapRAWGToMedia } from '../services/rawgService';
 import { Sparkles, Plus, Check, Search as SearchIcon, Filter, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+
+function DiscoverImage({ title, type }: { title: string; type: string }) {
+  const [url, setUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (type === 'game') {
+      searchRAWG(title).then(results => {
+        if (results && results.length > 0 && results[0].background_image) {
+          setUrl(results[0].background_image);
+        }
+        setLoading(false);
+      });
+    } else {
+      getTMDBItemByTitle(title, type).then(item => {
+        if (item?.poster_path) {
+          setUrl(getTMDBImageUrl(item.poster_path));
+        }
+        setLoading(false);
+      });
+    }
+  }, [title, type]);
+
+  if (loading) return <div className="w-full h-full bg-surface-2 animate-pulse" />;
+  if (!url) return (
+    <div className="w-full h-full bg-surface-2 flex items-center justify-center text-[10px] text-muted text-center p-2 uppercase font-bold">
+      {type}
+    </div>
+  );
+
+  return <img src={url} alt={title} className="w-full h-full object-cover transition-transform group-hover:scale-110" />;
+}
 
 type MediaType = 'movie' | 'tv' | 'game' | 'all';
 type SortOption = 'popularity.desc' | 'vote_average.desc' | 'release_date.desc';
@@ -14,6 +49,23 @@ export default function Search() {
   const [discoverPicks, setDiscoverPicks] = useState<any[]>([]);
   const [discoverLoading, setDiscoverLoading] = useState(false);
   const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const navigate = useNavigate();
+
+  // Debounced search effect
+  useEffect(() => {
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+    
+    if (query.trim()) {
+      searchTimeoutRef.current = setTimeout(() => {
+        handleSearch(query);
+      }, 300);
+    }
+    
+    return () => {
+      if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+    };
+  }, [query]);
 
   // Filters
   const [showFilters, setShowFilters] = useState(false);
@@ -52,7 +104,9 @@ export default function Search() {
     if (!searchQuery) {
       // If no query, use discover API for movies/tv
       if (mediaType === 'game' || mediaType === 'all') {
-        data = await searchMedia(''); // Fallback to local
+        const gameData = await searchRAWG(''); // Get trending games
+        const formatted = gameData.map(mapRAWGToMedia);
+        data = [...formatted];
       }
       
       if (mediaType !== 'game') {
@@ -77,8 +131,9 @@ export default function Search() {
     } else {
       // Search with query
       if (mediaType === 'game' || mediaType === 'all') {
-        const gameData = await searchMedia(searchQuery);
-        data = [...gameData];
+        const gameData = await searchRAWG(searchQuery);
+        const formatted = gameData.map(mapRAWGToMedia);
+        data = [...formatted];
       }
 
       if (mediaType !== 'game') {
@@ -108,9 +163,12 @@ export default function Search() {
   }, [mediaType, selectedGenre, sortBy, handleSearch]);
 
   const handleAdd = async (item: any) => {
-    const res = await addToLibrary(item.title, item.type);
+    const res = await addToLibraryQuery(item.title, item.type);
     if (res.success) {
       setAddedIds(prev => new Set(prev).add(item.title));
+      toast.success(`${item.title} added to your library.`);
+    } else {
+      toast.error("Archive failed. System interference.");
     }
   };
 
@@ -251,7 +309,14 @@ export default function Search() {
         ) : results.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {results.map((item) => (
-              <div key={item.id} className="relative group rounded-2xl overflow-hidden bg-surface-2 cursor-pointer touch-manipulation aspect-[2/3] shadow-lg border border-border/50">
+                <div 
+                  key={item.id} 
+                  onClick={() => {
+                    const mediaId = item.id.replace('tmdb-', '').replace('rawg-', '');
+                    navigate(`/media/${item.type}/${mediaId}`);
+                  }}
+                  className="relative group rounded-2xl overflow-hidden bg-surface-2 cursor-pointer touch-manipulation aspect-[2/3] shadow-lg border border-border/50"
+                >
                 {item.cover_url ? (
                   <img src={item.cover_url} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                 ) : (
@@ -274,7 +339,7 @@ export default function Search() {
                   )}
                 </div>
 
-                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4">
+                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4 z-20">
                   <h3 className="font-display font-medium text-lg text-white leading-tight mb-2">
                     {item.title} {item.release_year ? `(${item.release_year})` : ''}
                   </h3>
@@ -284,10 +349,19 @@ export default function Search() {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
+                      const mediaId = item.id.replace('tmdb-', '').replace('rawg-', '');
+                      navigate(`/media/${item.type}/${mediaId}`);
+                    }}
+                    className="absolute inset-0 w-full h-full opacity-0 z-0"
+                    aria-label="View details"
+                  />
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
                       handleAdd(item);
                     }}
                     disabled={addedIds.has(item.title)}
-                    className="w-full py-2 bg-primary hover:bg-primary/90 text-white rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                    className="w-full py-2 bg-primary hover:bg-primary/90 text-white rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 disabled:opacity-50 relative z-30"
                   >
                     {addedIds.has(item.title) ? (
                       <><Check size={14} /> In Library</>
@@ -329,12 +403,23 @@ export default function Search() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {discoverPicks.map((item, idx) => (
               <div key={idx} className="bg-surface border border-border rounded-2xl p-6 flex gap-6 hover:border-primary-2/30 transition-all duration-300 group shadow-lg">
-                <div className="w-24 h-32 flex-shrink-0 relative rounded-xl overflow-hidden shadow-2xl">
-                  <img 
-                    src={`https://images.unsplash.com/photo-${1650000000000 + idx}?w=300&q=80`} 
-                    alt={item.title} 
-                    className="w-full h-full object-cover transition-transform group-hover:scale-110" 
-                  />
+                <div 
+                  className="w-24 h-32 flex-shrink-0 relative rounded-xl overflow-hidden shadow-2xl cursor-pointer"
+                  onClick={async () => {
+                    if (item.type === 'game') {
+                      const gameResults = await searchRAWG(item.title);
+                      if (gameResults && gameResults.length > 0) {
+                        navigate(`/media/game/${gameResults[0].id}`);
+                      }
+                    } else {
+                      const tmdbItem = await getTMDBItemByTitle(item.title, item.type);
+                      if (tmdbItem) {
+                        navigate(`/media/${item.type === 'series' ? 'tv' : item.type}/${tmdbItem.id}`);
+                      }
+                    }
+                  }}
+                >
+                  <DiscoverImage title={item.title} type={item.type} />
                   <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors"></div>
                 </div>
                 <div className="flex-1 flex flex-col justify-between py-1">

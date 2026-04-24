@@ -1,8 +1,10 @@
 import { useEffect, useState, useCallback } from 'react';
-import { getFeedItems, createPost, getCurrentUser } from '../lib/reaperhub/queries';
+import { getFeedItems, getCurrentUser } from '../lib/reaperhub/queries';
+import { supabase } from '../lib/supabase';
 import { Link } from 'react-router-dom';
-import { MessageSquare, Heart, Share2, Image as ImageIcon, Film, Gamepad2, Send, MoreHorizontal, User } from 'lucide-react';
+import { MessageSquare, Heart, Share2, Film, Gamepad2, Send, MoreHorizontal, User, TrendingUp, Sparkles, Hash, Users, Zap as ZapIcon, Loader2, Calendar } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { toast } from 'sonner';
 
 const TAGS = [
   { id: 'general', label: 'General', icon: <MessageSquare size={14} />, color: 'text-muted' },
@@ -57,15 +59,47 @@ export default function Feed() {
     if (!content.trim()) return;
     setPosting(true);
     
-    // We'll append the tag to the content title-style for now as posts table might not have tag field
-    const taggedContent = selectedTag !== 'general' ? `[${selectedTag.toUpperCase()}] ${content}` : content;
+    // Use the explicit mediaType if it's not the default 'general'
+    const finalMediaType = selectedTag === 'general' ? null : selectedTag;
     
-    const { error } = await createPost(taggedContent);
-    setPosting(false);
-    if (!error) {
+    try {
+      if (!user) {
+        toast.error('Not logged in');
+        setPosting(false);
+        return;
+      }
+      
+      const { error } = await supabase
+        .from('posts')
+        .insert({
+          author_id: user.id,
+          content,
+          media_type: finalMediaType,
+          is_private: false
+        });
+        
+      if (error) {
+        // Fallback for missing media_type
+        const { error: retryError } = await supabase
+          .from('posts')
+          .insert({
+            author_id: user.id,
+            content: finalMediaType ? `[${finalMediaType}] ${content}` : content,
+            is_private: false
+          });
+          
+        if (retryError) throw retryError;
+      }
+      
       setContent('');
       setSelectedTag('general');
       fetchFeed();
+      toast.success("Transmission broadcasted successfully.");
+    } catch (error) {
+      console.error('Post error:', error);
+      toast.error("Transmission failed. Field interference detected.");
+    } finally {
+      setPosting(false);
     }
   };
 
@@ -79,146 +113,231 @@ export default function Feed() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in duration-500">
-      <div className="space-y-2">
-        <h1 className="font-display font-bold text-4xl uppercase tracking-tighter text-white">Transmission</h1>
-        <p className="text-muted text-sm">Real-time status updates from the collective.</p>
-      </div>
-
-      {user && (
-        <div className="bg-surface border border-border shadow-xl rounded-[32px] p-6 relative overflow-hidden">
-          {/* Subtle background glow */}
-          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 blur-[60px] pointer-events-none"></div>
-          
-          <form onSubmit={handlePost} className="space-y-4 relative z-10">
-            <div className="flex gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-surface-2 border border-border flex items-center justify-center overflow-hidden flex-shrink-0">
-                {user.avatar_url ? (
-                  <img src={user.avatar_url} alt="You" className="w-full h-full object-cover" />
-                ) : (
-                  <User className="w-6 h-6 text-primary" />
-                )}
-              </div>
-              <textarea
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                placeholder="Broadcast your status..."
-                className="w-full bg-[#0e1430]/50 border border-border/50 rounded-2xl p-4 text-text focus:outline-none focus:border-primary transition-all min-h-[120px] resize-none shadow-inner"
-              ></textarea>
-            </div>
-
-            <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
-              <div className="flex items-center gap-2">
-                {TAGS.map((tag) => (
-                  <button
-                    key={tag.id}
-                    type="button"
-                    onClick={() => setSelectedTag(tag.id)}
-                    className={cn(
-                      "flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-[10px] font-bold uppercase tracking-widest transition-all",
-                      selectedTag === tag.id 
-                        ? "bg-primary border-primary text-white shadow-lg shadow-primary/20" 
-                        : "bg-surface-2 border-border text-muted hover:border-text/30"
-                    )}
-                  >
-                    {tag.icon}
-                    {tag.label}
-                  </button>
-                ))}
-              </div>
-              
-              <button
-                type="submit"
-                disabled={posting || !content.trim()}
-                className="bg-primary hover:bg-primary/90 text-white font-bold rounded-2xl px-8 py-3 transition-all disabled:opacity-50 flex items-center gap-2 shadow-lg shadow-primary/20 group"
-              >
-                {posting ? 'Broadcasting...' : (
-                  <>
-                    <span>Post</span>
-                    <Send size={16} className="transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
-                  </>
-                )}
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      {loading ? (
+    <div className="max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-10 animate-in fade-in duration-700">
+      <div className="lg:col-span-2 space-y-8">
         <div className="space-y-4">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="h-48 bg-surface border border-border rounded-[32px] animate-pulse"></div>
-          ))}
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full border border-primary/20 text-[10px] font-bold text-primary uppercase tracking-[0.2em] mb-2">
+            Collective Pulse
+          </div>
+          <h1 className="font-display font-bold text-4xl md:text-5xl uppercase tracking-tighter text-white">Transmission Feed</h1>
+          <p className="text-muted text-sm font-medium">Monitoring secure radio updates from across the territories.</p>
         </div>
-      ) : items.length === 0 ? (
-        <div className="text-center py-24 text-muted bg-surface/50 rounded-[32px] border border-dashed border-border border-2 flex flex-col items-center justify-center">
-          <MessageSquare className="w-16 h-16 mb-6 opacity-10" />
-          <p className="text-lg font-medium opacity-50">Silence detected in this sector.</p>
-          <p className="text-sm opacity-30 mt-2">Initialize your first transmission above.</p>
-        </div>
-      ) : (
-        <div className="space-y-6">
-          {items.map((item) => (
-            <div key={item.id} className="group bg-surface border border-border/50 hover:border-primary/30 shadow-2xl rounded-[32px] p-6 transition-all duration-300">
-              <div className="flex items-center justify-between mb-5">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-surface-2 border border-border flex items-center justify-center overflow-hidden shadow-lg">
-                    {item.users?.avatar_url ? (
-                      <img src={item.users.avatar_url} alt={item.users?.username} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-primary/10">
-                        <span className="text-primary font-bold text-xl">{item.users?.username?.[0]?.toUpperCase() || '?'}</span>
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <Link to={`/profile/${item.users?.username || ''}`} className="font-display font-bold text-lg text-white hover:text-primary transition-colors block leading-tight">
-                      {item.users?.username || 'Redacted Agent'}
-                    </Link>
-                    <div className="flex items-center gap-2 text-[10px] text-muted mt-0.5">
-                      <span className="font-bold text-primary-2 uppercase tracking-widest">Slayer-X</span>
-                      <span className="w-1 h-1 bg-border rounded-full"></span>
-                      <span>{new Date(item.created_at).toLocaleDateString()} at {new Date(item.created_at).getHours()}:00</span>
-                    </div>
-                  </div>
+
+        {user && (
+          <div className="bg-surface border-2 border-border/50 shadow-2xl rounded-[40px] p-8 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[100px] pointer-events-none group-hover:bg-primary/10 transition-all duration-1000"></div>
+            
+            <form onSubmit={handlePost} className="space-y-6 relative z-10">
+              <div className="flex gap-5">
+                <div className="w-14 h-14 rounded-3xl bg-surface-2 border-2 border-border flex items-center justify-center overflow-hidden flex-shrink-0 shadow-lg group-hover:border-primary/30 transition-all">
+                  {user.avatar_url ? (
+                    <img src={user.avatar_url} alt="You" className="w-full h-full object-cover" />
+                  ) : (
+                    <User className="w-6 h-6 text-primary" />
+                  )}
                 </div>
-                <button className="p-2 text-muted hover:text-text hover:bg-surface-2 rounded-xl transition-all">
-                  <MoreHorizontal size={18} />
+                <div className="flex-1 space-y-2">
+                  <textarea
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                    placeholder="Broadcast your status..."
+                    className="w-full bg-surface-2/50 border border-border/50 rounded-2xl p-5 text-text focus:outline-none focus:border-primary transition-all min-h-[140px] resize-none shadow-inner text-lg italic font-medium placeholder:text-muted/30"
+                  ></textarea>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-6 pt-4 border-t border-border/30">
+                <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+                  {TAGS.map((tag) => (
+                    <button
+                      key={tag.id}
+                      type="button"
+                      onClick={() => setSelectedTag(tag.id)}
+                      className={cn(
+                        "flex items-center gap-2 px-4 py-2 rounded-2xl border text-[10px] font-bold uppercase tracking-widest transition-all whitespace-nowrap",
+                        selectedTag === tag.id 
+                          ? "bg-primary border-primary text-black shadow-xl shadow-primary/20 scale-105" 
+                          : "bg-surface-2 border-border text-muted hover:border-text/30"
+                      )}
+                    >
+                      <Hash size={12} />
+                      {tag.label}
+                    </button>
+                  ))}
+                </div>
+                
+                <button
+                  type="submit"
+                  disabled={posting || !content.trim()}
+                  className="bg-primary hover:bg-primary/90 text-black font-bold rounded-2xl px-10 py-4 transition-all disabled:opacity-50 flex items-center gap-3 shadow-2xl shadow-primary/30 group/btn active:scale-95"
+                >
+                  {posting ? (
+                    <Loader2 className="animate-spin w-5 h-5" />
+                  ) : (
+                    <>
+                      <span>Transmit</span>
+                      <Send size={18} className="transition-transform group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1" />
+                    </>
+                  )}
                 </button>
               </div>
+            </form>
+          </div>
+        )}
 
-              <div className="pl-1 space-y-4">
-                <p className="text-text leading-relaxed whitespace-pre-wrap text-base md:text-lg">
-                  {item.content}
-                </p>
-
-                <div className="flex items-center gap-6 pt-4 border-t border-border/30">
-                  <button 
-                    onClick={() => toggleLike(item.id)}
-                    className={cn(
-                      "flex items-center gap-2 px-3 py-2 rounded-xl transition-all group",
-                      likedPosts.has(item.id) ? "text-danger bg-danger/10 shadow-inner" : "text-muted hover:text-danger hover:bg-danger/5"
-                    )}
-                  >
-                    <Heart className={cn("w-5 h-5 transition-transform group-active:scale-125", likedPosts.has(item.id) && "fill-current")} />
-                    <span className="text-xs font-bold">{likedPosts.has(item.id) ? 14 : 13}</span>
-                  </button>
-                  
-                  <button className="flex items-center gap-2 px-3 py-2 text-muted hover:text-primary hover:bg-primary/5 rounded-xl transition-all group">
-                    <MessageSquare size={18} className="transition-transform group-active:scale-110" />
-                    <span className="text-xs font-bold">4</span>
-                  </button>
-                  
-                  <button className="flex items-center gap-2 px-3 py-2 text-muted hover:text-success hover:bg-success/5 rounded-xl transition-all group">
-                    <Share2 size={18} className="transition-transform group-active:scale-110" />
-                    <span className="text-xs font-bold">Share</span>
+        {loading && items.length === 0 ? (
+          <div className="space-y-6">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="h-64 bg-surface border border-border rounded-[40px] animate-pulse relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full animate-[shimmer_2s_infinite]"></div>
+              </div>
+            ))}
+          </div>
+        ) : items.length === 0 ? (
+          <div className="text-center py-32 bg-surface/30 rounded-[48px] border-2 border-dashed border-border/50 flex flex-col items-center justify-center space-y-6">
+            <div className="w-24 h-24 bg-surface-2 rounded-full flex items-center justify-center border border-border">
+              <MessageSquare className="w-12 h-12 text-muted opacity-10" />
+            </div>
+            <div className="space-y-2">
+              <p className="text-2xl font-display font-bold text-white uppercase tracking-tight opacity-50">Radio Silence</p>
+              <p className="text-sm text-muted italic max-w-xs mx-auto">No signals detected in this cluster. Initiate a broadcast to start the chain.</p>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-8">
+            {items.map((item) => (
+              <div key={item.id} className="group bg-surface border-2 border-border/30 hover:border-primary/50 shadow-2xl rounded-[48px] p-8 md:p-10 transition-all duration-500 hover:-translate-y-1">
+                <div className="flex items-center justify-between mb-8">
+                  <div className="flex items-center gap-5">
+                    <Link to={`/profile/${item.users?.username || ''}`} className="relative group/avatar">
+                      <div className="w-14 h-14 rounded-3xl bg-surface-2 border-2 border-border overflow-hidden shadow-2xl transition-all group-hover/avatar:border-primary/80 group-hover/avatar:shadow-[0_0_20px_rgba(0,183,255,0.3)]">
+                        {item.users?.avatar_url ? (
+                          <img src={item.users.avatar_url} alt={item.users?.username} className="w-full h-full object-cover grayscale group-hover/avatar:grayscale-0 transition-all duration-700" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-primary/5">
+                            <span className="text-primary font-display font-bold text-2xl">{item.users?.username?.[0]?.toUpperCase() || '?'}</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-success border-4 border-surface rounded-full shadow-lg"></div>
+                    </Link>
+                    <div>
+                      <Link to={`/profile/${item.users?.username || ''}`} className="font-display font-bold text-xl text-white hover:text-primary transition-colors block leading-tight tracking-tight uppercase">
+                        {item.users?.username || 'Redacted Agent'}
+                      </Link>
+                      <div className="flex items-center gap-3 text-[10px] md:text-xs text-muted mt-1.5 font-bold uppercase tracking-widest">
+                        <span className="text-primary-2">Field Operative</span>
+                        <span className="w-1 h-1 bg-border rounded-full"></span>
+                        <span className="flex items-center gap-1.5 opacity-60">
+                           <Calendar size={12} />
+                           {new Date(item.created_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <button className="p-3 text-muted hover:text-white hover:bg-surface-2 rounded-2xl transition-all border border-transparent hover:border-border">
+                    <MoreHorizontal size={20} />
                   </button>
                 </div>
+
+                <div className="pl-1 space-y-6">
+                  <div className="relative">
+                    <p className="text-text/90 leading-relaxed whitespace-pre-wrap text-lg md:text-xl font-medium italic border-l-4 border-primary/30 pl-6 py-2 bg-primary/5 rounded-r-3xl pr-6">
+                      "{item.content}"
+                    </p>
+                    <Sparkles size={20} className="text-primary/10 absolute -top-4 -right-2 rotate-12" />
+                  </div>
+
+                  {item.media_type && (
+                     <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-primary-2/10 border border-primary-2/20 rounded-xl text-[10px] font-bold text-primary-2 uppercase tracking-[0.2em] shadow-lg">
+                        <ZapIcon size={12} className="fill-current" />
+                        Intel Sector: {item.media_type}
+                     </div>
+                  )}
+
+                  <div className="flex flex-wrap items-center gap-6 pt-8 border-t border-border/30">
+                    <button 
+                      onClick={() => toggleLike(item.id)}
+                      className={cn(
+                        "flex items-center gap-3 px-5 py-3 rounded-2xl transition-all group/stat",
+                        likedPosts.has(item.id) 
+                          ? "text-danger bg-danger/10 shadow-inner border border-danger/20" 
+                          : "text-muted hover:text-danger hover:bg-danger/5 border border-transparent hover:border-danger/10"
+                      )}
+                    >
+                      <Heart className={cn("w-5 h-5 transition-transform group-active/stat:scale-150", likedPosts.has(item.id) && "fill-current")} />
+                      <span className="text-xs font-bold leading-none">{likedPosts.has(item.id) ? 14 : 13}</span>
+                    </button>
+                    
+                    <button className="flex items-center gap-3 px-5 py-3 text-muted hover:text-primary hover:bg-primary/5 rounded-2xl transition-all group/stat border border-transparent hover:border-primary/10">
+                      <MessageSquare size={18} className="transition-transform group-active/stat:scale-125" />
+                      <span className="text-xs font-bold leading-none">4</span>
+                    </button>
+                    
+                    <button className="flex items-center gap-3 px-5 py-3 text-muted hover:text-success hover:bg-success/5 rounded-2xl transition-all group/stat border border-transparent hover:border-success/10 ml-auto">
+                      <Share2 size={18} className="transition-transform group-active/stat:scale-125" />
+                      <span className="text-[10px] font-bold uppercase tracking-widest hidden sm:inline">Broadcast</span>
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="hidden lg:block space-y-10 sticky top-28 h-fit">
+        <section className="bg-surface border-2 border-border/50 rounded-[40px] p-8 space-y-8 shadow-2xl relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-primary-2/5 blur-[80px] pointer-events-none group-hover:bg-primary-2/10 transition-all"></div>
+          <div className="flex items-center gap-3 border-b border-border/30 pb-4">
+             <TrendingUp className="text-primary-2 w-6 h-6" />
+             <h3 className="font-display font-bold text-2xl uppercase tracking-tighter text-white">Registry Trends</h3>
+          </div>
+          <div className="space-y-5">
+            {['#REAPERHAB', '#SUMMER_SLAY', '#TV_INTEL', '#GAME_ARCHIVE'].map((tag, i) => (
+              <div key={tag} className="group/tag cursor-pointer flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <span className="text-muted/30 font-mono text-[10px] font-bold">0{i+1}</span>
+                  <span className="text-muted group-hover/tag:text-primary transition-all font-bold text-sm uppercase tracking-widest">{tag}</span>
+                </div>
+                <div className="flex flex-col items-end">
+                   <span className="text-[9px] text-muted font-mono uppercase">Signal</span>
+                   <span className="text-[10px] text-primary-2 font-display font-bold">+ {Math.floor(Math.random() * 200)}%</span>
+                </div>
+              </div>
+            ))}
+          </div>
+          <button className="w-full py-4 text-[10px] font-bold uppercase tracking-[0.3em] text-muted hover:text-primary transition-all bg-surface-2/50 rounded-2xl border border-border/50 hover:border-primary/30">
+            Monitor All Trends
+          </button>
+        </section>
+
+        <section className="bg-surface border-2 border-border/50 rounded-[40px] p-8 space-y-8 shadow-2xl">
+          <div className="flex items-center gap-3 border-b border-border/30 pb-4">
+             <Users className="text-success w-6 h-6" />
+             <h3 className="font-display font-bold text-2xl uppercase tracking-tighter text-white">Active Agents</h3>
+          </div>
+          <div className="space-y-5">
+             {[...Array(4)].map((_, i) => (
+                <div key={i} className="flex items-center gap-4 group/agent cursor-pointer">
+                  <div className="w-12 h-12 rounded-2xl bg-surface-2 border border-border group-hover/agent:border-success/50 transition-all flex items-center justify-center group-hover/agent:shadow-[0_0_15px_rgba(0,255,163,0.2)]">
+                     <User size={20} className="text-muted group-hover/agent:text-success transition-colors" />
+                  </div>
+                  <div className="flex-1 space-y-1">
+                    <div className="h-3 w-3/4 bg-surface-2 rounded-full overflow-hidden">
+                       <div className="h-full bg-border w-full group-hover/agent:w-1/2 transition-all"></div>
+                    </div>
+                    <div className="h-2 w-1/2 bg-surface-2/50 rounded-full" />
+                  </div>
+                  <div className="w-2 h-2 bg-success rounded-full animate-pulse shadow-[0_0_10px_rgba(0,255,163,0.5)]"></div>
+                </div>
+             ))}
+          </div>
+          <button className="w-full py-4 text-[10px] font-bold uppercase tracking-[0.3em] text-success border border-success/20 rounded-2xl hover:bg-success/5 transition-all shadow-lg active:scale-95 transform">
+            Secure Recruitment
+          </button>
+        </section>
+      </div>
     </div>
   );
 }

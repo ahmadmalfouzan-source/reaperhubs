@@ -293,3 +293,13 @@ export async function getLeaderboard() {
     return [];
   }
 }
+
+
+export async function getLibraryTitles(): Promise<string[]> {
+  try {
+    const items = await getLibrary();
+    return items.map((item: any) => item.media_items?.title || item.title || '').filter(Boolean);
+  } catch {
+    return [];
+  }
+}

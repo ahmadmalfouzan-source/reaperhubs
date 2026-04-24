@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { getFeedItems, getCurrentUser } from '../lib/reaperhub/queries';
+import { getFeedItems, getCurrentUser } from '../lib/reaperhub/queries', createPost;
 import { supabase } from '../lib/supabase';
 import { Link } from 'react-router-dom';
 import { MessageSquare, Heart, Share2, Film, Gamepad2, Send, MoreHorizontal, User, TrendingUp, Sparkles, Hash, Users, Zap as ZapIcon, Loader2, Calendar } from 'lucide-react';
@@ -63,43 +63,22 @@ export default function Feed() {
     const finalMediaType = selectedTag === 'general' ? null : selectedTag;
     
     try {
-      if (!user) {
-        toast.error('Not logged in');
-        setPosting(false);
-        return;
+      const postType = selectedTag === 'general' ? 'status' : selectedTag === 'movie' ? 'review_share' : selectedTag === 'series' ? 'review_share' : selectedTag === 'game' ? 'review_share' : 'status';
+      const result = await createPost(content, postType);
+      if (result.success) {
+        setContent('');
+        setSelectedTag('general');
+        fetchFeed();
+        toast.success("Transmission broadcasted successfully.");
+      } else {
+        throw new Error(result.error || 'Failed to post');
       }
-      
-      const { error } = await supabase
-        .from('posts')
-        .insert({
-          author_id: user.id,
-          content,
-          media_type: finalMediaType,
-          is_private: false
-        });
-        
-      if (error) {
-        // Fallback for missing media_type
-        const { error: retryError } = await supabase
-          .from('posts')
-          .insert({
-            author_id: user.id,
-            content: finalMediaType ? `[${finalMediaType}] ${content}` : content,
-            is_private: false
-          });
-          
-        if (retryError) throw retryError;
-      }
-      
-      setContent('');
-      setSelectedTag('general');
-      fetchFeed();
-      toast.success("Transmission broadcasted successfully.");
     } catch (error) {
       console.error('Post error:', error);
       toast.error("Transmission failed. Field interference detected.");
     } finally {
       setPosting(false);
+    }  setPosting(false);
     }
   };
 

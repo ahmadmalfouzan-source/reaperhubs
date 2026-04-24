@@ -384,3 +384,83 @@ export async function markAllNotificationsAsRead() {
     return { success: false };
   }
 }
+
+
+// Alias for getUserProfile
+export async function getProfileByUsername(username: string) {
+  return getUserProfile(username);
+}
+
+export async function getUserAchievements(userId: string) {
+  try {
+    const { data, error } = await supabase
+      .from('user_achievements')
+      .select('*')
+      .eq('user_id', userId);
+    if (error) throw error;
+    return data || [];
+  } catch {
+    return [];
+  }
+}
+
+export async function followUser(targetUserId: string) {
+  try {
+    const user = await getCurrentUser();
+    if (!user) return { success: false };
+    const { error } = await supabase
+      .from('follows')
+      .insert({ follower_id: user.id, following_id: targetUserId });
+    if (error) throw error;
+    return { success: true };
+  } catch {
+    return { success: false };
+  }
+}
+
+export async function unfollowUser(targetUserId: string) {
+  try {
+    const user = await getCurrentUser();
+    if (!user) return { success: false };
+    const { error } = await supabase
+      .from('follows')
+      .delete()
+      .eq('follower_id', user.id)
+      .eq('following_id', targetUserId);
+    if (error) throw error;
+    return { success: true };
+  } catch {
+    return { success: false };
+  }
+}
+
+export async function getFollowStats(userId: string) {
+  try {
+    const [followersRes, followingRes] = await Promise.all([
+      supabase.from('follows').select('*', { count: 'exact' }).eq('following_id', userId),
+      supabase.from('follows').select('*', { count: 'exact' }).eq('follower_id', userId)
+    ]);
+    return {
+      followers: followersRes.count || 0,
+      following: followingRes.count || 0
+    };
+  } catch {
+    return { followers: 0, following: 0 };
+  }
+}
+
+export async function getIsFollowing(targetUserId: string) {
+  try {
+    const user = await getCurrentUser();
+    if (!user) return false;
+    const { data } = await supabase
+      .from('follows')
+      .select('*')
+      .eq('follower_id', user.id)
+      .eq('following_id', targetUserId)
+      .single();
+    return !!data;
+  } catch {
+    return false;
+  }
+}

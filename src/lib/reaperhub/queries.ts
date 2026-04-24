@@ -464,3 +464,36 @@ export async function getIsFollowing(targetUserId: string) {
     return false;
   }
 }
+
+
+export async function signUp(email: string, password: string, username: string) {
+  try {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { username } }
+    });
+    if (error) return { success: false, error: error.message };
+    if (data.user) {
+      await supabase.from('users').upsert({
+        id: data.user.id,
+        email,
+        username,
+        display_name: username,
+        created_at: new Date().toISOString()
+      });
+      await supabase.from('user_xp').upsert({
+        user_id: data.user.id,
+        xp_total: 0,
+        xp_current_level: 1
+      });
+      await supabase.from('user_coins').upsert({
+        user_id: data.user.id,
+        coins: 0
+      });
+    }
+    return { success: true, user: data.user };
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
+}

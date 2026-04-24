@@ -25,17 +25,17 @@ export async function getDashboardData() {
     if (!user) return { user: null, xp: 0, level: 1, coins: 0, recentPosts: [], notifications: [] };
 
     const [xpRes, coinsRes, postsRes, notifRes] = await Promise.all([
-      supabase.from('user_xp').select('xp, level').eq('user_id', user.id).maybeSingle(),
-      supabase.from('user_coins').select('balance').eq('user_id', user.id).maybeSingle(),
-      supabase.from('posts').select('*, users(username, avatar_url)').eq('author_id', user.id).order('created_at', { ascending: false }).limit(5),
+      supabase.from('user_xp').select('xp_total, xp_current_level').eq('user_id', user.id).maybeSingle(),
+      supabase.from('user_coins').select('coins').eq('user_id', user.id).maybeSingle(),
+      supabase.from('posts').select('*, users(username, avatar_url)').eq('user_id', user.id).order('created_at', { ascending: false }).limit(5),
       supabase.from('notifications').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(5)
     ]);
 
     return {
       user,
-      xp: xpRes.data?.xp || 0,
-      level: xpRes.data?.level || 1,
-      coins: coinsRes.data?.balance || 0,
+      xp: xpRes.data?.xp_total_total || 0,
+      level: xpRes.data?.xp_current_level || 1,
+      coins: coinsRes.data?.coins || 0,
       recentPosts: postsRes.data || [],
       notifications: notifRes.data || []
     };
@@ -210,8 +210,8 @@ export async function createPost(content: string, mediaType: string | null = nul
     if (!user) throw new Error('Unauthorized');
 
     const { data, error } = await supabase.from('posts').insert({
-      author_id: user.id,
-      content,
+      user_id: user.id,
+      body: content,
       media_type: mediaType
     }).select().single();
 
@@ -264,7 +264,7 @@ export async function awardXPAndCoins(xp: number, coins: number, reason: string)
     const user = await getCurrentUser();
     if (!user) return null;
 
-    const { data: current } = await supabase.from('user_xp').select('xp, level').eq('user_id', user.id).maybeSingle();
+    const { data: current } = await supabase.from('user_xp').select('xp_total, xp_current_level').eq('user_id', user.id).maybeSingle();
     const oldXp = current?.xp || 0;
     const newXp = oldXp + xp;
     const newLevel = Math.floor(newXp / 100) + 1;

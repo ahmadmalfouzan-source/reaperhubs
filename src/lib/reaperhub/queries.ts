@@ -328,10 +328,8 @@ export async function getProfileByUsername(username: string) {
       .from('users')
       .select('*')
       .eq('username', username)
-      .single();
-  } catch {
+      .maybeSingle();
     if (!data) return null;
-    
     // Fetch posts by this user
     const { data: posts } = await supabase
       .from('posts')
@@ -340,10 +338,11 @@ export async function getProfileByUsername(username: string) {
       .order('created_at', { ascending: false });
     
     return { user: data, posts: posts || [] };
+      } catch {
     return null;
   }
+  }
 }
-
 export async function getUserAchievements(userId: string) {
   try {
     const { data } = await supabase

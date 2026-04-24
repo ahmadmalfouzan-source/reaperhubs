@@ -403,3 +403,38 @@ export async function getIsFollowing(followerId: string, followingId: string): P
     return false;
   }
 }
+
+
+// --- Auth ---
+
+export async function signUp(email: string, password: string, username: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    if (error) return { success: false, error: error.message };
+    if (data.user) {
+      await supabase.from('users').insert({
+        id: data.user.id,
+        username,
+        display_name: username,
+      });
+    }
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Sign up failed' };
+  }
+}
+
+export async function getUnreadNotificationCount(): Promise<number> {
+  try {
+    const user = await getCurrentUser();
+    if (!user) return 0;
+    const { count } = await supabase
+      .from('notifications')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('read', false);
+    return count || 0;
+  } catch {
+    return 0;
+  }
+}

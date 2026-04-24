@@ -1,4 +1,6 @@
 // rawgService.ts
+const BASE_URL = 'https://api.rawg.io/api';
+const API_KEY = import.meta.env.VITE_RAWG_API_KEY || '';
 
 export interface RAWGGame {
   id: number;
@@ -14,7 +16,7 @@ export interface RAWGGame {
 
 export async function searchGames(query: string): Promise<RAWGGame[]> {
   try {
-    const url = `/api/games?search=${encodeURIComponent(query)}&page_size=20`;
+    const url = `${BASE_URL}/games?search=${encodeURIComponent(query)}&page_size=20&key=${API_KEY}`;
     const response = await fetch(url);
     if (!response.ok) throw new Error('RAWG API error');
     const data = await response.json();
@@ -27,7 +29,7 @@ export async function searchGames(query: string): Promise<RAWGGame[]> {
 
 export async function getGameDetails(id: string | number): Promise<RAWGGame | null> {
   try {
-    const url = `/api/games/${id}`;
+    const url = `${BASE_URL}/games/${id}?key=${API_KEY}`;
     const response = await fetch(url);
     if (!response.ok) throw new Error('RAWG API error');
     return await response.json();
@@ -58,7 +60,7 @@ export function mapRAWGToMedia(game: RAWGGame) {
 
 export async function getPopularGames(): Promise<RAWGGame[]> {
   try {
-    const url = `/api/games?ordering=-rating&page_size=20`;
+    const url = `${BASE_URL}/games?ordering=-rating&page_size=20&key=${API_KEY}`;
     const response = await fetch(url);
     if (!response.ok) throw new Error('RAWG popular games error');
     const data = await response.json();

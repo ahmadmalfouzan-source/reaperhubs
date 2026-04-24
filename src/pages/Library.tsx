@@ -23,7 +23,7 @@ export default function Library() {
 
   useEffect(() => {
     // Guest mode is allowed, so we don't redirect to login here
-    getLibraryItems.then(data => {
+    getLibraryItems().then(data => {
       setItems(data);
       setFilteredItems(data);
       setLoading(false);

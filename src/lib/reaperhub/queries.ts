@@ -338,3 +338,49 @@ export async function updateLibraryItemStatus(itemId: string, status: string) {
     return { success: false };
   }
 }
+
+
+export async function getNotifications() {
+  try {
+    const user = await getCurrentUser();
+    if (!user) return [];
+    const { data, error } = await supabase
+      .from('notifications')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return data || [];
+  } catch {
+    return [];
+  }
+}
+
+export async function markNotificationAsRead(notificationId: string) {
+  try {
+    const { error } = await supabase
+      .from('notifications')
+      .update({ is_read: true })
+      .eq('id', notificationId);
+    if (error) throw error;
+    return { success: true };
+  } catch {
+    return { success: false };
+  }
+}
+
+export async function markAllNotificationsAsRead() {
+  try {
+    const user = await getCurrentUser();
+    if (!user) return { success: false };
+    const { error } = await supabase
+      .from('notifications')
+      .update({ is_read: true })
+      .eq('user_id', user.id)
+      .eq('is_read', false);
+    if (error) throw error;
+    return { success: true };
+  } catch {
+    return { success: false };
+  }
+}

@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { getFeedItems, getCurrentUser } from '../lib/reaperhub/queries', createPost;
+import { getFeedItems, getCurrentUser , createPost} from '../lib/reaperhub/queries';
 import { supabase } from '../lib/supabase';
 import { Link } from 'react-router-dom';
 import { MessageSquare, Heart, Share2, Film, Gamepad2, Send, MoreHorizontal, User, TrendingUp, Sparkles, Hash, Users, Zap as ZapIcon, Loader2, Calendar } from 'lucide-react';

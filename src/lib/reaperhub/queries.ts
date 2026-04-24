@@ -62,28 +62,42 @@ export async function awardXPAndCoins(xp: number, coins: number, reason: string 
     const user = await getCurrentUser();
     if (!user) return null;
 
-    const [xpRes, coinsRes] = await Promise.all([
-      supabase.from('user_xp').select('xp_total, xp_current_level').eq('user_id', user.id).single(),
-      supabase.from('user_coins').select('coins').eq('user_id', user.id).single()
+    // Read current XP for level calculation (read-only is allowed)
+    const { data: xpData } = await supabase
+      .from('user_xp')
+      .select('xp_total, xp_current_level')
+      .eq('user_id', user.id)
+      .single();
+
+    const currentLevel = xpData?.xp_current_level || 1;
+
+    // Use the approved RPCs instead of direct upserts
+    const [xpRpc, coinsRpc] = await Promise.all([
+      supabase.rpc('award_xp', {
+        p_user_id: user.id,
+        p_event_type: 'custom',
+        p_xp_amount: xp
+      }),
+      coins > 0
+        ? supabase.rpc('increment_coins', { uid: user.id, amount: coins })
+        : Promise.resolve({ error: null })
     ]);
 
-    const currentXp = xpRes.data?.xp_total || 0;
-    const currentCoins = coinsRes.data?.coins || 0;
-    const currentLevel = xpRes.data?.xp_current_level || 1;
-    const newXp = currentXp + xp;
-    const newCoins = currentCoins + coins;
-    const newLevel = Math.floor(newXp / 2500) + 1;
+    if (xpRpc.error) {
+      console.error('award_xp RPC error:', xpRpc.error);
+    }
+    if (coinsRpc.error) {
+      console.error('increment_coins RPC error:', coinsRpc.error);
+    }
 
-    await Promise.all([
-      supabase.from('user_xp').upsert(
-        { user_id: user.id, xp_total: newXp, xp_current_level: newLevel },
-        { onConflict: 'user_id' }
-      ),
-      supabase.from('user_coins').upsert(
-        { user_id: user.id, coins: newCoins },
-        { onConflict: 'user_id' }
-      )
-    ]);
+    // Re-read XP to get new level
+    const { data: newXpData } = await supabase
+      .from('user_xp')
+      .select('xp_total, xp_current_level')
+      .eq('user_id', user.id)
+      .single();
+
+    const newLevel = newXpData?.xp_current_level || 1;
 
     return {
       success: true,
@@ -108,7 +122,6 @@ export async function addToLibrary(
 ) {
   try {
     const user = await getCurrentUser();
-
     if (!user) {
       const existing = JSON.parse(localStorage.getItem('guest_library') || '[]');
       const alreadyExists = existing.some((item: any) => item.media_id === mediaIdStr);
@@ -157,11 +170,13 @@ export async function getLibraryItems() {
     if (!user) {
       return JSON.parse(localStorage.getItem('guest_library') || '[]');
     }
+
     const { data, error } = await supabase
       .from('library_items')
       .select('*')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
+
     if (error) throw error;
     return data || [];
   } catch {
@@ -177,6 +192,7 @@ export async function getFeedItems() {
       .eq('is_private', false)
       .order('created_at', { ascending: false })
       .limit(50);
+
     if (error) throw error;
     return postsData || [];
   } catch (err) {
@@ -221,10 +237,15 @@ export async function getLeaderboard() {
         xp_total,
         xp_current_level,
         user_id,
-        users!user_xp_user_id_fkey ( username, avatar_url, display_name )
+        users!user_xp_user_id_fkey (
+          username,
+          avatar_url,
+          display_name
+        )
       `)
       .order('xp_total', { ascending: false })
       .limit(50);
+
     if (error) throw error;
     return (data || []).map((item: any) => ({
       ...item,
@@ -245,6 +266,7 @@ export async function getUserProfile(username: string) {
       .select('*')
       .eq('username', username)
       .single();
+
     if (error) throw error;
     return data;
   } catch {
@@ -256,10 +278,12 @@ export async function updateProfile(updates: { display_name?: string; bio?: stri
   try {
     const user = await getCurrentUser();
     if (!user) throw new Error('Not logged in');
+
     const { error } = await supabase
       .from('users')
       .update(updates)
       .eq('id', user.id);
+
     if (error) throw error;
     return { success: true };
   } catch (err: any) {
@@ -286,15 +310,19 @@ export async function updateLibraryItemStatus(itemId: string, status: string) {
   try {
     const user = await getCurrentUser();
     if (!user) return { success: false };
+
     const { error } = await supabase
       .from('library_items')
       .update({ status })
       .eq('id', itemId)
       .eq('user_id', user.id);
+
     if (error) throw error;
+
     if (status === 'completed') {
       await awardXPAndCoins(25, 10, 'Completed a title');
     }
+
     return { success: true };
   } catch {
     return { success: false };

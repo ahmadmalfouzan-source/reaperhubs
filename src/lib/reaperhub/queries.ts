@@ -33,7 +33,7 @@ export async function getDashboardData() {
 
     return {
       user,
-      xp: xpRes.data?.xp_total_total || 0,
+      xp: xpRes.data?.xp_total || 0,
       level: xpRes.data?.xp_current_level || 1,
       coins: coinsRes.data?.coins || 0,
       recentPosts: postsRes.data || [],

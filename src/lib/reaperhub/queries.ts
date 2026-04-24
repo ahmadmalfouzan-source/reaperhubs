@@ -264,17 +264,13 @@ export async function awardXPAndCoins(xp: number, coins: number, reason: string)
     const user = await getCurrentUser();
     if (!user) return null;
 
-    const { data: current } = await supabase.from('user_xp').select('xp_total, xp_current_level').eq('user_id', user.id).maybeSingle();
-    const oldXp = current?.xp_total || 0;
-    const newXp = oldXp + xp;
-    const newLevel = Math.floor(newXp / 100) + 1;
 
     await Promise.all([
-      supabase.from('user_xp').upsert({ user_id: user.id, xp_total: newXp, xp_current_level: newLevel }),
+            supabase.rpc('award_xp', { uid: user.id, amount: xp })
       supabase.rpc('increment_coins', { uid: user.id, amount: coins })
     ]);
 
-    return { earnedXp: xp, earnedCoins: coins, levelUp: newLevel > (current?.level || 1) };
+        return { earnedXp: xp, earnedCoins: coins, levelUp: false };
   } catch (err) {
     console.error('awardRewards error:', err);
     return null;

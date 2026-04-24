@@ -36,7 +36,7 @@ function Zap({ className }: { className?: string }) {
 export default function Feed() {
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [body, setContent] = useState('');
+  const [content, setContent] = useState('');
   const [selectedTag, setSelectedTag] = useState('general');
   const [posting, setPosting] = useState(false);
   const [user, setUser] = useState<any>(null);
@@ -73,7 +73,7 @@ export default function Feed() {
         .from('posts')
         .insert({
           user_id: user.id,
-          body,
+          content,
           media_type: finalMediaType,
           is_private: false
         });
@@ -84,7 +84,7 @@ export default function Feed() {
           .from('posts')
           .insert({
             user_id: user.id,
-            content: finalMediaType ? `[${finalMediaType}] ${content}` : body,
+            content: finalMediaType ? `[${finalMediaType}] ${content}` : content,
             is_private: false
           });
           

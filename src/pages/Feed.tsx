@@ -73,7 +73,7 @@ export default function Feed() {
         .from('posts')
         .insert({
           user_id: user.id,
-          content,
+          body: content,
           media_type: finalMediaType,
           is_private: false
         });

@@ -303,3 +303,103 @@ export async function getLibraryTitles(): Promise<string[]> {
     return [];
   }
 }
+
+
+// --- Notifications ---
+
+export async function markAllNotificationsAsRead(): Promise<void> {
+  try {
+    const user = await getCurrentUser();
+    if (!user) return;
+    await supabase
+      .from('notifications')
+      .update({ read: true })
+      .eq('user_id', user.id);
+  } catch (err) {
+    console.error('markAllNotificationsAsRead error:', err);
+  }
+}
+
+// --- Profile ---
+
+export async function getProfileByUsername(username: string) {
+  try {
+    const { data } = await supabase
+      .from('users')
+      .select('*')
+      .eq('username', username)
+      .single();
+    return data || null;
+  } catch {
+    return null;
+  }
+}
+
+export async function getUserAchievements(userId: string) {
+  try {
+    const { data } = await supabase
+      .from('user_achievements')
+      .select('*')
+      .eq('user_id', userId);
+    return data || [];
+  } catch {
+    return [];
+  }
+}
+
+export async function updateProfile(userId: string, updates: { display_name?: string; bio?: string; avatar_url?: string }) {
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .update(updates)
+      .eq('id', userId)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  } catch (err) {
+    console.error('updateProfile error:', err);
+    return null;
+  }
+}
+
+export async function unfollowUser(followerId: string, followingId: string) {
+  try {
+    await supabase
+      .from('follows')
+      .delete()
+      .eq('follower_id', followerId)
+      .eq('following_id', followingId);
+  } catch (err) {
+    console.error('unfollowUser error:', err);
+  }
+}
+
+export async function getFollowStats(userId: string) {
+  try {
+    const [followersRes, followingRes] = await Promise.all([
+      supabase.from('follows').select('*', { count: 'exact', head: true }).eq('following_id', userId),
+      supabase.from('follows').select('*', { count: 'exact', head: true }).eq('follower_id', userId),
+    ]);
+    return {
+      followersCount: followersRes.count || 0,
+      followingCount: followingRes.count || 0,
+    };
+  } catch {
+    return { followersCount: 0, followingCount: 0 };
+  }
+}
+
+export async function getIsFollowing(followerId: string, followingId: string): Promise<boolean> {
+  try {
+    const { data } = await supabase
+      .from('follows')
+      .select('id')
+      .eq('follower_id', followerId)
+      .eq('following_id', followingId)
+      .maybeSingle();
+    return !!data;
+  } catch {
+    return false;
+  }
+}

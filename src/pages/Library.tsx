@@ -136,8 +136,8 @@ export default function Library() {
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
           {filteredItems.map((item) => {
-            const mediaType = item.media_items?.type || 'movie';
-            const detailPath = `/media/${mediaType}/${item.media_items?.tmdb_id || item.media_items?.rawg_id || item.media_item_id}`;
+                    const mediaType = item.media_type || item.media_items?.type || 'movie';
+                    const detailPath = `/media/${mediaType}/${item.media_id || item.media_items?.tmdb_id || item.media_items?.rawg_id || item.id}`;
             
             return (
               <div 
@@ -147,9 +147,9 @@ export default function Library() {
               >
                 <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none"></div>
                 
-                {item.media_items?.cover_url ? (
+                          {(item.poster_url || item.cover_url || item.media_items?.cover_url) ? (
                   <img 
-                    src={item.media_items.cover_url} 
+                                src={item.poster_url || item.cover_url || item.media_items?.cover_url}
                     alt="Cover" 
                     className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105" 
                     onError={(e) => {
@@ -184,10 +184,10 @@ export default function Library() {
                 {/* Bottom Info Area */}
                 <div className="absolute bottom-0 left-0 right-0 p-6 z-30 space-y-1">
                   <div className="text-[10px] text-primary font-bold uppercase tracking-[0.2em] mb-1 drop-shadow-md">
-                    {item.media_items?.type || 'media'}
+                              {item.media_type || item.media_items?.type || 'media'}
                   </div>
                   <h3 className="font-display font-bold text-xl md:text-2xl text-white leading-tight line-clamp-2 drop-shadow-2xl italic group-hover:text-primary transition-colors" title={item.media_items?.title || 'Unknown'}>
-                    {item.media_items?.title || 'Unknown'}
+                              {item.title || item.media_items?.title || 'Unknown'}
                   </h3>
                 </div>
               </div>

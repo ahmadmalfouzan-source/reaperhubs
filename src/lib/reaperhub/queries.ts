@@ -621,7 +621,5 @@ export async function getFollowStatsFixed(userId: string) {
   } catch {
     return { followersCount: 0, followingCount: 0, followers: 0, following: 0 };
   }
-}
-}
 
 

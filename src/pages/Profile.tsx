@@ -9,7 +9,7 @@ import {
   updateProfile,
   followUser,
   unfollowUser,
-  getFollowStats,
+    getFollowStatsFixed as getFollowStats,
   getIsFollowing
 } from '../lib/reaperhub/queries';
 import { 

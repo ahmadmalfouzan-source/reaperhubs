@@ -605,6 +605,7 @@ export async function getProfileWithPosts(username: string) {
     return null;
   }
 
+  }
 // Fix getFollowStats to return followersCount/followingCount as expected by Profile.tsx
 export async function getFollowStatsFixed(userId: string) {
   try {

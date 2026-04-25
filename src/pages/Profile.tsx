@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
-  getProfileByUsername, 
+    getProfileWithPosts,
   getUserAchievements, 
   getLibraryItems, 
+    getLibrary,
   getCurrentUser, 
   updateProfile,
   followUser,
@@ -57,7 +58,7 @@ export default function Profile() {
       }
 
       if (targetUsername) {
-        const res = await getProfileByUsername(targetUsername);
+              const res = await getProfileWithPosts(targetUsername);
         setData(res);
         
         if (res?.user) {

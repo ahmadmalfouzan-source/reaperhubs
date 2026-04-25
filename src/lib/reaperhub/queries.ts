@@ -226,12 +226,10 @@ export async function createPost(content: string, postType: string = 'status') {
         like_count: 0,
         comment_count: 0
       })
-      .select()
-      .single();
 
     if (error) throw error;
 
-    await awardXPAndCoins(5, 2, 'Posted a transmission', 'post_created');
+    try { await awardXPAndCoins(5, 2, 'Posted a transmission', 'post_created'); } catch(e) {}
     return { data, error: null, success: true };
   } catch (error: any) {
     console.error('Error creating post:', error);

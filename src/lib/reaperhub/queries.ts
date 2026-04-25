@@ -560,3 +560,48 @@ export async function getUnreadNotificationCount() {
     return 0;
   }
 }
+
+
+// Alias for backwards compatibility
+export const getLibrary = getLibraryItems;
+
+// Override getProfileByUsername to return { user, posts } for Profile.tsx
+export async function getProfileWithPosts(username: string) {
+  try {
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('username', username)
+      .single();
+    if (error || !user) return null;
+    const { data: posts } = await supabase
+      .from('posts')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('is_deleted', false)
+      .order('created_at', { ascending: false })
+      .limit(20);
+    const { data: xpData } = await supabase
+      .from('user_xp')
+      .select('xp_total, xp_current_level')
+      .eq('user_id', user.id)
+      .single();
+    const { data: coinsData } = await supabase
+      .from('user_coins')
+      .select('coins')
+      .eq('user_id', user.id)
+      .single();
+    return {
+      user: {
+        ...user,
+        xp: xpData?.xp_total || 0,
+        level: xpData?.xp_current_level || 1,
+        coin_balance: coinsData?.coins || 0,
+      },
+      posts: (posts || []).map((p: any) => ({ ...p, content: p.body }))
+    };
+  } catch (err) {
+    console.error('Error fetching profile with posts:', err);
+    return null;
+  }
+}

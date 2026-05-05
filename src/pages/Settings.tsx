@@ -81,18 +81,16 @@ export default function Settings() {
     setSaving(true);
     
     try {
-      const updates = {
-        username,
+      const { updateProfile } = await import('../lib/reaperhub/queries');
+      const res = await updateProfile({
         display_name: displayName,
         bio,
         avatar_url: avatarUrl,
-        updated_at: new Date().toISOString(),
-      };
+      });
 
-      const { error } = await supabase.from('users').update(updates).eq('id', user.id);
-      if (error) throw error;
+      if (!res.success) throw new Error(res.message);
       
-      setProfile({ ...profile, ...updates });
+      setProfile({ ...profile, display_name: displayName, bio, avatar_url: avatarUrl });
       toast.success('System configuration updated.');
     } catch (err: any) {
       toast.error('Error updating settings: ' + err.message);

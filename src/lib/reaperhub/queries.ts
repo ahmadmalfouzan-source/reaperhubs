@@ -137,7 +137,7 @@ export async function addToLibrary(
       .select('id')
       .eq('user_id', user.id)
       .eq('media_id', mediaIdStr)
-      .single();
+      .maybeSingle();
 
     if (existing) return { success: false, message: 'Already in library' };
 
@@ -221,19 +221,18 @@ export async function createPost(content: string, postType: string = 'status') {
         body: content,
         post_type: postType,
         is_private: false,
-        is_deleted: false,
-        contains_spoilers: false,
-        like_count: 0,
-        comment_count: 0
+        is_deleted: false
       })
 
     if (error) throw error;
 
+    // Optional rewards
     try { await awardXPAndCoins(5, 2, 'Posted a transmission', 'post_created'); } catch(e) {}
+    
     return { data, error: null, success: true };
   } catch (error: any) {
     console.error('Error creating post:', error);
-    return { data: null, error: error.message, success: false };
+    return { data: null, error: error.message || 'Unknown database error', success: false };
   }
 }
 

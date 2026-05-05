@@ -85,13 +85,6 @@ export async function awardXPAndCoins(
       console.error('award_xp RPC error:', xpRpc.error);
     }
 
-    if (coins > 0) {
-      const coinsRpc = await supabase.rpc('increment_coins', { uid: user.id, amount: coins });
-      if (coinsRpc.error) {
-        console.error('increment_coins RPC error:', coinsRpc.error);
-      }
-    }
-
     const { data: newXpData } = await supabase
       .from('user_xp')
       .select('xp_total, xp_current_level')
@@ -434,8 +427,8 @@ export async function unfollowUser(targetUserId: string) {
 export async function getFollowStats(userId: string) {
   try {
     const [followersRes, followingRes] = await Promise.all([
-      supabase.from('follows').select('*', { count: 'exact' }).eq('following_id', userId),
-      supabase.from('follows').select('*', { count: 'exact' }).eq('follower_id', userId)
+      supabase.from('follows').select('*', { count: 'exact' }).eq('following_id', userId).limit(0),
+      supabase.from('follows').select('*', { count: 'exact' }).eq('follower_id', userId).limit(0)
     ]);
     return {
       followers: followersRes.count || 0,
@@ -607,8 +600,8 @@ export async function getProfileWithPosts(username: string) {
 export async function getFollowStatsFixed(userId: string) {
   try {
     const [followersRes, followingRes] = await Promise.all([
-      supabase.from('follows').select('*', { count: 'exact', head: true }).eq('following_id', userId),
-      supabase.from('follows').select('*', { count: 'exact', head: true }).eq('follower_id', userId)
+      supabase.from('follows').select('*', { count: 'exact' }).eq('following_id', userId).limit(0),
+      supabase.from('follows').select('*', { count: 'exact' }).eq('follower_id', userId).limit(0)
     ]);
     return {
       followersCount: followersRes.count || 0,
@@ -619,6 +612,4 @@ export async function getFollowStatsFixed(userId: string) {
   } catch {
     return { followersCount: 0, followingCount: 0, followers: 0, following: 0 };
   }
-
-
 }

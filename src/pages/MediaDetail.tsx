@@ -62,7 +62,7 @@ export default function MediaDetail() {
         .from('media_items')
         .select(`
           id,
-          user_media_entries!inner (
+          user_media_entries (
             id,
             status,
             rating,

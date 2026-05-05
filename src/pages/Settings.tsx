@@ -53,12 +53,15 @@ export default function Settings() {
       
       const file = e.target.files[0];
       const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}-${Math.random()}.${fileExt}`;
-      const filePath = `${fileName}`;
+      const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `${user.id}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          upsert: true,
+          cacheControl: '3600'
+        });
 
       if (uploadError) throw uploadError;
 
@@ -67,9 +70,10 @@ export default function Settings() {
         .getPublicUrl(filePath);
 
       setAvatarUrl(publicUrl);
-      toast.success("Avatar uploaded. Save to finalize.");
+      toast.success("Visual feed updated. Finalize config to save.");
     } catch (err: any) {
-      toast.error('Error uploading avatar: ' + err.message);
+      console.error('Upload error:', err);
+      toast.error(`Protocol Failure: ${err.message || 'Unknown storage error'}`);
     } finally {
       setUploading(false);
     }

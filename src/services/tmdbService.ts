@@ -65,8 +65,8 @@ export async function getTMDBGenres(type: 'movie' | 'tv') {
   }
 }
 
-export function getTMDBImageUrl(path: string | null | undefined, size: 'w300' | 'w500' | 'original' = 'w300') {
-  if (!path) return 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=300&q=80';
+export function getTMDBImageUrl(path: string | null | undefined, size: 'w185' | 'w300' | 'w500' | 'original' = 'w185') {
+  if (!path) return 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=185&q=80';
   if (path.startsWith('http')) return path;
   return `https://image.tmdb.org/t/p/${size}${path}`;
 }

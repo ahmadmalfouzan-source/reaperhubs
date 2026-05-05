@@ -111,24 +111,24 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-12 animate-in fade-in duration-500">
-      <div className="flex items-center justify-between border-b border-border/50 pb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-border/50 pb-6 gap-4">
         <div className="space-y-1">
-          <h1 className="font-display font-bold text-4xl uppercase tracking-tighter text-white">System Overview</h1>
+          <h1 className="font-display font-bold text-3xl sm:text-4xl uppercase tracking-tighter text-white">System Overview</h1>
           <p className="text-muted font-medium text-sm">Welcome back, operative.</p>
         </div>
-        <div className="text-right hidden sm:block">
+        <div className="text-left sm:text-right">
           <div className="text-xs font-bold uppercase tracking-widest text-primary mb-1">Access Terminal</div>
-          <div className="text-muted font-mono">{data?.user?.email}</div>
+          <div className="text-muted font-mono text-xs sm:text-sm truncate max-w-[200px] sm:max-w-none">{data?.user?.email}</div>
         </div>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         <div className="group bg-surface hover:bg-surface-2 border border-border rounded-[24px] p-6 border-l-4 border-l-blue-500 shadow-xl transition-all duration-300">
           <div className="text-muted text-[10px] font-bold uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
             <Target className="w-4 h-4 text-blue-500" />
             Clearance Level
           </div>
-          <div className="font-display font-bold text-5xl text-white group-hover:text-blue-400 transition-colors">{data.level}</div>
+          <div className="font-display font-bold text-4xl sm:text-5xl text-white group-hover:text-blue-400 transition-colors">{data.level}</div>
           <div className="mt-4 w-full bg-border/30 rounded-full h-1.5 overflow-hidden">
             <div className="bg-blue-500 h-full w-[65%]" />
           </div>
@@ -138,20 +138,20 @@ export default function Dashboard() {
             <Zap className="w-4 h-4 text-purple-500 fill-purple-500/20" />
             Current XP
           </div>
-          <div className="font-display font-bold text-5xl text-white group-hover:text-purple-400 transition-colors">{data.xp}</div>
+          <div className="font-display font-bold text-4xl sm:text-5xl text-white group-hover:text-purple-400 transition-colors">{data.xp}</div>
           <p className="text-[10px] text-muted font-bold mt-4 uppercase tracking-widest">Next Evolution: 2,500 XP</p>
         </div>
-        <div className="group bg-surface hover:bg-surface-2 border border-border rounded-[24px] p-6 border-l-4 border-l-green-500 shadow-xl transition-all duration-300">
+        <div className="group bg-surface hover:bg-surface-2 border border-border rounded-[24px] p-6 border-l-4 border-l-green-500 shadow-xl transition-all duration-300 sm:col-span-2 md:col-span-1">
           <div className="text-muted text-[10px] font-bold uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
             <Coins className="w-4 h-4 text-green-500 fill-green-500/20" />
             Credit Balance
           </div>
-          <div className="font-display font-bold text-5xl text-white group-hover:text-green-400 transition-colors uppercase">{data.coins}</div>
+          <div className="font-display font-bold text-4xl sm:text-5xl text-white group-hover:text-green-400 transition-colors uppercase">{data.coins}</div>
           <p className="text-[10px] text-muted font-bold mt-4 uppercase tracking-widest">Market is active</p>
         </div>
       </div>
       
-      <div className="flex flex-wrap gap-4">
+      <div className="flex flex-wrap gap-3 sm:gap-4">
         {[
           { to: "/search", icon: <Compass className="w-5 h-5 text-blue-500" />, label: "Infiltrate" },
           { to: "/library", icon: <Library className="w-5 h-5 text-purple-500" />, label: "Archive" },
@@ -160,7 +160,7 @@ export default function Dashboard() {
           <Link 
             key={link.to}
             to={link.to} 
-            className="flex items-center gap-3 bg-surface hover:bg-surface-2 border border-border rounded-2xl px-6 py-3.5 text-xs font-bold uppercase tracking-widest transition-all shadow-lg active:scale-95 border-b-4 border-b-border active:border-b-0 active:translate-y-1"
+            className="flex-1 sm:flex-none flex items-center justify-center sm:justify-start gap-3 bg-surface hover:bg-surface-2 border border-border rounded-2xl px-4 sm:px-6 py-3 sm:py-3.5 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all shadow-lg active:scale-95 border-b-4 border-b-border active:border-b-0 active:translate-y-1"
           >
             {link.icon}
             {link.label}
@@ -212,8 +212,9 @@ export default function Dashboard() {
                       src={item.poster} 
                       alt={item.title} 
                       className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
+                      loading="lazy"
                       onError={(e) => {
-                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=300&q=80';
+                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=185&q=80';
                       }}
                     />
                   ) : (

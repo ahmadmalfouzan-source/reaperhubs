@@ -99,7 +99,7 @@ export default function Profile() {
       setEditing(false);
       // Refresh data
       if (username) {
-        const refreshed = await getProfileByUsername(username);
+        const refreshed = await getProfileWithPosts(username);
         setData(refreshed);
       }
     } else {
@@ -179,27 +179,27 @@ export default function Profile() {
   const { user, posts } = data;
 
   return (
-    <div className="max-w-5xl mx-auto space-y-12 animate-in fade-in duration-1000">
+    <div className="max-w-5xl mx-auto space-y-8 md:space-y-12 animate-in fade-in duration-1000 px-4 sm:px-0">
       {/* Profile Header */}
-      <div className="bg-surface border-2 border-border/50 rounded-[48px] p-8 md:p-14 flex flex-col md:flex-row gap-10 items-center md:items-start text-center md:text-left relative overflow-hidden shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)]">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-primary/10 rounded-full blur-[120px] pointer-events-none -translate-y-1/2 translate-x-1/4"></div>
+      <div className="bg-surface border-2 border-border/50 rounded-[32px] md:rounded-[48px] p-6 md:p-14 flex flex-col md:flex-row gap-8 md:gap-10 items-center md:items-start text-center md:text-left relative overflow-hidden shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)]">
+        <div className="absolute top-0 right-0 w-64 h-64 md:w-96 md:h-96 bg-primary/10 rounded-full blur-[80px] md:blur-[120px] pointer-events-none -translate-y-1/2 translate-x-1/4"></div>
         
         <div className="relative group">
-          <div className="w-32 h-32 md:w-48 md:h-48 rounded-[40px] bg-surface-2 border-4 border-primary-2/20 flex items-center justify-center overflow-hidden flex-shrink-0 relative z-10 shadow-2xl transition-all duration-700 group-hover:scale-105 group-hover:rotate-2">
+          <div className="w-32 h-32 md:w-48 md:h-48 rounded-[32px] md:rounded-[40px] bg-surface-2 border-4 border-primary-2/20 flex items-center justify-center overflow-hidden flex-shrink-0 relative z-10 shadow-2xl transition-all duration-700 group-hover:scale-105 group-hover:rotate-2">
             {user?.avatar_url ? (
               <img src={user.avatar_url} alt={user?.username || 'Profile'} className="w-full h-full object-cover" />
             ) : (
-              <span className="text-primary-2 font-display font-bold text-6xl drop-shadow-lg">{user?.username?.[0]?.toUpperCase() || '?'}</span>
+              <span className="text-primary-2 font-display font-bold text-5xl md:text-6xl drop-shadow-lg">{user?.username?.[0]?.toUpperCase() || '?'}</span>
             )}
           </div>
           {isCurrentUser && (
-            <button className="absolute -bottom-2 -right-2 z-20 p-4 bg-primary text-black rounded-3xl shadow-xl hover:scale-110 active:scale-95 transition-all border-4 border-surface group-hover:rotate-6">
-              <Camera size={20} />
+            <button className="absolute -bottom-2 -right-2 z-20 p-3 md:p-4 bg-primary text-black rounded-2xl md:rounded-3xl shadow-xl hover:scale-110 active:scale-95 transition-all border-4 border-surface group-hover:rotate-6">
+              <Camera size={18} className="md:w-5 md:h-5" />
             </button>
           )}
         </div>
         
-        <div className="flex-1 relative z-10 pt-2 space-y-6">
+        <div className="flex-1 relative z-10 pt-2 space-y-6 w-full">
           <div className="space-y-4">
             <div className="flex flex-col md:flex-row md:items-center gap-4 justify-between">
               <div className="space-y-1">
@@ -208,12 +208,12 @@ export default function Profile() {
                     type="text" 
                     value={displayName} 
                     onChange={(e) => setDisplayName(e.target.value)}
-                    className="bg-surface-2 border border-primary/50 rounded-xl px-4 py-2 text-2xl font-display font-bold focus:outline-none w-full"
+                    className="bg-surface-2 border border-primary/50 rounded-xl px-4 py-2 text-xl md:text-2xl font-display font-bold focus:outline-none w-full"
                   />
                 ) : (
-                  <h1 className="font-display font-bold text-5xl md:text-6xl text-white tracking-tighter italic">{user.display_name || user.username}</h1>
+                  <h1 className="font-display font-bold text-3xl sm:text-4xl md:text-6xl text-white tracking-tighter italic break-words">{user.display_name || user.username}</h1>
                 )}
-                <p className="text-muted font-mono text-sm">@{user.username}</p>
+                <p className="text-muted font-mono text-xs md:text-sm">@{user.username}</p>
               </div>
 
               {!isCurrentUser && (
@@ -221,42 +221,42 @@ export default function Profile() {
                   onClick={handleToggleFollow}
                   disabled={followLoading}
                   className={cn(
-                    "px-8 py-3 rounded-2xl font-bold flex items-center gap-2 transition-all active:scale-95 border-2 shadow-xl",
+                    "px-6 md:px-8 py-2.5 md:py-3 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all active:scale-95 border-2 shadow-xl text-xs md:text-sm",
                     isFollowing 
                       ? "bg-danger/10 border-danger/30 text-danger hover:bg-danger hover:text-white"
                       : "bg-primary border-primary text-black hover:bg-primary/90"
                   )}
                 >
-                  {followLoading ? <Loader2 className="animate-spin" /> : isFollowing ? <UserMinus size={18} /> : <UserPlus size={18} />}
+                  {followLoading ? <Loader2 className="animate-spin" /> : isFollowing ? <UserMinus size={16} /> : <UserPlus size={16} />}
                   {isFollowing ? 'Sever Connection' : 'Sync Signal'}
                 </button>
               )}
             </div>
             
-            <div className="flex flex-wrap justify-center md:justify-start gap-4">
-              <div className="flex items-center gap-2 bg-surface-2 px-4 py-2 rounded-2xl border border-border">
-                <Users size={16} className="text-primary" />
+            <div className="flex flex-wrap justify-center md:justify-start gap-3 md:gap-4">
+              <div className="flex items-center gap-2 bg-surface-2 px-3 md:px-4 py-1.5 md:py-2 rounded-xl md:rounded-2xl border border-border">
+                <Users size={14} className="text-primary md:w-4 md:h-4" />
                 <div className="flex gap-1 items-baseline">
-                  <span className="font-bold text-white">{followStats.followersCount}</span>
-                  <span className="text-[10px] text-muted uppercase font-bold tracking-widest font-sans">Followers</span>
+                  <span className="font-bold text-white text-sm md:text-base">{followStats.followersCount}</span>
+                  <span className="text-[8px] md:text-[10px] text-muted uppercase font-bold tracking-widest font-sans">Followers</span>
                 </div>
               </div>
-              <div className="flex items-center gap-2 bg-surface-2 px-4 py-2 rounded-2xl border border-border">
-                <Users size={16} className="text-primary-2" />
+              <div className="flex items-center gap-2 bg-surface-2 px-3 md:px-4 py-1.5 md:py-2 rounded-xl md:rounded-2xl border border-border">
+                <Users size={14} className="text-primary-2 md:w-4 md:h-4" />
                 <div className="flex gap-1 items-baseline">
-                  <span className="font-bold text-white">{followStats.followingCount}</span>
-                  <span className="text-[10px] text-muted uppercase font-bold tracking-widest font-sans">Following</span>
+                  <span className="font-bold text-white text-sm md:text-base">{followStats.followingCount}</span>
+                  <span className="text-[8px] md:text-[10px] text-muted uppercase font-bold tracking-widest font-sans">Following</span>
                 </div>
               </div>
-              <span className="px-4 py-2 bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-[0.2em] rounded-2xl border border-primary/20 flex items-center gap-2">
-                <Sparkles size={12} />
+              <span className="px-3 md:px-4 py-1.5 md:py-2 bg-primary/10 text-primary text-[8px] md:text-[10px] font-bold uppercase tracking-[0.2em] rounded-xl md:rounded-2xl border border-primary/20 flex items-center gap-2">
+                <Sparkles size={10} className="md:w-3 md:h-3" />
                 Slayer Rank: {user.level || 1}
               </span>
             </div>
           </div>
           
-          <div className="bg-surface-2/30 backdrop-blur-xl border border-border/50 rounded-[32px] p-8 group/bio relative">
-            <h3 className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary-2 mb-3 flex items-center gap-2">
+          <div className="bg-surface-2/30 backdrop-blur-xl border border-border/50 rounded-[24px] md:rounded-[32px] p-6 md:p-8 group/bio relative">
+            <h3 className="text-[8px] md:text-[10px] font-bold uppercase tracking-[0.3em] text-primary-2 mb-3 flex items-center gap-2">
                Classified Dossier
                <Sparkles size={10} className="animate-pulse" />
             </h3>
@@ -278,13 +278,13 @@ export default function Profile() {
                 <button 
                   onClick={handleUpdate}
                   disabled={updating}
-                  className="px-6 py-2 bg-primary text-black font-bold rounded-xl text-xs uppercase tracking-widest disabled:opacity-50"
+                  className="px-6 py-2 bg-primary text-black font-bold rounded-xl text-[10px] uppercase tracking-widest disabled:opacity-50"
                 >
                   {updating ? <Loader2 className="animate-spin" /> : "Save Changes"}
                 </button>
                 <button 
                   onClick={() => setEditing(false)}
-                  className="px-4 py-2 text-muted hover:text-white transition-colors text-xs font-bold uppercase tracking-widest"
+                  className="px-4 py-2 text-muted hover:text-white transition-colors text-[10px] font-bold uppercase tracking-widest"
                 >
                   Abort
                 </button>
@@ -294,92 +294,92 @@ export default function Profile() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-12">
         {/* Achievements & Stats */}
-        <div className="lg:col-span-1 space-y-12">
+        <div className="lg:col-span-1 space-y-8 md:space-y-12">
           <section className="space-y-6">
             <div className="flex items-center gap-3 border-b border-border/50 pb-4">
-              <Award className="w-6 h-6 text-primary" />
-              <h2 className="font-display font-bold text-2xl uppercase tracking-tighter">Killstreak</h2>
+              <Award className="w-5 h-5 md:w-6 md:h-6 text-primary" />
+              <h2 className="font-display font-bold text-xl md:text-2xl uppercase tracking-tighter">Killstreak</h2>
             </div>
             <div className="grid grid-cols-2 gap-4">
               {achievements.slice(0, 4).map((badge) => (
                 <div 
                   key={badge.id}
                   className={cn(
-                    "relative overflow-hidden rounded-3xl border p-5 text-center transition-all duration-500",
+                    "relative overflow-hidden rounded-[24px] md:rounded-3xl border p-4 md:p-5 text-center transition-all duration-500",
                     badge.unlocked 
                       ? 'border-primary/40 bg-primary/5 shadow-lg grayscale-0 scale-100' 
                       : 'border-border bg-surface-2/30 grayscale opacity-40 hover:opacity-60 scale-95'
                   )}
                 >
-                  <div className="text-4xl mb-3">{badge.icon}</div>
-                  <h3 className="text-[10px] font-bold uppercase tracking-widest mb-1 text-white">
+                  <div className="text-3xl md:text-4xl mb-3">{badge.icon}</div>
+                  <h3 className="text-[8px] md:text-[10px] font-bold uppercase tracking-widest mb-1 text-white truncate px-1">
                     {badge.title}
                   </h3>
                   {!badge.unlocked && (
                     <div className="absolute top-2 right-2">
-                      <Lock size={12} className="text-muted/30" />
+                      <Lock size={10} className="text-muted/30 md:w-3 md:h-3" />
                     </div>
                   )}
                 </div>
               ))}
             </div>
-            <button className="w-full py-4 text-[10px] font-bold uppercase tracking-[0.3em] text-muted hover:text-primary transition-all border border-dashed border-border rounded-2xl">
+            <button className="w-full py-3 md:py-4 text-[8px] md:text-[10px] font-bold uppercase tracking-[0.3em] text-muted hover:text-primary transition-all border border-dashed border-border rounded-xl md:rounded-2xl">
               View All Milestones
             </button>
           </section>
 
-          <section className="bg-surface border border-border rounded-[32px] p-8 space-y-6">
-              <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted">Field Logistics</h3>
+          <section className="bg-surface border border-border rounded-[24px] md:rounded-[32px] p-6 md:p-8 space-y-6">
+              <h3 className="text-[8px] md:text-[10px] font-bold uppercase tracking-[0.2em] text-muted">Field Logistics</h3>
               <div className="space-y-4">
-                  <div className="flex justify-between items-center px-4 py-3 bg-surface-2 rounded-2xl">
-                      <span className="text-xs font-bold text-muted uppercase">Credits</span>
-                      <span className="text-success font-bold font-display text-xl">{user.coin_balance?.toLocaleString() || 0}</span>
+                  <div className="flex justify-between items-center px-4 py-3 bg-surface-2 rounded-xl md:rounded-2xl">
+                      <span className="text-[10px] font-bold text-muted uppercase">Credits</span>
+                      <span className="text-success font-bold font-display text-lg md:text-xl">{user.coin_balance?.toLocaleString() || 0}</span>
                   </div>
-                  <div className="flex justify-between items-center px-4 py-3 bg-surface-2 rounded-2xl relative overflow-hidden group">
+                  <div className="flex justify-between items-center px-4 py-3 bg-surface-2 rounded-xl md:rounded-2xl relative overflow-hidden group">
                       <div className="absolute inset-0 bg-primary/5 translate-x-[-100%] group-hover:translate-x-[0%] transition-transform duration-500"></div>
-                      <span className="text-xs font-bold text-muted uppercase">XP Protocol</span>
-                      <span className="text-primary font-bold font-display text-xl">{user.xp?.toLocaleString() || 0}</span>
+                      <span className="text-[10px] font-bold text-muted uppercase">XP Protocol</span>
+                      <span className="text-primary font-bold font-display text-lg md:text-xl">{user.xp?.toLocaleString() || 0}</span>
                   </div>
               </div>
           </section>
         </div>
 
         {/* Library & Activity */}
-        <div className="lg:col-span-2 space-y-12">
+        <div className="lg:col-span-2 space-y-8 md:space-y-12">
           {isCurrentUser && (
             <section className="space-y-6">
               <div className="flex items-center justify-between border-b border-border/50 pb-4">
                 <div className="flex items-center gap-3">
-                  <Library className="w-6 h-6 text-primary" />
-                  <h2 className="font-display font-bold text-2xl uppercase tracking-tighter">Current Archive</h2>
+                  <Library className="w-5 h-5 md:w-6 md:h-6 text-primary" />
+                  <h2 className="font-display font-bold text-xl md:text-2xl uppercase tracking-tighter">Current Archive</h2>
                 </div>
-                <button onClick={() => navigate('/library')} className="text-[10px] font-bold text-primary uppercase tracking-widest flex items-center gap-2 hover:gap-3 transition-all">
-                   Deploy Full View <ExternalLink size={12} />
+                <button onClick={() => navigate('/library')} className="text-[8px] md:text-[10px] font-bold text-primary uppercase tracking-widest flex items-center gap-2 hover:gap-3 transition-all">
+                   Deploy Full View <ExternalLink size={10} className="md:w-3 md:h-3" />
                 </button>
               </div>
               
               {library.length === 0 ? (
-                <div className="bg-surface/50 border border-dashed border-border p-12 rounded-[32px] text-center space-y-4">
-                  <p className="text-muted italic text-sm">No data points saved in active archive.</p>
-                  <button onClick={() => navigate('/search')} className="text-[10px] font-bold text-white bg-surface-2 px-6 py-2 rounded-full uppercase tracking-tighter border border-border hover:border-primary transition-all">
+                <div className="bg-surface/50 border border-dashed border-border p-8 md:p-12 rounded-[24px] md:rounded-[32px] text-center space-y-4">
+                  <p className="text-muted italic text-xs md:text-sm">No data points saved in active archive.</p>
+                  <button onClick={() => navigate('/search')} className="text-[8px] md:text-[10px] font-bold text-white bg-surface-2 px-5 md:px-6 py-2 rounded-full uppercase tracking-tighter border border-border hover:border-primary transition-all">
                     Search Registry
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 md:gap-6">
                   {library.slice(0, 3).map((item) => (
                     <div 
                       key={item.id} 
                       onClick={() => navigate(`/search?q=${item.media_items?.title}`)}
-                      className="aspect-[2/3] rounded-2xl overflow-hidden relative group cursor-pointer shadow-xl border border-border/50"
+                      className="aspect-[2/3] rounded-xl md:rounded-2xl overflow-hidden relative group cursor-pointer shadow-xl border border-border/50"
                     >
                       <img src={item.media_items?.cover_url} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                       <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80"></div>
-                      <div className="absolute bottom-4 left-4 right-4">
-                        <p className="text-[9px] font-bold text-primary uppercase tracking-widest mb-1">{item.media_items?.type}</p>
-                        <p className="text-xs font-bold text-white line-clamp-1 italic">{item.media_items?.title}</p>
+                      <div className="absolute bottom-3 md:bottom-4 left-3 md:left-4 right-3 md:right-4">
+                        <p className="text-[7px] md:text-[9px] font-bold text-primary uppercase tracking-widest mb-1">{item.media_items?.type}</p>
+                        <p className="text-[10px] md:text-xs font-bold text-white line-clamp-1 italic">{item.media_items?.title}</p>
                       </div>
                     </div>
                   ))}
@@ -390,24 +390,24 @@ export default function Profile() {
 
           <section className="space-y-6">
             <div className="flex items-center justify-between border-b border-border/50 pb-4">
-              <h2 className="font-display font-bold text-2xl uppercase tracking-tighter">Transmission Registry</h2>
-              <span className="text-[10px] text-muted font-bold uppercase tracking-widest">{posts.length} Transmissions</span>
+              <h2 className="font-display font-bold text-xl md:text-2xl uppercase tracking-tighter">Transmission Registry</h2>
+              <span className="text-[8px] md:text-[10px] text-muted font-bold uppercase tracking-widest">{posts.length} Transmissions</span>
             </div>
             {posts.length === 0 ? (
-              <div className="bg-surface/50 border border-border rounded-[32px] p-10 text-center">
-                <p className="text-muted text-sm italic">Zero radio chatter detected from this origin.</p>
+              <div className="bg-surface/50 border border-border rounded-[24px] md:rounded-[32px] p-8 md:p-10 text-center">
+                <p className="text-muted text-xs md:text-sm italic">Zero radio chatter detected from this origin.</p>
               </div>
             ) : (
-              <div className="space-y-6">
+              <div className="space-y-4 md:space-y-6">
                 {posts.map((post: any) => (
-                  <div key={post.id} className="bg-surface border-l-4 border-primary border border-border rounded-2xl p-8 hover:bg-surface-2/50 transition-all duration-300 shadow-lg">
-                    <p className="mb-4 text-text/90 italic leading-relaxed font-medium">"{post.content}"</p>
+                  <div key={post.id} className="bg-surface border-l-4 border-primary border border-border rounded-xl md:rounded-2xl p-6 md:p-8 hover:bg-surface-2/50 transition-all duration-300 shadow-lg">
+                    <p className="mb-4 text-text/90 italic leading-relaxed font-medium text-xs md:text-base">"{post.content}"</p>
                     <div className="flex items-center justify-between pt-4 border-t border-border/50">
-                      <span className="text-[9px] text-muted font-bold uppercase tracking-[0.2em] flex items-center gap-2">
+                      <span className="text-[7px] md:text-[9px] text-muted font-bold uppercase tracking-[0.2em] flex items-center gap-2">
                          <span className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></span>
                          Secure Transmission Locked
                       </span>
-                      <span className="text-[9px] text-muted font-bold uppercase">{new Date(post.created_at).toLocaleDateString()}</span>
+                      <span className="text-[7px] md:text-[9px] text-muted font-bold uppercase">{new Date(post.created_at).toLocaleDateString()}</span>
                     </div>
                   </div>
                 ))}

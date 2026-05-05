@@ -58,28 +58,38 @@ export default function MediaDetail() {
       setLoading(false);
 
       // Check if in library
-      const { data: localItem } = await supabase
-        .from('media_items')
-        .select(`
-          id,
-          user_media_entries (
-            id,
-            status,
-            rating,
-            review
-          )
-        `)
-        .eq('title', data.title || data.name)
-        .eq('type', type)
-        .maybeSingle();
-      
-      if (localItem && localItem.user_media_entries?.[0]) {
-        const entry = localItem.user_media_entries[0];
-        setLocalMediaId(localItem.id);
-        setInLibrary(true);
-        setRating(entry.rating || 0);
-        setReview(entry.review || '');
-        setStatus(entry.status || 'plan_to_watch');
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: localItem, error: queryError } = await supabase
+            .from('media_items')
+            .select(`
+              id,
+              user_media_entries!left (
+                id,
+                status,
+                rating,
+                review
+              )
+            `)
+            .eq('title', data.title || data.name)
+            .eq('type', type)
+            .eq('user_media_entries.user_id', user.id)
+            .maybeSingle();
+          
+          if (queryError) {
+            console.error('Media check query error:', queryError);
+          } else if (localItem && localItem.user_media_entries?.[0]) {
+            const entry = localItem.user_media_entries[0];
+            setLocalMediaId(localItem.id);
+            setInLibrary(true);
+            setRating(entry.rating || 0);
+            setReview(entry.review || '');
+            setStatus(entry.status || 'plan_to_watch');
+          }
+        }
+      } catch (err) {
+        console.error('Failed to check library status:', err);
       }
     };
 

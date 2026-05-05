@@ -72,7 +72,8 @@ export default function Settings() {
       setAvatarUrl(publicUrl);
       toast.success("Visual feed updated. Finalize config to save.");
     } catch (err: any) {
-      console.error('Upload error:', err);
+      console.error('CRITICAL UPLOAD ERROR OBJECT:', JSON.stringify(err, null, 2));
+      console.error('Error Stack:', err.stack);
       toast.error(`Protocol Failure: ${err.message || 'Unknown storage error'}`);
     } finally {
       setUploading(false);

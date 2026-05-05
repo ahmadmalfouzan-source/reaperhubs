@@ -193,7 +193,10 @@ export default function Profile() {
             )}
           </div>
           {isCurrentUser && (
-            <button className="absolute -bottom-2 -right-2 z-20 p-3 md:p-4 bg-primary text-black rounded-2xl md:rounded-3xl shadow-xl hover:scale-110 active:scale-95 transition-all border-4 border-surface group-hover:rotate-6">
+            <button 
+              onClick={() => navigate('/settings')}
+              className="absolute -bottom-2 -right-2 z-20 p-3 md:p-4 bg-primary text-black rounded-2xl md:rounded-3xl shadow-xl hover:scale-110 active:scale-95 transition-all border-4 border-surface group-hover:rotate-6"
+            >
               <Camera size={18} className="md:w-5 md:h-5" />
             </button>
           )}

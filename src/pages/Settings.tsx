@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getCurrentUser } from '../lib/reaperhub/queries';
 import { supabase } from '../lib/supabase';
@@ -16,7 +16,6 @@ export default function Settings() {
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -38,10 +37,6 @@ export default function Settings() {
       setLoading(false);
     });
   }, [navigate]);
-
-  const handleAvatarClick = () => {
-    fileInputRef.current?.click();
-  };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     try {
@@ -153,10 +148,16 @@ export default function Settings() {
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[100px] pointer-events-none"></div>
         
         <div className="flex flex-col items-center mb-12">
-          <div 
-            className="relative w-32 h-32 rounded-[40px] bg-surface-2 border-2 border-primary/30 cursor-pointer group overflow-hidden shadow-2xl transition-all hover:border-primary"
-            onClick={handleAvatarClick}
+          <label 
+            className="relative w-32 h-32 rounded-[40px] bg-surface-2 border-2 border-primary/30 cursor-pointer group overflow-hidden shadow-2xl transition-all hover:border-primary block"
           >
+            <input 
+              type="file" 
+              className="hidden" 
+              accept="image/*" 
+              onChange={handleFileChange}
+              disabled={uploading}
+            />
             {avatarUrl ? (
               <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover transition-transform group-hover:scale-110" />
             ) : (
@@ -172,25 +173,21 @@ export default function Settings() {
                 <Loader2 className="w-8 h-8 text-primary animate-spin" />
               </div>
             )}
-          </div>
-          <input 
-            type="file" 
-            ref={fileInputRef} 
-            className="hidden" 
-            accept="image/*" 
-            onChange={handleFileChange}
-            disabled={uploading}
-          />
-          <button 
-            type="button"
-            onClick={handleAvatarClick}
-            className="mt-6 flex items-center gap-2 group"
-          >
+          </label>
+          
+          <label className="mt-6 flex items-center gap-2 group cursor-pointer">
+            <input 
+              type="file" 
+              className="hidden" 
+              accept="image/*" 
+              onChange={handleFileChange}
+              disabled={uploading}
+            />
             <span className="text-[10px] font-bold text-muted group-hover:text-primary transition-colors uppercase tracking-[0.3em]">
               Update Visual Feed
             </span>
             <Sparkles size={12} className="text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
-          </button>
+          </label>
         </div>
 
         <form onSubmit={handleUpdate} className="space-y-8">

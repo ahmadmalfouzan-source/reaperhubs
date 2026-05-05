@@ -1,6 +1,16 @@
 import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { supabase } from '../lib/supabase';
 
 export default function Home() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsLoggedIn(!!session);
+    });
+  }, []);
+
   return (
     <div className="space-y-12 md:space-y-16">
       <section className="text-center py-12 md:py-20 relative overflow-hidden">
@@ -13,8 +23,11 @@ export default function Home() {
           ReaperHub is the ultimate platform to log movies, games, and series. Earn XP, rank up, and share your journey with friends.
         </p>
         <div className="flex flex-col sm:flex-row justify-center gap-4 px-6">
-          <Link to="/login" className="px-8 py-4 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl transition-colors text-lg text-center">
-            Start Tracking
+          <Link 
+            to={isLoggedIn ? "/dashboard" : "/login"} 
+            className="px-8 py-4 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl transition-colors text-lg text-center"
+          >
+            {isLoggedIn ? "Go to Dashboard" : "Start Tracking"}
           </Link>
           <Link to="/feed" className="px-8 py-4 bg-surface-2 hover:bg-surface-2/80 text-white font-bold rounded-xl transition-colors text-lg border border-border text-center">
             Explore Feed

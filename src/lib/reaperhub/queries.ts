@@ -181,10 +181,10 @@ export async function getLibraryItems() {
 
 export async function getFeedItems() {
   try {
-    // posts table uses: user_id, body, post_type, is_private
+    // Specify the exact foreign key relationship to avoid ambiguity
     const { data: postsData, error } = await supabase
       .from('posts')
-      .select('*, users!inner(username, display_name, avatar_url)')
+      .select('*, users!posts_user_id_fkey(username, display_name, avatar_url)')
       .eq('is_private', false)
       .eq('is_deleted', false)
       .order('created_at', { ascending: false })

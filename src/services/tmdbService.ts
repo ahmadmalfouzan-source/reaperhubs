@@ -101,6 +101,19 @@ export async function getTMDBItemByTitle(title: string, type: string) {
   }
 }
 
+export async function getSeasonDetails(tvId: string, seasonNumber: number) {
+  const url = `${BASE_URL}/tv/${tvId}/season/${seasonNumber}?api_key=${API_KEY}`;
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Failed to fetch season details');
+    return await response.json();
+  } catch (error) {
+    console.error('TMDB Season Details Error:', error);
+    return null;
+  }
+}
+
 export async function getTrendingTMDB(type: 'movie' | 'tv' | 'all' = 'movie', timeWindow: 'day' | 'week' = 'week') {
   const url = `${BASE_URL}/trending/${type}/${timeWindow}?api_key=${API_KEY}`;
 

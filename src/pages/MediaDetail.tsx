@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getMediaDetails as getTMDBDetails, getTMDBImageUrl } from '../services/tmdbService';
+import { getMediaDetails as getTMDBDetails, getTMDBImageUrl, getSeasonDetails } from '../services/tmdbService';
 import { getGameDetails, mapRAWGToMedia } from '../services/rawgService';
-import { addToLibrary, removeFromLibrary, updateMediaEntry } from '../lib/reaperhub/queries';
+import { addToLibrary, removeFromLibrary, updateMediaEntry, getEpisodeWatches, toggleEpisodeWatch } from '../lib/reaperhub/queries';
 import { supabase } from '../lib/supabase';
-import { Star, Calendar, Plus, Trash2, ChevronLeft, Loader2, Save, ChevronDown, ChevronUp } from 'lucide-react';
+import { Star, Calendar, Plus, Trash2, ChevronLeft, Loader2, Save, ChevronDown, ChevronUp, CheckCircle2, Circle, Play } from 'lucide-react';
 import { toast } from 'sonner';
 import Skeleton from '../components/Skeleton';
 import { cn } from '../lib/utils';
@@ -29,6 +29,11 @@ export default function MediaDetail() {
   const [status, setStatus] = useState('plan_to_watch');
   const [isUpdating, setIsUpdating] = useState(false);
   const [showFullOverview, setShowFullOverview] = useState(false);
+  const [seasons, setSeasons] = useState<any[]>([]);
+  const [watchedEpisodes, setWatchedEpisodes] = useState<any[]>([]);
+  const [expandedSeasons, setExpandedSeasons] = useState<Set<number>>(new Set());
+  const [seasonData, setSeasonData] = useState<Record<number, any>>({});
+  const [loadingSeasons, setLoadingSeasons] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -141,6 +146,75 @@ export default function MediaDetail() {
       toast.error("Sync failure.");
     }
     setIsUpdating(false);
+  };
+
+  useEffect(() => {
+    if (media && type === 'tv' && id) {
+      setSeasons(media.seasons || []);
+      getEpisodeWatches(id).then(setWatchedEpisodes);
+    }
+  }, [media, type, id]);
+
+  const toggleSeasonCollapse = async (seasonNumber: number) => {
+    const next = new Set(expandedSeasons);
+    if (next.has(seasonNumber)) {
+      next.delete(seasonNumber);
+    } else {
+      next.add(seasonNumber);
+      // Fetch episodes if not already loaded
+      if (!seasonData[seasonNumber] && id) {
+        setLoadingSeasons(true);
+        const data = await getSeasonDetails(id, seasonNumber);
+        if (data) {
+          setSeasonData(prev => ({ ...prev, [seasonNumber]: data }));
+        }
+        setLoadingSeasons(false);
+      }
+    }
+    setExpandedSeasons(next);
+  };
+
+  const isEpisodeWatched = (seasonNum: number, episodeNum: number) => {
+    return watchedEpisodes.some(w => w.season_number === seasonNum && w.episode_number === episodeNum);
+  };
+
+  const handleToggleEpisode = async (seasonNum: number, episodeNum: number) => {
+    if (!id) return;
+    
+    // Optimistic UI
+    const isWatched = isEpisodeWatched(seasonNum, episodeNum);
+    if (isWatched) {
+      setWatchedEpisodes(prev => prev.filter(w => !(w.season_number === seasonNum && w.episode_number === episodeNum)));
+    } else {
+      setWatchedEpisodes(prev => [...prev, { season_number: seasonNum, episode_number: episodeNum }]);
+    }
+
+    const res = await toggleEpisodeWatch(id, seasonNum, episodeNum);
+    if (!res.success) {
+      toast.error("Sync error. Pulse signal lost.");
+      // Revert
+      if (isWatched) {
+        setWatchedEpisodes(prev => [...prev, { season_number: seasonNum, episode_number: episodeNum }]);
+      } else {
+        setWatchedEpisodes(prev => prev.filter(w => !(w.season_number === seasonNum && w.episode_number === episodeNum)));
+      }
+    }
+  };
+
+  const calculateSeasonProgress = (seasonNum: number, totalEpisodes: number) => {
+    const watchedInSeason = watchedEpisodes.filter(w => w.season_number === seasonNum).length;
+    return {
+      watched: watchedInSeason,
+      total: totalEpisodes,
+      percentage: totalEpisodes > 0 ? (watchedInSeason / totalEpisodes) * 100 : 0
+    };
+  };
+
+  const calculateOverallProgress = () => {
+    if (!media || !seasons.length) return 0;
+    const totalEpisodes = seasons.reduce((acc, s) => acc + (s.episode_count || 0), 0);
+    const totalWatched = watchedEpisodes.length;
+    return totalEpisodes > 0 ? Math.round((totalWatched / totalEpisodes) * 100) : 0;
   };
 
   if (loading) {
@@ -373,6 +447,124 @@ export default function MediaDetail() {
               </button>
             )}
           </section>
+
+          {/* Episode Tracker (TV Only) */}
+          {type === 'tv' && seasons.length > 0 && (
+            <section className="space-y-8">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/30 pb-6">
+                <div className="space-y-1">
+                  <h2 className="text-xl font-display font-bold text-white uppercase tracking-tight flex items-center gap-3">
+                    <span className="w-2 h-8 bg-primary-2 rounded-full"></span>
+                    Mission Progress
+                  </h2>
+                  <p className="text-[10px] text-muted font-bold uppercase tracking-widest">Tracking unit deployment across all sectors</p>
+                </div>
+                
+                <div className="flex items-center gap-4 bg-surface-2/50 p-4 rounded-2xl border border-border/30">
+                  <div className="text-right">
+                    <div className="text-2xl font-display font-bold text-primary-2 leading-none">{calculateOverallProgress()}%</div>
+                    <div className="text-[8px] text-muted uppercase font-bold tracking-widest mt-1">Completion</div>
+                  </div>
+                  <div className="w-32 h-3 bg-surface rounded-full overflow-hidden border border-border/50">
+                    <div 
+                      className="h-full bg-primary-2 transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(124,92,255,0.5)]" 
+                      style={{ width: `${calculateOverallProgress()}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {seasons.filter(s => s.season_number > 0).map((season) => {
+                  const progress = calculateSeasonProgress(season.season_number, season.episode_count);
+                  const isExpanded = expandedSeasons.has(season.season_number);
+                  const data = seasonData[season.season_number];
+
+                  return (
+                    <div key={season.id} className="group bg-surface-2/30 border border-border/50 rounded-[24px] overflow-hidden transition-all hover:border-primary-2/30">
+                      <button 
+                        onClick={() => toggleSeasonCollapse(season.season_number)}
+                        className="w-full flex items-center justify-between p-5 text-left hover:bg-primary-2/5 transition-all"
+                      >
+                        <div className="flex items-center gap-6">
+                          <div className="w-12 h-16 rounded-lg overflow-hidden border border-border/50 flex-shrink-0 bg-surface shadow-lg group-hover:scale-105 transition-transform">
+                            {season.poster_path ? (
+                              <img src={getTMDBImageUrl(season.poster_path)} className="w-full h-full object-cover" alt="" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-[8px] text-muted">N/A</div>
+                            )}
+                          </div>
+                          <div>
+                            <h3 className="font-display font-bold text-lg text-white uppercase tracking-tight">{season.name}</h3>
+                            <div className="flex items-center gap-3 mt-1">
+                              <span className="text-[10px] text-muted font-bold uppercase tracking-widest">{season.episode_count} Episodes</span>
+                              <span className="w-1 h-1 bg-border rounded-full"></span>
+                              <span className="text-[10px] text-primary-2 font-bold uppercase tracking-widest">{progress.watched} Cleared</span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-4">
+                          <div className="hidden sm:block w-24 h-1.5 bg-surface rounded-full overflow-hidden border border-border/30">
+                            <div className="h-full bg-primary-2/60" style={{ width: `${progress.percentage}%` }} />
+                          </div>
+                          {isExpanded ? <ChevronUp size={20} className="text-muted" /> : <ChevronDown size={20} className="text-muted" />}
+                        </div>
+                      </button>
+
+                      {isExpanded && (
+                        <div className="border-t border-border/30 p-4 space-y-2 animate-in slide-in-from-top-4 duration-300">
+                          {loadingSeasons && !data ? (
+                            <div className="flex flex-col items-center py-8 space-y-4 opacity-50">
+                              <Loader2 className="w-6 h-6 animate-spin text-primary-2" />
+                              <span className="text-[10px] font-bold uppercase tracking-widest">Intercepting episode intel...</span>
+                            </div>
+                          ) : data?.episodes?.map((ep: any) => {
+                            const watched = isEpisodeWatched(season.season_number, ep.episode_number);
+                            return (
+                              <div key={ep.id} className="flex items-center gap-4 p-3 rounded-xl hover:bg-surface-2/50 transition-all border border-transparent hover:border-border/30 group/ep">
+                                <button 
+                                  onClick={() => handleToggleEpisode(season.season_number, ep.episode_number)}
+                                  className={cn(
+                                    "p-2 rounded-lg transition-all active:scale-90",
+                                    watched ? "text-primary-2 bg-primary-2/10" : "text-muted hover:text-white"
+                                  )}
+                                >
+                                  {watched ? <CheckCircle2 size={20} /> : <Circle size={20} />}
+                                </button>
+                                
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-3">
+                                    <span className="font-mono text-[10px] text-primary-2 font-bold">EP {ep.episode_number}</span>
+                                    <h4 className={cn("text-sm font-bold truncate transition-all", watched ? "text-white/40 italic line-through" : "text-text")}>
+                                      {ep.name}
+                                    </h4>
+                                  </div>
+                                  <div className="flex items-center gap-2 mt-1 opacity-40">
+                                    <span className="text-[9px] font-bold uppercase tracking-widest">{new Date(ep.air_date).toLocaleDateString()}</span>
+                                    {ep.runtime && (
+                                      <>
+                                        <span className="w-0.5 h-0.5 bg-border rounded-full"></span>
+                                        <span className="text-[9px] font-bold uppercase tracking-widest">{ep.runtime}m</span>
+                                      </>
+                                    )}
+                                  </div>
+                                </div>
+
+                                <div className="opacity-0 group-hover/ep:opacity-100 transition-opacity hidden md:block">
+                                   <Play size={14} className="text-muted hover:text-primary-2 cursor-pointer" />
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          )}
 
           {type !== 'game' && media.credits?.cast && media.credits.cast.length > 0 && (
             <section className="space-y-6">

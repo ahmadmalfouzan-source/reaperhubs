@@ -364,6 +364,71 @@ export async function toggleLike(postId: string) {
   }
 }
 
+export async function getEpisodeWatches(tmdbMediaId: string) {
+  try {
+    const user = await getCurrentUser();
+    if (!user) return [];
+
+    const { data, error } = await supabase
+      .from('episode_watches')
+      .select('season_number, episode_number')
+      .eq('user_id', user.id)
+      .eq('tmdb_media_id', tmdbMediaId);
+
+    if (error) throw error;
+    return data || [];
+  } catch (err) {
+    console.error('Error fetching episode watches:', err);
+    return [];
+  }
+}
+
+export async function toggleEpisodeWatch(tmdbMediaId: string, seasonNumber: number, episodeNumber: number) {
+  try {
+    const user = await getCurrentUser();
+    if (!user) throw new Error('Not logged in');
+
+    // Check if watch exists
+    const { data: existing } = await supabase
+      .from('episode_watches')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('tmdb_media_id', tmdbMediaId)
+      .eq('season_number', seasonNumber)
+      .eq('episode_number', episodeNumber)
+      .maybeSingle();
+
+    if (existing) {
+      // Unwatch
+      const { error } = await supabase
+        .from('episode_watches')
+        .delete()
+        .eq('id', existing.id);
+      if (error) throw error;
+      return { success: true, action: 'unwatched' };
+    } else {
+      // Watch
+      const { error } = await supabase
+        .from('episode_watches')
+        .insert({
+          user_id: user.id,
+          tmdb_media_id: tmdbMediaId,
+          season_number: seasonNumber,
+          episode_number: episodeNumber
+        });
+      if (error) throw error;
+      
+      // Award small XP for tracking
+      try { await awardXPAndCoins(2, 0, 'Watched an episode', 'complete_episode'); } catch(e) {}
+      
+      return { success: true, action: 'watched' };
+    }
+  } catch (error: any) {
+    console.error('Error toggling episode watch:', error);
+    return { success: false, error: error.message };
+  }
+}
+
 export async function getLeaderboard() {
   try {
     const { data, error } = await supabase

@@ -429,6 +429,53 @@ export async function toggleEpisodeWatch(tmdbMediaId: string, seasonNumber: numb
   }
 }
 
+export async function getSeasonRatings(tmdbMediaId: string) {
+  try {
+    const user = await getCurrentUser();
+    if (!user) return [];
+
+    const { data, error } = await supabase
+      .from('season_ratings')
+      .select('season_number, rating')
+      .eq('user_id', user.id)
+      .eq('tmdb_media_id', tmdbMediaId);
+
+    if (error) throw error;
+    return data || [];
+  } catch (err) {
+    console.error('Error fetching season ratings:', err);
+    return [];
+  }
+}
+
+export async function updateSeasonRating(tmdbMediaId: string, seasonNumber: number, rating: number) {
+  try {
+    const user = await getCurrentUser();
+    if (!user) throw new Error('Not logged in');
+
+    const { data, error } = await supabase
+      .from('season_ratings')
+      .upsert({
+        user_id: user.id,
+        tmdb_media_id: tmdbMediaId,
+        season_number: seasonNumber,
+        rating: rating
+      }, { onConflict: 'user_id, tmdb_media_id, season_number' })
+      .select()
+      .single();
+
+    if (error) throw error;
+    
+    // Small XP reward for rating
+    try { await awardXPAndCoins(3, 0, 'Rated a season', 'season_rated'); } catch(e) {}
+    
+    return { data, success: true };
+  } catch (error: any) {
+    console.error('Error updating season rating:', error);
+    return { success: false, error: error.message };
+  }
+}
+
 export async function getLeaderboard() {
   try {
     const { data, error } = await supabase

@@ -476,6 +476,103 @@ export async function updateSeasonRating(tmdbMediaId: string, seasonNumber: numb
   }
 }
 
+export async function getGameBossesProgress(gameId: string) {
+  try {
+    const user = await getCurrentUser();
+    if (!user) return [];
+
+    const { data, error } = await supabase
+      .from('game_bosses_progress')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('game_id', gameId);
+
+    if (error) throw error;
+    return data || [];
+  } catch (err) {
+    console.error('Error fetching boss progress:', err);
+    return [];
+  }
+}
+
+export async function toggleBossDefeated(gameId: string, bossName: string, isDefeated: boolean) {
+  try {
+    const user = await getCurrentUser();
+    if (!user) throw new Error('Not logged in');
+
+    const { data, error } = await supabase
+      .from('game_bosses_progress')
+      .upsert({
+        user_id: user.id,
+        game_id: gameId,
+        boss_name: bossName,
+        is_defeated: isDefeated,
+        defeated_at: isDefeated ? new Date().toISOString() : null
+      }, { onConflict: 'user_id, game_id, boss_name' })
+      .select()
+      .single();
+
+    if (error) throw error;
+    
+    if (isDefeated) {
+      try { await awardXPAndCoins(10, 2, 'Defeated a priority target', 'boss_defeated'); } catch(e) {}
+    }
+    
+    return { data, success: true };
+  } catch (error: any) {
+    console.error('Error toggling boss:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function getGameSessions(gameId: string) {
+  try {
+    const user = await getCurrentUser();
+    if (!user) return [];
+
+    const { data, error } = await supabase
+      .from('game_sessions')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('game_id', gameId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  } catch (err) {
+    console.error('Error fetching game sessions:', err);
+    return [];
+  }
+}
+
+export async function logGameSession(gameId: string, activityType: string, playtimeHours: number, summary?: string) {
+  try {
+    const user = await getCurrentUser();
+    if (!user) throw new Error('Not logged in');
+
+    const { data, error } = await supabase
+      .from('game_sessions')
+      .insert({
+        user_id: user.id,
+        game_id: gameId,
+        activity_type: activityType,
+        playtime_hours: playtimeHours,
+        summary: summary
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    
+    try { await awardXPAndCoins(15, 5, 'Logged a tactical session', 'session_logged'); } catch(e) {}
+    
+    return { data, success: true };
+  } catch (error: any) {
+    console.error('Error logging session:', error);
+    return { success: false, error: error.message };
+  }
+}
+
 export async function getLeaderboard() {
   try {
     const { data, error } = await supabase

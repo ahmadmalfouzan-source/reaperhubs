@@ -2,9 +2,28 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { getMediaDetails as getTMDBDetails, getTMDBImageUrl, getSeasonDetails, getSimilarMedia } from '../services/tmdbService';
 import { getGameDetails, mapRAWGToMedia } from '../services/rawgService';
-import { addToLibrary, removeFromLibrary, updateMediaEntry, getEpisodeWatches, toggleEpisodeWatch, getSeasonRatings, updateSeasonRating } from '../lib/reaperhub/queries';
+import { getHLTBData, HLTBData } from '../services/hltbService';
+import { getGameBosses } from '../services/wikipediaService';
+import { 
+  addToLibrary, 
+  removeFromLibrary, 
+  updateMediaEntry, 
+  getEpisodeWatches, 
+  toggleEpisodeWatch, 
+  getSeasonRatings, 
+  updateSeasonRating,
+  getGameBossesProgress,
+  toggleBossDefeated,
+  getGameSessions,
+  logGameSession
+} from '../lib/reaperhub/queries';
 import { supabase } from '../lib/supabase';
-import { Star, Calendar, Plus, Trash2, ChevronLeft, Loader2, Save, ChevronDown, ChevronUp, CheckCircle2, Circle, Play, MoreVertical, Sparkles } from 'lucide-react';
+import { 
+  Star, Calendar, Plus, Trash2, ChevronLeft, Loader2, Save, 
+  ChevronDown, ChevronUp, CheckCircle2, Circle, Play, 
+  MoreVertical, Sparkles, Clock, Target, Swords, Zap, 
+  Map, Wrench, BookOpen, Skull, Trophy, History
+} from 'lucide-react';
 import { toast } from 'sonner';
 import Skeleton from '../components/Skeleton';
 import { cn } from '../lib/utils';
@@ -15,6 +34,16 @@ const STATUS_OPTIONS = [
   { value: 'completed', label: 'Completed', color: 'text-green-400' },
   { value: 'dropped', label: 'Dropped', color: 'text-red-400' },
   { value: 'on_hold', label: 'On Hold', color: 'text-gray-400' },
+];
+
+const SESSION_ACTIVITIES = [
+  { id: 'main_mission', label: 'Completed main mission', icon: <CheckCircle2 size={16} /> },
+  { id: 'boss_defeated', label: 'Defeated a boss', icon: <Swords size={16} /> },
+  { id: 'explored', label: 'Explored new area', icon: <Map size={16} /> },
+  { id: 'upgraded', label: 'Upgraded character', icon: <Wrench size={16} /> },
+  { id: 'story', label: 'Followed the story', icon: <BookOpen size={16} /> },
+  { id: 'died', label: 'Died a lot', icon: <Skull size={16} /> },
+  { id: 'achievement', label: 'Unlocked achievement', icon: <Trophy size={16} /> },
 ];
 
 export default function MediaDetail() {
@@ -37,6 +66,17 @@ export default function MediaDetail() {
   const [loadingSeasons, setLoadingSeasons] = useState(false);
   const [similarMedia, setSimilarMedia] = useState<any[]>([]);
   const [showMenu, setShowMenu] = useState(false);
+  
+  // Game specific states
+  const [hltb, setHltb] = useState<HLTBData | null>(null);
+  const [bosses, setBosses] = useState<string[]>([]);
+  const [defeatedBosses, setDefeatedBosses] = useState<string[]>([]);
+  const [showSessionLog, setShowSessionLog] = useState(false);
+  const [sessionHours, setSessionHours] = useState('1');
+  const [lastSession, setLastSession] = useState<any>(null);
+  const [totalPlaytime, setTotalPlaytime] = useState(0);
+  const [isLogging, setIsLogging] = useState(false);
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -53,6 +93,20 @@ export default function MediaDetail() {
           data.poster_path = game.background_image;
           data.genres = game.genres;
           data.vote_average = game.rating;
+
+          // Fetch HLTB and Bosses
+          getHLTBData(data.title).then(setHltb);
+          getGameBosses(data.title).then(setBosses);
+          
+          // Fetch user specific game data
+          getGameBossesProgress(id).then(res => {
+            setDefeatedBosses(res.filter((b: any) => b.is_defeated).map((b: any) => b.boss_name));
+          });
+          getGameSessions(id).then(res => {
+            if (res.length > 0) setLastSession(res[0]);
+            const total = res.reduce((acc: number, s: any) => acc + (parseFloat(s.playtime_hours) || 0), 0);
+            setTotalPlaytime(total);
+          });
         }
       } else {
         const [details, similar] = await Promise.all([
@@ -128,7 +182,7 @@ export default function MediaDetail() {
       } else {
         const res = await addToLibrary(media.title || media.name, type, status, {
           overview: media.overview,
-          cover_url: type === 'game' ? media.cover_url : getTMDBImageUrl(media.poster_path)
+          cover_url: type === 'game' ? media.backdrop_path : getTMDBImageUrl(media.poster_path)
         }, id || '');
         if (res.success) {
           setInLibrary(true);
@@ -163,6 +217,46 @@ export default function MediaDetail() {
     setSeasonRatings(prev => ({ ...prev, [seasonNum]: newRating }));
     const res = await updateSeasonRating(id, seasonNum, newRating);
     if (!res.success) toast.error("Failed to sync season appraisal.");
+  };
+
+  const handleToggleBoss = async (bossName: string) => {
+    if (!id) return;
+    const isDefeated = defeatedBosses.includes(bossName);
+    
+    // Optimistic UI
+    if (isDefeated) {
+      setDefeatedBosses(prev => prev.filter(b => b !== bossName));
+    } else {
+      setDefeatedBosses(prev => [...prev, bossName]);
+    }
+
+    const res = await toggleBossDefeated(id, bossName, !isDefeated);
+    if (!res.success) {
+      toast.error("Failed to update target status.");
+      // Revert
+      if (isDefeated) setDefeatedBosses(prev => [...prev, bossName]);
+      else setDefeatedBosses(prev => prev.filter(b => b !== bossName));
+    } else if (!isDefeated) {
+      toast.success(`${bossName} neutralized.`);
+    }
+  };
+
+  const handleLogSession = async (activityId: string) => {
+    if (!id) return;
+    setIsLogging(true);
+    const hours = parseFloat(sessionHours) || 0;
+    const activity = SESSION_ACTIVITIES.find(a => a.id === activityId);
+    
+    const res = await logGameSession(id, activityId, hours, activity?.label);
+    if (res.success) {
+      setLastSession(res.data);
+      setTotalPlaytime(prev => prev + hours);
+      setShowSessionLog(false);
+      toast.success("Tactical session logged.");
+    } else {
+      toast.error("Failed to log session.");
+    }
+    setIsLogging(false);
   };
 
   const toggleSeasonCollapse = async (seasonNumber: number) => {
@@ -275,6 +369,13 @@ export default function MediaDetail() {
             <h1 className="font-display font-bold text-2xl md:text-6xl text-white leading-tight drop-shadow-2xl uppercase tracking-tighter italic">
               {media.title || media.name}
             </h1>
+            
+            {type === 'game' && lastSession && (
+              <div className="flex items-center gap-2 text-[10px] font-bold text-primary uppercase tracking-[0.2em] bg-primary/10 px-3 py-1.5 rounded-xl border border-primary/20 animate-pulse">
+                 <History size={12} />
+                 Last Op: {lastSession.summary} • {new Date(lastSession.created_at).toLocaleDateString()}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -349,13 +450,31 @@ export default function MediaDetail() {
                 <div className="flex items-center gap-2 text-muted">Rating</div>
                 <span className="text-primary-2 font-bold">{media.vote_average?.toFixed(1)} / 5</span>
               </div>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {media.genres?.map((g: any) => (
-                <span key={g.id || g.name} className="px-2 py-1 bg-surface-2 border border-border rounded-lg text-[9px] font-bold text-muted uppercase">
-                  {g.name}
-                </span>
-              ))}
+
+              {type === 'game' && (
+                <>
+                  <div className="flex items-center justify-between text-sm border-t border-border/10 pt-4">
+                    <div className="flex items-center gap-2 text-muted">Total Time</div>
+                    <span className="text-success font-bold font-mono">{totalPlaytime.toFixed(1)}h</span>
+                  </div>
+                  {hltb && (
+                    <div className="space-y-3 pt-2">
+                      <div className="flex items-center justify-between text-[10px]">
+                        <span className="text-muted uppercase font-bold tracking-widest">Main Story</span>
+                        <span className="text-white font-mono">{hltb.main}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-[10px]">
+                        <span className="text-muted uppercase font-bold tracking-widest">Main + Extras</span>
+                        <span className="text-white font-mono">{hltb.extra}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-[10px]">
+                        <span className="text-muted uppercase font-bold tracking-widest">Completionist</span>
+                        <span className="text-white font-mono">{hltb.completionist}</span>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -372,8 +491,8 @@ export default function MediaDetail() {
               )}
             </div>
             {media.overview?.length > 200 && (
-              <button onClick={() => setShowFullOverview(!showFullOverview)} className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-widest">
-                {showFullOverview ? <><ChevronUp size={14} /> Collapse Dossier</> : <><ChevronDown size={14} /> Expand Dossier</>}
+              <button onClick={() => setShowFullOverview(!showFullOverview)} className="text-primary font-bold text-xs uppercase tracking-widest">
+                {showFullOverview ? 'Collapse' : 'Expand'} Dossier
               </button>
             )}
           </section>
@@ -410,10 +529,46 @@ export default function MediaDetail() {
                     disabled={isUpdating}
                     className="w-full sm:w-auto flex items-center justify-center gap-3 px-8 py-3 bg-primary text-black font-bold rounded-xl"
                   >
-                    {isUpdating ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
+                    {isUpdating ? <Loader2 className="animate-spin size={16} /> : <Save size={16} />}
                     <span className="uppercase tracking-widest text-xs">Sync Intel</span>
                   </button>
                 </div>
+              </div>
+            </section>
+          )}
+
+          {/* Priority Targets (Game Only) */}
+          {type === 'game' && bosses.length > 0 && (
+            <section className="space-y-8">
+              <div className="flex items-center gap-3 border-b border-border/30 pb-6">
+                <Target size={24} className="text-danger" />
+                <h2 className="text-xl font-display font-bold text-white uppercase tracking-tight">Priority Targets</h2>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {bosses.map((boss) => (
+                  <button
+                    key={boss}
+                    onClick={() => handleToggleBoss(boss)}
+                    className={cn(
+                      "flex items-center justify-between p-4 rounded-2xl border transition-all text-left group/boss",
+                      defeatedBosses.includes(boss)
+                        ? "bg-danger/10 border-danger/30 text-white"
+                        : "bg-surface-2 border-border/50 text-muted hover:border-danger/30"
+                    )}
+                  >
+                    <span className={cn("text-xs font-bold uppercase tracking-widest", defeatedBosses.includes(boss) && "line-through opacity-50")}>
+                      {boss}
+                    </span>
+                    <div className={cn(
+                      "w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all",
+                      defeatedBosses.includes(boss) 
+                        ? "bg-danger border-danger shadow-lg shadow-danger/20" 
+                        : "border-border group-hover/boss:border-danger/50"
+                    )}>
+                      {defeatedBosses.includes(boss) && <Swords size={12} className="text-black" />}
+                    </div>
+                  </button>
+                ))}
               </div>
             </section>
           )}
@@ -546,6 +701,68 @@ export default function MediaDetail() {
           )}
         </div>
       </div>
+
+      {/* Floating Session Log Button (Game Only) */}
+      {type === 'game' && inLibrary && (
+        <>
+          <button 
+            onClick={() => setShowSessionLog(true)}
+            className="fixed bottom-24 right-6 w-16 h-16 bg-primary text-black rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-40 group"
+          >
+            <History size={24} className="group-hover:rotate-12 transition-transform" />
+            <div className="absolute -top-1 -right-1 w-5 h-5 bg-danger text-white text-[8px] font-bold rounded-full flex items-center justify-center border-2 border-background">OP</div>
+          </button>
+
+          {showSessionLog && (
+            <div className="fixed inset-0 z-[100] animate-in fade-in duration-300">
+              <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setShowSessionLog(false)}></div>
+              <div className="absolute bottom-0 left-0 right-0 bg-surface border-t-2 border-primary/20 rounded-t-[40px] p-8 space-y-8 animate-in slide-in-from-bottom duration-500 max-h-[90vh] overflow-y-auto">
+                <div className="flex items-center justify-between">
+                   <div className="space-y-1">
+                     <h3 className="text-2xl font-display font-bold text-white uppercase tracking-tight">Session Debrief</h3>
+                     <p className="text-xs text-muted font-bold uppercase tracking-widest">Log tactical progress for this unit</p>
+                   </div>
+                   <button onClick={() => setShowSessionLog(false)} className="p-2 text-muted hover:text-white">
+                      <ChevronDown size={24} />
+                   </button>
+                </div>
+
+                <div className="space-y-4">
+                   <label className="text-[10px] font-bold uppercase tracking-widest text-muted px-2">Duration (Hours)</label>
+                   <div className="flex items-center gap-4 bg-surface-2 p-4 rounded-2xl border border-border">
+                      <Clock size={20} className="text-primary" />
+                      <input 
+                        type="number" 
+                        step="0.5" 
+                        min="0"
+                        value={sessionHours}
+                        onChange={(e) => setSessionHours(e.target.value)}
+                        className="flex-1 bg-transparent text-xl font-mono font-bold text-white focus:outline-none"
+                      />
+                   </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-3">
+                  {SESSION_ACTIVITIES.map((act) => (
+                    <button
+                      key={act.id}
+                      onClick={() => handleLogSession(act.id)}
+                      disabled={isLogging}
+                      className="flex items-center gap-4 p-5 rounded-2xl bg-surface-2 border border-border hover:border-primary/50 transition-all text-left active:scale-95 group"
+                    >
+                      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-black transition-all">
+                        {act.icon}
+                      </div>
+                      <span className="text-sm font-bold uppercase tracking-widest text-text/80">{act.label}</span>
+                      {isLogging && <Loader2 size={16} className="ml-auto animate-spin" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }

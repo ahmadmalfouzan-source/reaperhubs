@@ -60,32 +60,23 @@ export default function MediaDetail() {
       // Check if in library
       try {
         const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          const { data: localItem, error: queryError } = await supabase
-            .from('media_items')
-            .select(`
-              id,
-              user_media_entries!left (
-                id,
-                status,
-                rating,
-                review
-              )
-            `)
-            .eq('title', data.title || data.name)
-            .eq('type', type)
-            .eq('user_media_entries.user_id', user.id)
+        if (user && id) {
+          const { data: libraryItem, error: queryError } = await supabase
+            .from('library_items')
+            .select('*')
+            .eq('user_id', user.id)
+            .eq('media_id', id)
+            .eq('media_type', type)
             .maybeSingle();
           
           if (queryError) {
-            console.error('Media check query error:', queryError);
-          } else if (localItem && localItem.user_media_entries?.[0]) {
-            const entry = localItem.user_media_entries[0];
-            setLocalMediaId(localItem.id);
+            console.error('Library check query error:', queryError);
+          } else if (libraryItem) {
+            setLocalMediaId(libraryItem.id);
             setInLibrary(true);
-            setRating(entry.rating || 0);
-            setReview(entry.review || '');
-            setStatus(entry.status || 'plan_to_watch');
+            setRating(libraryItem.rating || 0);
+            setReview(libraryItem.review || '');
+            setStatus(libraryItem.status || 'plan_to_watch');
           }
         }
       } catch (err) {
@@ -105,6 +96,7 @@ export default function MediaDetail() {
         const res = await removeFromLibrary(localMediaId);
         if (res.success) {
           setInLibrary(false);
+          setLocalMediaId(null);
           toast.success("Successfully purged from your archive.");
         } else {
           toast.error("Purge failed. System interference detected.");
@@ -114,8 +106,13 @@ export default function MediaDetail() {
           overview: media.overview,
           cover_url: type === 'game' ? media.cover_url : getTMDBImageUrl(media.poster_path)
         }, id || '');
+        
         if (res.success) {
           setInLibrary(true);
+          if (res.data?.id) {
+            setLocalMediaId(res.data.id);
+          }
+          
           if (res.rewards) {
             toast.success(`+${res.rewards.earnedXp} XP! Item added to library!`, { icon: '✨' });
           } else {

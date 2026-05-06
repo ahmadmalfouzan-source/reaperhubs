@@ -134,14 +134,14 @@ export async function addToLibrary(
 
     if (existing) return { success: false, message: 'Already in library' };
 
-    const { error } = await supabase.from('library_items').insert({
+    const { data: newData, error } = await supabase.from('library_items').insert({
       user_id: user.id,
       title: title || 'Unknown',
       media_type: type,
       media_id: mediaIdStr,
       status,
       poster_url: metadata.cover_url || metadata.poster_url || ''
-    });
+    }).select().single();
 
     if (error) throw error;
 
@@ -152,7 +152,7 @@ export async function addToLibrary(
       status === 'completed' ? 'complete_title' : 'add_to_library'
     );
 
-    return { success: true, rewards };
+    return { success: true, rewards, data: newData };
   } catch (err: any) {
     console.error('Error adding to library:', err);
     return { success: false, message: err.message };

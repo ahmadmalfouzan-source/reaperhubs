@@ -249,12 +249,12 @@ export default function MediaDetail() {
   return (
     <div className="max-w-5xl mx-auto space-y-8 md:space-y-12 animate-in fade-in duration-500 pb-40 md:pb-24">
       {/* Hero Backdrop */}
-      <div className="relative z-0 h-[250px] md:h-[450px] rounded-[32px] md:rounded-[40px] overflow-hidden shadow-2xl group mx-4 md:mx-0">
+      <div className="relative z-0 h-[250px] md:h-[450px] rounded-[32px] md:rounded-[40px] overflow-visible shadow-2xl group mx-4 md:mx-0">
         {backdrop ? (
           <img 
             src={backdrop} 
             alt="Backdrop" 
-            className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" 
+            className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105 rounded-[32px] md:rounded-[40px]" 
             onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=1200&q=80'; }}
           />
         ) : (
@@ -286,7 +286,7 @@ export default function MediaDetail() {
         </div>
       </div>
 
-      <div className="relative z-20 grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 px-4 md:px-0">
+      <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 px-4 md:px-0">
         {/* Sidebar Info */}
         <div className="space-y-8">
           <div className="hidden md:block relative group rounded-3xl overflow-hidden shadow-2xl border border-border/50">
@@ -299,7 +299,7 @@ export default function MediaDetail() {
           </div>
 
           <div className="space-y-4">
-            <div className="bg-surface-2 border border-border rounded-2xl p-4 md:p-6 space-y-4 relative overflow-hidden group">
+            <div className="bg-surface-2 border border-border rounded-2xl p-4 md:p-6 space-y-4 relative group">
               <div className="flex items-center justify-between gap-4">
                 <div className="flex-1 space-y-1">
                    <label className="text-[9px] font-bold uppercase tracking-widest text-muted">Deploy Status</label>
@@ -323,7 +323,7 @@ export default function MediaDetail() {
                   </button>
 
                   {showMenu && (
-                    <div className="absolute right-0 bottom-full mb-2 w-48 bg-surface border border-border shadow-2xl rounded-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                    <div className="fixed md:absolute right-6 md:right-0 bottom-32 md:bottom-full mb-2 w-48 bg-surface border border-border shadow-2xl rounded-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
                       <button 
                         onClick={handleToggleLibrary}
                         disabled={actionLoading}

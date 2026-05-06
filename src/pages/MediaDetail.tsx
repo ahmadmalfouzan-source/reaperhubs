@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { getMediaDetails as getTMDBDetails, getTMDBImageUrl, getSeasonDetails } from '../services/tmdbService';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { getMediaDetails as getTMDBDetails, getTMDBImageUrl, getSeasonDetails, getSimilarMedia } from '../services/tmdbService';
 import { getGameDetails, mapRAWGToMedia } from '../services/rawgService';
 import { addToLibrary, removeFromLibrary, updateMediaEntry, getEpisodeWatches, toggleEpisodeWatch, getSeasonRatings, updateSeasonRating } from '../lib/reaperhub/queries';
 import { supabase } from '../lib/supabase';
-import { Star, Calendar, Plus, Trash2, ChevronLeft, Loader2, Save, ChevronDown, ChevronUp, CheckCircle2, Circle, Play, MoreVertical } from 'lucide-react';
+import { Star, Calendar, Plus, Trash2, ChevronLeft, Loader2, Save, ChevronDown, ChevronUp, CheckCircle2, Circle, Play, MoreVertical, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import Skeleton from '../components/Skeleton';
 import { cn } from '../lib/utils';
@@ -35,6 +35,7 @@ export default function MediaDetail() {
   const [expandedSeasons, setExpandedSeasons] = useState<Set<number>>(new Set());
   const [seasonData, setSeasonData] = useState<Record<number, any>>({});
   const [loadingSeasons, setLoadingSeasons] = useState(false);
+  const [similarMedia, setSimilarMedia] = useState<any[]>([]);
   const [showMenu, setShowMenu] = useState(false);
   const navigate = useNavigate();
 
@@ -54,8 +55,13 @@ export default function MediaDetail() {
           data.vote_average = game.rating;
         }
       } else {
-        data = await getTMDBDetails(id, type as 'movie' | 'tv');
+        const [details, similar] = await Promise.all([
+          getTMDBDetails(id, type as 'movie' | 'tv'),
+          getSimilarMedia(id, type as 'movie' | 'tv')
+        ]);
+        data = details;
         if (data) data.vote_average = data.vote_average / 2;
+        setSimilarMedia(similar || []);
       }
 
       if (!data) {
@@ -234,7 +240,7 @@ export default function MediaDetail() {
   const year = type === 'game' ? media.release_year : new Date(media.release_date || media.first_air_date).getFullYear();
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 md:space-y-12 animate-in fade-in duration-500 pb-40 md:pb-24">
+    <div className="max-w-5xl mx-auto space-y-8 md:space-y-12 animate-in fade-in duration-500 pb-48 md:pb-32">
       {/* Hero Backdrop */}
       <div className="relative z-0 h-[250px] md:h-[450px] rounded-[32px] md:rounded-[40px] overflow-visible shadow-2xl group mx-4 md:mx-0">
         {backdrop ? (
@@ -344,6 +350,13 @@ export default function MediaDetail() {
                 <span className="text-primary-2 font-bold">{media.vote_average?.toFixed(1)} / 5</span>
               </div>
             </div>
+            <div className="flex flex-wrap gap-2">
+              {media.genres?.map((g: any) => (
+                <span key={g.id || g.name} className="px-2 py-1 bg-surface-2 border border-border rounded-lg text-[9px] font-bold text-muted uppercase">
+                  {g.name}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -390,12 +403,17 @@ export default function MediaDetail() {
 
           <section className="space-y-6">
             <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Synopsis</h2>
-            <p className={cn("text-lg md:text-xl leading-relaxed text-text/80", !showFullOverview && "line-clamp-4")}>
-              {media.overview || 'No intelligence provided.'}
-            </p>
+            <div className="relative">
+              <p className={cn("text-lg md:text-xl leading-relaxed text-text/80 transition-all", !showFullOverview && "line-clamp-4 overflow-hidden")}>
+                {media.overview || 'No intelligence provided.'}
+              </p>
+              {!showFullOverview && media.overview?.length > 200 && (
+                <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-background to-transparent pointer-events-none"></div>
+              )}
+            </div>
             {media.overview?.length > 200 && (
-              <button onClick={() => setShowFullOverview(!showFullOverview)} className="text-primary font-bold text-xs uppercase tracking-widest">
-                {showFullOverview ? 'Collapse' : 'Expand'} Dossier
+              <button onClick={() => setShowFullOverview(!showFullOverview)} className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-widest">
+                {showFullOverview ? <><ChevronUp size={14} /> Collapse Dossier</> : <><ChevronDown size={14} /> Expand Dossier</>}
               </button>
             )}
           </section>
@@ -465,6 +483,64 @@ export default function MediaDetail() {
                     </div>
                   );
                 })}
+              </div>
+            </section>
+          )}
+
+          {type !== 'game' && media.credits?.cast && media.credits.cast.length > 0 && (
+            <section className="space-y-6">
+              <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Field Operatives</h2>
+              <div className="flex overflow-x-auto gap-4 pb-4 scrollbar-none snap-x -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-4 md:overflow-visible">
+                {media.credits.cast.slice(0, 8).map((person: any) => (
+                  <div key={person.id} className="group bg-surface hover:bg-surface-2 border border-border p-3 rounded-2xl transition-all shadow-md flex-shrink-0 w-32 md:w-auto snap-start">
+                    <div className="aspect-square rounded-xl overflow-hidden mb-3 transition-all duration-500 border border-border/50">
+                      <img 
+                        src={person.profile_path ? getTMDBImageUrl(person.profile_path) : `https://ui-avatars.com/api/?name=${encodeURIComponent(person.name)}&background=random`} 
+                        alt={person.name} 
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                        onError={(e) => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(person.name)}&background=random`; }}
+                      />
+                    </div>
+                    <p className="font-bold text-xs truncate text-white">{person.name}</p>
+                    <p className="text-[8px] md:text-xs text-muted truncate uppercase tracking-widest">{person.character}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {similarMedia.length > 0 && (
+            <section className="space-y-6">
+              <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-primary flex items-center gap-2">
+                 <Sparkles size={14} />
+                 Related Intel
+              </h2>
+              <div className="flex overflow-x-auto gap-4 pb-4 scrollbar-none snap-x -mx-4 px-4 md:mx-0 md:px-0">
+                {similarMedia.slice(0, 10).map((item: any) => (
+                  <Link 
+                    key={item.id} 
+                    to={`/media/${item.id}?type=${type}`}
+                    className="flex-shrink-0 w-32 md:w-40 space-y-3 group snap-start"
+                  >
+                    <div className="aspect-[2/3] rounded-2xl overflow-hidden border border-border/50 relative shadow-lg">
+                      <img 
+                        src={getTMDBImageUrl(item.poster_path)} 
+                        alt={item.title || item.name} 
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                      />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                         <Play size={24} className="text-white fill-current" />
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs font-bold text-white truncate uppercase tracking-tight">{item.title || item.name}</p>
+                      <div className="flex items-center gap-1.5 text-[9px] font-bold text-muted uppercase tracking-widest">
+                         <Star size={10} className="text-primary-2 fill-current" />
+                         {(item.vote_average / 2).toFixed(1)}
+                      </div>
+                    </div>
+                  </Link>
+                ))}
               </div>
             </section>
           )}

@@ -19,16 +19,28 @@ export async function getGameBosses(gameTitle: string): Promise<string[]> {
 
     if (!text) return [];
 
-    // Simple heuristic: look for a "Bosses" or "Enemies" section or lists
-    // This is very approximate but works for many games
-    const bossSection = text.match(/Bosses\n([\s\S]*?)\n\n/i) || text.match(/Enemies\n([\s\S]*?)\n\n/i);
+    // Improved heuristic: look for "Bosses", "Enemies", or lists in sections
+    const patterns = [
+      /Bosses\n([\s\S]*?)\n\n/i,
+      /Enemies\n([\s\S]*?)\n\n/i,
+      /Characters\n([\s\S]*?)\n\n/i,
+      /Key figures\n([\s\S]*?)\n\n/i
+    ];
     
-    if (bossSection) {
-      // Split by lines and clean up
-      return bossSection[1]
+    let listText = "";
+    for (const pattern of patterns) {
+      const match = text.match(pattern);
+      if (match) {
+        listText = match[1];
+        break;
+      }
+    }
+
+    if (listText) {
+      return listText
         .split('\n')
         .map(line => line.replace(/^\* /, '').trim())
-        .filter(line => line.length > 3 && line.length < 50)
+        .filter(line => line.length > 3 && line.length < 60 && !line.includes('=='))
         .slice(0, 15);
     }
 

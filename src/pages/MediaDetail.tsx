@@ -506,7 +506,7 @@ export default function MediaDetail() {
 
           {/* Priority Targets (Game Only) */}
           {type === 'game' && bosses.length > 0 && (
-            <section className="space-y-8">
+            <section className="space-y-8 animate-in fade-in duration-700">
               <div className="flex items-center gap-3 border-b border-border/30 pb-6">
                 <Target size={24} className="text-danger" />
                 <h2 className="text-xl font-display font-bold text-white uppercase tracking-tight">Priority Targets</h2>
@@ -708,6 +708,7 @@ export default function MediaDetail() {
                         src={type === 'game' ? item.cover_url : getTMDBImageUrl(item.poster_path)} 
                         alt={item.title || item.name} 
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                        onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=185&q=80'; }}
                       />
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                          <Play size={24} className="text-white fill-current" />

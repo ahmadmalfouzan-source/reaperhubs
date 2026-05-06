@@ -286,7 +286,7 @@ export default function MediaDetail() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 px-4 md:px-0">
+      <div className="relative z-20 grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 px-4 md:px-0">
         {/* Sidebar Info */}
         <div className="space-y-8">
           <div className="hidden md:block relative group rounded-3xl overflow-hidden shadow-2xl border border-border/50">

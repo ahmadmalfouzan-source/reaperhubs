@@ -272,6 +272,44 @@ export async function createPost(content: string, postType: string = 'status') {
   }
 }
 
+export async function updatePost(postId: string, content: string) {
+  try {
+    const user = await getCurrentUser();
+    if (!user) throw new Error('Not logged in');
+
+    const { data, error } = await supabase
+      .from('posts')
+      .update({ body: content })
+      .eq('id', postId)
+      .eq('user_id', user.id);
+
+    if (error) throw error;
+    return { data, error: null, success: true };
+  } catch (error: any) {
+    console.error('Error updating post:', error);
+    return { data: null, error: error.message || 'Unknown database error', success: false };
+  }
+}
+
+export async function deletePost(postId: string) {
+  try {
+    const user = await getCurrentUser();
+    if (!user) throw new Error('Not logged in');
+
+    const { error } = await supabase
+      .from('posts')
+      .update({ is_deleted: true })
+      .eq('id', postId)
+      .eq('user_id', user.id);
+
+    if (error) throw error;
+    return { success: true };
+  } catch (error: any) {
+    console.error('Error deleting post:', error);
+    return { success: false, error: error.message };
+  }
+}
+
 export async function getUserLikes() {
   try {
     const user = await getCurrentUser();

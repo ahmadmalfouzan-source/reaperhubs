@@ -43,6 +43,10 @@ export default function Feed() {
   const [user, setUser] = useState<any>(null);
   const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
   const [activeComments, setActiveComments] = useState<Set<string>>(new Set());
+  const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
+  const [editingPostId, setEditingPostId] = useState<string | null>(null);
+  const [editContent, setEditContent] = useState('');
+  const [updating, setUpdating] = useState(false);
 
   const fetchFeed = useCallback(async () => {
     setLoading(true);
@@ -129,6 +133,44 @@ export default function Feed() {
       else next.add(postId);
       return next;
     });
+  };
+
+  const handleDeletePost = async (postId: string) => {
+    if (!window.confirm("Abort this transmission? This action cannot be undone.")) return;
+    
+    const result = await deletePost(postId);
+    if (result.success) {
+      setItems(prev => prev.filter(item => item.id !== postId));
+      toast.success("Transmission terminated.");
+    } else {
+      toast.error("Failed to abort transmission.");
+    }
+    setMenuOpenId(null);
+  };
+
+  const startEditing = (post: any) => {
+    setEditingPostId(post.id);
+    setEditContent(post.content);
+    setMenuOpenId(null);
+  };
+
+  const handleUpdatePost = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingPostId || !editContent.trim()) return;
+
+    setUpdating(true);
+    const result = await updatePost(editingPostId, editContent.trim());
+    if (result.success) {
+      setItems(prev => prev.map(item => 
+        item.id === editingPostId ? { ...item, content: editContent.trim(), body: editContent.trim() } : item
+      ));
+      setEditingPostId(null);
+      setEditContent('');
+      toast.success("Transmission recalibrated.");
+    } else {
+      toast.error("Failed to recalibrate transmission.");
+    }
+    setUpdating(false);
   };
 
   return (
@@ -254,17 +296,71 @@ export default function Feed() {
                       </div>
                     </div>
                   </div>
-                  <button className="p-3 text-muted hover:text-white hover:bg-surface-2 rounded-2xl transition-all border border-transparent hover:border-border">
-                    <MoreHorizontal size={20} />
-                  </button>
+                  <div className="relative">
+                    <button 
+                      onClick={() => setMenuOpenId(menuOpenId === item.id ? null : item.id)}
+                      className="p-3 text-muted hover:text-white hover:bg-surface-2 rounded-2xl transition-all border border-transparent hover:border-border"
+                    >
+                      <MoreHorizontal size={20} />
+                    </button>
+
+                    {menuOpenId === item.id && user && item.user_id === user.id && (
+                      <div className="absolute right-0 mt-2 w-48 bg-surface border border-border shadow-2xl rounded-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                        <button 
+                          onClick={() => startEditing(item)}
+                          className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold uppercase tracking-widest text-muted hover:text-primary hover:bg-primary/5 transition-all"
+                        >
+                          <Edit3 size={14} />
+                          Edit Signal
+                        </button>
+                        <button 
+                          onClick={() => handleDeletePost(item.id)}
+                          className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold uppercase tracking-widest text-muted hover:text-danger hover:bg-danger/5 transition-all border-t border-border/50"
+                        >
+                          <Trash2 size={14} />
+                          Abort Trans
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="pl-1 space-y-6">
                   <div className="relative">
-                    <p className="text-text/90 leading-relaxed whitespace-pre-wrap text-lg md:text-xl font-medium italic border-l-4 border-primary/30 pl-6 py-2 bg-primary/5 rounded-r-3xl pr-6">
-                      "{item.content}"
-                    </p>
-                    <Sparkles size={20} className="text-primary/10 absolute -top-4 -right-2 rotate-12" />
+                    {editingPostId === item.id ? (
+                      <form onSubmit={handleUpdatePost} className="space-y-4 animate-in fade-in duration-300">
+                        <textarea
+                          value={editContent}
+                          onChange={(e) => setEditContent(e.target.value)}
+                          className="w-full bg-surface-2/50 border border-primary/30 rounded-2xl p-4 text-text focus:outline-none focus:border-primary transition-all min-h-[100px] resize-none italic font-medium"
+                        />
+                        <div className="flex gap-2">
+                          <button
+                            type="submit"
+                            disabled={updating || !editContent.trim()}
+                            className="bg-primary hover:bg-primary/90 text-black font-bold rounded-xl px-6 py-2 text-[10px] uppercase tracking-widest transition-all disabled:opacity-50 flex items-center gap-2"
+                          >
+                            {updating ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+                            Recalibrate
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditingPostId(null)}
+                            className="bg-surface-2 border border-border text-muted hover:text-white font-bold rounded-xl px-6 py-2 text-[10px] uppercase tracking-widest transition-all flex items-center gap-2"
+                          >
+                            <X size={14} />
+                            Cancel
+                          </button>
+                        </div>
+                      </form>
+                    ) : (
+                      <>
+                        <p className="text-text/90 leading-relaxed whitespace-pre-wrap text-lg md:text-xl font-medium italic border-l-4 border-primary/30 pl-6 py-2 bg-primary/5 rounded-r-3xl pr-6">
+                          "{item.content}"
+                        </p>
+                        <Sparkles size={20} className="text-primary/10 absolute -top-4 -right-2 rotate-12" />
+                      </>
+                    )}
                   </div>
 
                   {item.media_type && (

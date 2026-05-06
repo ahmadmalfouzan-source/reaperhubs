@@ -7,6 +7,7 @@ import { supabase } from '../lib/supabase';
 import { Star, Calendar, Plus, Trash2, ChevronLeft, Loader2, Save, ChevronDown, ChevronUp } from 'lucide-react';
 import { toast } from 'sonner';
 import Skeleton from '../components/Skeleton';
+import { cn } from '../lib/utils';
 
 const STATUS_OPTIONS = [
   { value: 'plan_to_watch', label: 'Plan to Watch/Play', color: 'text-blue-400' },

@@ -26,7 +26,8 @@ export default function Notifications() {
 
       fetchNotifications();
 
-      // Simple real-time listener
+      // Simple real-time listener (DISABLED)
+      /*
       subscription = supabase
         .channel('schema-db-changes')
         .on(
@@ -35,10 +36,11 @@ export default function Notifications() {
           () => fetchNotifications()
         )
         .subscribe();
+      */
     });
 
     return () => {
-      if (subscription) supabase.removeChannel(subscription);
+      // if (subscription) supabase.removeChannel(subscription);
     };
   }, [navigate]);
 

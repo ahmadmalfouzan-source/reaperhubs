@@ -57,7 +57,8 @@ function Layout({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Real-time notifications listener
+  // Real-time notifications listener (DISABLED DUE TO WEBSOCKET FAILURES)
+  /*
   useEffect(() => {
     if (!user) return;
 
@@ -74,6 +75,7 @@ function Layout({ children }: { children: ReactNode }) {
       supabase.removeChannel(channel);
     };
   }, [user]);
+  */
 
   // Close menu on route change
   useEffect(() => {

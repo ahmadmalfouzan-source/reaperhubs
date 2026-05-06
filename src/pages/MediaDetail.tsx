@@ -380,7 +380,7 @@ export default function MediaDetail() {
                     disabled={isUpdating}
                     className="w-full sm:w-auto flex items-center justify-center gap-3 px-8 py-3 bg-primary text-black font-bold rounded-xl"
                   >
-                    {isUpdating ? <Loader2 className="animate-spin size={16} /> : <Save size={16} />}
+                    {isUpdating ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
                     <span className="uppercase tracking-widest text-xs">Sync Intel</span>
                   </button>
                 </div>

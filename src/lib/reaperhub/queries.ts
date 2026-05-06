@@ -298,7 +298,7 @@ export async function deletePost(postId: string) {
 
     const { error } = await supabase
       .from('posts')
-      .update({ is_deleted: true })
+      .delete()
       .eq('id', postId)
       .eq('user_id', user.id);
 

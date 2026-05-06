@@ -4,7 +4,7 @@ import { getMediaDetails as getTMDBDetails, getTMDBImageUrl } from '../services/
 import { getGameDetails, mapRAWGToMedia } from '../services/rawgService';
 import { addToLibrary, removeFromLibrary, updateMediaEntry } from '../lib/reaperhub/queries';
 import { supabase } from '../lib/supabase';
-import { Star, Calendar, Plus, Trash2, ChevronLeft, Loader2, Save } from 'lucide-react';
+import { Star, Calendar, Plus, Trash2, ChevronLeft, Loader2, Save, ChevronDown, ChevronUp } from 'lucide-react';
 import { toast } from 'sonner';
 import Skeleton from '../components/Skeleton';
 
@@ -27,6 +27,7 @@ export default function MediaDetail() {
   const [review, setReview] = useState('');
   const [status, setStatus] = useState('plan_to_watch');
   const [isUpdating, setIsUpdating] = useState(false);
+  const [showFullOverview, setShowFullOverview] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -169,9 +170,9 @@ export default function MediaDetail() {
   const year = type === 'game' ? media.release_year : new Date(media.release_date || media.first_air_date).getFullYear();
 
   return (
-    <div className="max-w-5xl mx-auto space-y-12 animate-in fade-in duration-500 pb-20">
+    <div className="max-w-5xl mx-auto space-y-8 md:space-y-12 animate-in fade-in duration-500 pb-32 md:pb-20">
       {/* Hero Backdrop */}
-      <div className="relative h-[300px] md:h-[450px] rounded-[40px] overflow-hidden shadow-2xl group">
+      <div className="relative h-[250px] md:h-[450px] rounded-[32px] md:rounded-[40px] overflow-hidden shadow-2xl group mx-4 md:mx-0">
         {backdrop ? (
           <img 
             src={backdrop} 
@@ -182,36 +183,36 @@ export default function MediaDetail() {
         ) : (
           <div className="w-full h-full bg-surface-2"></div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent"></div>
         <button 
           onClick={() => navigate(-1)}
-          className="absolute top-6 left-6 p-3 bg-black/40 backdrop-blur-md rounded-2xl text-white hover:bg-primary transition-all shadow-lg border border-white/10"
+          className="absolute top-4 left-4 md:top-6 md:left-6 p-2 md:p-3 bg-black/40 backdrop-blur-md rounded-xl md:rounded-2xl text-white hover:bg-primary transition-all shadow-lg border border-white/10"
         >
-          <ChevronLeft size={24} />
+          <ChevronLeft size={20} />
         </button>
         
-        <div className="absolute bottom-8 left-8 right-8 flex items-end justify-between gap-6">
-          <div className="space-y-4">
+        <div className="absolute bottom-6 left-6 right-6 md:bottom-8 md:left-8 md:right-8 flex items-end justify-between gap-6">
+          <div className="space-y-2 md:space-y-4">
             <div className="flex items-center gap-2">
-              <span className="px-3 py-1 bg-primary rounded-full text-[10px] font-bold uppercase tracking-widest text-black shadow-lg">
+              <span className="px-2 md:px-3 py-0.5 md:py-1 bg-primary rounded-full text-[8px] md:text-[10px] font-bold uppercase tracking-widest text-black shadow-lg">
                 {type.toUpperCase()}
               </span>
-              <div className="flex items-center gap-1.5 px-3 py-1 bg-black/40 backdrop-blur-md rounded-full text-[10px] font-bold text-primary-2 border border-white/5">
-                <Star size={12} className="fill-current" />
+              <div className="flex items-center gap-1.5 px-2 md:px-3 py-0.5 md:py-1 bg-black/40 backdrop-blur-md rounded-full text-[8px] md:text-[10px] font-bold text-primary-2 border border-white/5">
+                <Star size={10} className="fill-current" />
                 {media.vote_average?.toFixed(1)} / 10
               </div>
             </div>
-            <h1 className="font-display font-bold text-4xl md:text-6xl text-white leading-none drop-shadow-2xl uppercase tracking-tighter">
+            <h1 className="font-display font-bold text-3xl md:text-6xl text-white leading-none drop-shadow-2xl uppercase tracking-tighter italic">
               {media.title || media.name}
             </h1>
           </div>
         </div>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-12 px-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 px-4 md:px-0">
         {/* Sidebar Info */}
         <div className="space-y-8">
-          <div className="relative group rounded-3xl overflow-hidden shadow-2xl border border-border/50">
+          <div className="hidden md:block relative group rounded-3xl overflow-hidden shadow-2xl border border-border/50">
             {poster ? (
               <img src={poster} alt={media.title || media.name} className="w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=500&q=80'; }} />
             ) : (
@@ -301,28 +302,28 @@ export default function MediaDetail() {
                     <span className="w-2 h-8 bg-primary rounded-full"></span>
                     Personal Appraisal
                   </h2>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1.5 md:gap-1">
                     {[...Array(10)].map((_, i) => (
                       <button
                         key={i}
                         onClick={() => setRating(i + 1)}
                         onMouseEnter={() => setRating(i + 1)}
-                        className={`transition-all ${i + 1 <= rating ? 'text-yellow-400 scale-110' : 'text-muted/20 hover:text-muted'}`}
+                        className={`transition-all p-1 md:p-0 ${i + 1 <= rating ? 'text-yellow-400 scale-110' : 'text-muted/20 hover:text-muted'}`}
                       >
-                        <Star size={18} fill={i + 1 <= rating ? "currentColor" : "none"} />
+                        <Star className="w-6 h-6 md:w-4.5 md:h-4.5" fill={i + 1 <= rating ? "currentColor" : "none"} />
                       </button>
                     ))}
-                    <span className="ml-3 font-mono font-bold text-yellow-400 text-lg w-6">{rating}</span>
+                    <span className="ml-3 font-mono font-bold text-yellow-400 text-xl md:text-lg w-8 md:w-6">{rating}</span>
                   </div>
                 </div>
 
                 <div className="space-y-4">
-                  <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted">After-Action Review</label>
+                  <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted px-1">After-Action Review</label>
                   <textarea
                     value={review}
                     onChange={(e) => setReview(e.target.value)}
                     placeholder="Document your findings, operative..."
-                    className="w-full bg-surface/50 border border-border rounded-2xl p-4 min-h-[120px] text-sm text-white focus:outline-none focus:border-primary transition-all resize-none italic"
+                    className="w-full bg-surface border border-border rounded-2xl p-5 md:p-4 min-h-[140px] md:min-h-[120px] text-base md:text-sm text-white focus:outline-none focus:border-primary transition-all resize-none italic shadow-inner"
                   />
                 </div>
 
@@ -330,21 +331,46 @@ export default function MediaDetail() {
                   <button
                     onClick={handleUpdateEntry}
                     disabled={isUpdating}
-                    className="flex items-center gap-2 px-8 py-3 bg-primary text-black font-bold rounded-xl hover:bg-primary/90 transition-all active:scale-95 disabled:opacity-50"
+                    className="w-full md:w-auto flex items-center justify-center gap-3 px-10 py-4 md:py-3 bg-primary text-black font-bold rounded-2xl md:rounded-xl hover:bg-primary/90 transition-all active:scale-95 disabled:opacity-50 shadow-lg shadow-primary/20"
                   >
-                    {isUpdating ? <Loader2 className="animate-spin" /> : <Save size={18} />}
-                    Sync Intel
+                    {isUpdating ? <Loader2 className="animate-spin" /> : <Save size={20} />}
+                    <span className="uppercase tracking-widest text-xs">Sync Intel</span>
                   </button>
                 </div>
               </div>
             </section>
           )}
 
-          <section className="space-y-4">
-            <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Synopsis</h2>
-            <div className="text-lg md:text-xl leading-relaxed text-muted font-light first-letter:text-4xl first-letter:font-bold first-letter:text-white first-letter:mr-2 first-letter:float-left">
-              {media.overview || 'No intelligence provided.'}
+          <section className="space-y-6">
+            <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-primary flex items-center gap-2">
+               <span className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></span>
+               Synopsis
+            </h2>
+            <div className="relative">
+              <div className={cn(
+                "text-lg md:text-xl leading-relaxed text-text/80 font-light first-letter:text-5xl first-letter:font-bold first-letter:text-white first-letter:mr-3 first-letter:float-left transition-all duration-700",
+                !showFullOverview && "line-clamp-4 md:line-clamp-none overflow-hidden"
+              )}>
+                {media.overview || 'No intelligence provided.'}
+              </div>
+              
+              {!showFullOverview && media.overview?.length > 200 && (
+                <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-background to-transparent md:hidden pointer-events-none"></div>
+              )}
             </div>
+
+            {media.overview?.length > 200 && (
+              <button 
+                onClick={() => setShowFullOverview(!showFullOverview)}
+                className="flex items-center gap-2 text-primary font-bold text-[10px] uppercase tracking-[0.2em] md:hidden pt-2"
+              >
+                {showFullOverview ? (
+                  <>Collapse Dossier <ChevronUp size={14} /></>
+                ) : (
+                  <>Expand Dossier <ChevronDown size={14} /></>
+                )}
+              </button>
+            )}
           </section>
 
           {type !== 'game' && media.credits?.cast && media.credits.cast.length > 0 && (

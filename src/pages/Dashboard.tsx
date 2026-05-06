@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { getDashboardData, addToLibrary } from '../lib/reaperhub/queries';
 import { getTrendingTMDB, getTMDBImageUrl } from '../services/tmdbService';
-import { Target, Zap, Coins, Compass, Library, Trophy, MessageSquare, BellRing, TrendingUp, Plus, Check, ArrowRight } from 'lucide-react';
+import { Target, Zap, Coins, Compass, Library, Trophy, MessageSquare, BellRing, TrendingUp, Plus, Check, ArrowRight, Sparkles } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { toast } from 'sonner';
 import Skeleton from '../components/Skeleton';

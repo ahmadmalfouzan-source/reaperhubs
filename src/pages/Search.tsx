@@ -1,9 +1,8 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { addToLibrary as addToLibraryQuery } from '../lib/reaperhub/queries';
-import { getDiscoverPicks } from '../services/geminiService';
-import { searchTMDB, discoverTMDB, getTMDBGenres, getTMDBImageUrl, getTMDBItemByTitle } from '../services/tmdbService';
+import { searchTMDB, discoverTMDB, getTMDBGenres, getTMDBImageUrl, getTMDBItemByTitle, getTrendingTMDB } from '../services/tmdbService';
 import { searchGames as searchRAWG, mapRAWGToMedia } from '../services/rawgService';
-import { Sparkles, Plus, Check, Search as SearchIcon, Filter, X } from 'lucide-react';
+import { TrendingUp, Plus, Check, Search as SearchIcon, Filter, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -92,8 +91,15 @@ export default function Search() {
 
   const fetchDiscoverPicks = async () => {
     setDiscoverLoading(true);
-    const picks = await getDiscoverPicks();
-    setDiscoverPicks(picks);
+    const trending = await getTrendingTMDB('all', 'week');
+    const mapped = trending.slice(0, 6).map((item: any) => ({
+      title: item.title || item.name,
+      type: item.media_type === 'tv' ? 'series' : item.media_type,
+      genre: 'Trending',
+      description: item.overview,
+      id: item.id
+    }));
+    setDiscoverPicks(mapped);
     setDiscoverLoading(false);
   };
 
@@ -389,15 +395,15 @@ export default function Search() {
       <section className="space-y-6 pt-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-6 h-6 text-primary-2" />
-            <h2 className="font-display font-bold text-2xl uppercase tracking-wide">AI Discover</h2>
+            <TrendingUp className="w-6 h-6 text-primary-2" />
+            <h2 className="font-display font-bold text-2xl uppercase tracking-wide">Market Discover</h2>
           </div>
           {!discoverLoading && (
             <button 
               onClick={fetchDiscoverPicks}
               className="text-xs font-bold text-primary hover:text-primary-2 transition-colors uppercase tracking-widest"
             >
-              Refresh Picks
+              Refresh Intel
             </button>
           )}
         </div>

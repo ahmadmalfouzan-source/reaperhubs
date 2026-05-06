@@ -1,10 +1,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { getDashboardData, getLibraryTitles, addToLibrary } from '../lib/reaperhub/queries';
-import { getMediaRecommendations } from '../services/geminiService';
-import { searchGames } from '../services/rawgService';
-import { getTMDBItemByTitle, getTMDBImageUrl } from '../services/tmdbService';
-import { Target, Zap, Coins, Compass, Library, Trophy, MessageSquare, BellRing, Sparkles, Plus, Check, ArrowRight } from 'lucide-react';
+import { getDashboardData, addToLibrary } from '../lib/reaperhub/queries';
+import { getTrendingTMDB, getTMDBImageUrl } from '../services/tmdbService';
+import { Target, Zap, Coins, Compass, Library, Trophy, MessageSquare, BellRing, TrendingUp, Plus, Check, ArrowRight } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { toast } from 'sonner';
 import Skeleton from '../components/Skeleton';
@@ -27,31 +25,20 @@ export default function Dashboard() {
       setData(res);
       setLoading(false);
       
-      // Fetch recommendations
+      // Fetch trending instead of AI recommendations
       setRecLoading(true);
-      const watchlist = await getLibraryTitles();
-      const recs = await getMediaRecommendations(watchlist);
+      const trending = await getTrendingTMDB('all', 'day');
       
-      // Enhance recommendations with TMDB/RAWG posters
-      const enhancedRecs = await Promise.all(recs.map(async (item: any) => {
-        if (item.type === 'game') {
-          const gameResults = await searchGames(item.title);
-          const topGame = gameResults?.[0];
-          return { 
-            ...item, 
-            poster: topGame?.background_image || `https://images.unsplash.com/photo-1542751371-adc38448a05e?w=500&q=80`,
-            tmdbId: topGame?.id
-          };
-        }
-        const tmdbItem = await getTMDBItemByTitle(item.title, item.type);
-        return { 
-          ...item, 
-          poster: getTMDBImageUrl(tmdbItem?.poster_path, 'w500'),
-          tmdbId: tmdbItem?.id
-        };
+      const mappedRecs = trending.slice(0, 4).map((item: any) => ({
+        title: item.title || item.name,
+        type: item.media_type,
+        genre: 'Trending',
+        reason: item.overview,
+        poster: getTMDBImageUrl(item.poster_path, 'w500'),
+        tmdbId: item.id
       }));
       
-      setRecommendations(enhancedRecs);
+      setRecommendations(mappedRecs);
       setRecLoading(false);
     } catch (err) {
       console.error('Dashboard error:', err);
@@ -168,17 +155,17 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* AI Recommendations Section */}
+      {/* Market Intel Section */}
       <section className="space-y-6 relative">
         <div className="absolute -top-24 -right-24 w-64 h-64 bg-primary/20 blur-[100px] pointer-events-none"></div>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-3 bg-primary/10 rounded-2xl border border-primary/20">
-              <Sparkles className="w-6 h-6 text-primary" />
+              <TrendingUp className="w-6 h-6 text-primary" />
             </div>
             <div className="space-y-1">
-              <h2 className="font-display font-bold text-2xl uppercase tracking-tighter text-white">Smart Intelligence</h2>
-              <p className="text-[10px] text-muted font-bold uppercase tracking-[0.2em]">Personalized recommendations</p>
+              <h2 className="font-display font-bold text-2xl uppercase tracking-tighter text-white">Market Intel</h2>
+              <p className="text-[10px] text-muted font-bold uppercase tracking-[0.2em]">Trending deployments</p>
             </div>
           </div>
         </div>

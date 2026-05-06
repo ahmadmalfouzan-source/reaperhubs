@@ -247,7 +247,10 @@ export default function Feed() {
                       <span className="text-xs font-bold leading-none">{likedPosts.has(item.id) ? 14 : 13}</span>
                     </button>
                     
-                    <button className="flex items-center gap-3 px-5 py-3 text-muted hover:text-primary hover:bg-primary/5 rounded-2xl transition-all group/stat border border-transparent hover:border-primary/10">
+                    <button 
+                      onClick={() => toast.info("Secure communication channels are being established. Commenting offline.")}
+                      className="flex items-center gap-3 px-5 py-3 text-muted hover:text-primary hover:bg-primary/5 rounded-2xl transition-all group/stat border border-transparent hover:border-primary/10"
+                    >
                       <MessageSquare size={18} className="transition-transform group-active/stat:scale-125" />
                       <span className="text-xs font-bold leading-none">4</span>
                     </button>

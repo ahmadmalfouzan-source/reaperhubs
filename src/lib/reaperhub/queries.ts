@@ -272,6 +272,60 @@ export async function createPost(content: string, postType: string = 'status') {
   }
 }
 
+export async function getUserLikes() {
+  try {
+    const user = await getCurrentUser();
+    if (!user) return [];
+
+    const { data, error } = await supabase
+      .from('likes')
+      .select('post_id')
+      .eq('user_id', user.id);
+
+    if (error) throw error;
+    return (data || []).map((l: any) => l.post_id);
+  } catch (err) {
+    console.error('Error fetching user likes:', err);
+    return [];
+  }
+}
+
+export async function toggleLike(postId: string) {
+  try {
+    const user = await getCurrentUser();
+    if (!user) throw new Error('Not logged in');
+
+    // Check if like exists
+    const { data: existing } = await supabase
+      .from('likes')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('post_id', postId)
+      .maybeSingle();
+
+    if (existing) {
+      // Unlike
+      const { error } = await supabase
+        .from('likes')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('post_id', postId);
+      if (error) throw error;
+      return { success: true, action: 'unliked' };
+    } else {
+      // Like
+      const { error } = await supabase
+        .from('likes')
+        .insert({ user_id: user.id, post_id: postId });
+      if (error) throw error;
+      return { success: true, action: 'liked' };
+    }
+  } catch (error: any) {
+    console.error('Error toggling like:', error);
+    return { success: false, error: error.message };
+  }
+}
+
 export async function getLeaderboard() {
   try {
     const { data, error } = await supabase

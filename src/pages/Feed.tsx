@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { getFeedItems, getCurrentUser , createPost} from '../lib/reaperhub/queries';
+import { getFeedItems, getCurrentUser , createPost, toggleLike, getUserLikes} from '../lib/reaperhub/queries';
 import { supabase } from '../lib/supabase';
 import { Link } from 'react-router-dom';
 import { MessageSquare, Heart, Share2, Film, Gamepad2, Send, MoreHorizontal, User, TrendingUp, Sparkles, Hash, Users, Zap as ZapIcon, Loader2, Calendar } from 'lucide-react';
@@ -46,8 +46,12 @@ export default function Feed() {
 
   const fetchFeed = useCallback(async () => {
     setLoading(true);
-    const data = await getFeedItems();
-    setItems(data);
+    const [feedData, userLikes] = await Promise.all([
+      getFeedItems(),
+      getUserLikes()
+    ]);
+    setItems(feedData);
+    setLikedPosts(new Set(userLikes));
     setLoading(false);
   }, []);
 
@@ -83,13 +87,39 @@ export default function Feed() {
     }
   };
 
-  const toggleLike = (postId: string) => {
+  const handleToggleLike = async (postId: string) => {
+    // Optimistic UI update
+    const isLiked = likedPosts.has(postId);
     setLikedPosts(prev => {
       const next = new Set(prev);
-      if (next.has(postId)) next.delete(postId);
+      if (isLiked) next.delete(postId);
       else next.add(postId);
       return next;
     });
+
+    // Update item like_count locally for immediate feedback
+    setItems(prev => prev.map(item => 
+      item.id === postId 
+        ? { ...item, like_count: (item.like_count || 0) + (isLiked ? -1 : 1) } 
+        : item
+    ));
+
+    const result = await toggleLike(postId);
+    if (!result.success) {
+      // Revert on failure
+      setLikedPosts(prev => {
+        const next = new Set(prev);
+        if (isLiked) next.add(postId);
+        else next.delete(postId);
+        return next;
+      });
+      setItems(prev => prev.map(item => 
+        item.id === postId 
+          ? { ...item, like_count: (item.like_count || 0) + (isLiked ? 1 : -1) } 
+          : item
+      ));
+      toast.error("Like failed to sync.");
+    }
   };
 
   const toggleComments = (postId: string) => {
@@ -246,7 +276,7 @@ export default function Feed() {
 
                   <div className="flex flex-wrap items-center gap-6 pt-8 border-t border-border/30">
                     <button 
-                      onClick={() => toggleLike(item.id)}
+                      onClick={() => handleToggleLike(item.id)}
                       className={cn(
                         "flex items-center gap-3 px-5 py-3 rounded-2xl transition-all group/stat",
                         likedPosts.has(item.id) 
@@ -255,7 +285,7 @@ export default function Feed() {
                       )}
                     >
                       <Heart className={cn("w-5 h-5 transition-transform group-active/stat:scale-150", likedPosts.has(item.id) && "fill-current")} />
-                      <span className="text-xs font-bold leading-none">{likedPosts.has(item.id) ? 14 : 13}</span>
+                      <span className="text-xs font-bold leading-none">{item.like_count || 0}</span>
                     </button>
                     
                     <button 

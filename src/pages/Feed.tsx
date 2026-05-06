@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { MessageSquare, Heart, Share2, Film, Gamepad2, Send, MoreHorizontal, User, TrendingUp, Sparkles, Hash, Users, Zap as ZapIcon, Loader2, Calendar } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { toast } from 'sonner';
+import CommentSection from '../components/CommentSection';
 
 const TAGS = [
   { id: 'general', label: 'General', icon: <MessageSquare size={14} />, color: 'text-muted' },
@@ -41,6 +42,7 @@ export default function Feed() {
   const [posting, setPosting] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
+  const [activeComments, setActiveComments] = useState<Set<string>>(new Set());
 
   const fetchFeed = useCallback(async () => {
     setLoading(true);
@@ -83,6 +85,15 @@ export default function Feed() {
 
   const toggleLike = (postId: string) => {
     setLikedPosts(prev => {
+      const next = new Set(prev);
+      if (next.has(postId)) next.delete(postId);
+      else next.add(postId);
+      return next;
+    });
+  };
+
+  const toggleComments = (postId: string) => {
+    setActiveComments(prev => {
       const next = new Set(prev);
       if (next.has(postId)) next.delete(postId);
       else next.add(postId);
@@ -248,11 +259,16 @@ export default function Feed() {
                     </button>
                     
                     <button 
-                      onClick={() => toast.info("Secure communication channels are being established. Commenting offline.")}
-                      className="flex items-center gap-3 px-5 py-3 text-muted hover:text-primary hover:bg-primary/5 rounded-2xl transition-all group/stat border border-transparent hover:border-primary/10"
+                      onClick={() => toggleComments(item.id)}
+                      className={cn(
+                        "flex items-center gap-3 px-5 py-3 rounded-2xl transition-all group/stat",
+                        activeComments.has(item.id) 
+                          ? "text-primary bg-primary/10 border border-primary/20" 
+                          : "text-muted hover:text-primary hover:bg-primary/5 border border-transparent hover:border-primary/10"
+                      )}
                     >
                       <MessageSquare size={18} className="transition-transform group-active/stat:scale-125" />
-                      <span className="text-xs font-bold leading-none">4</span>
+                      <span className="text-xs font-bold leading-none">{item.comment_count || 0}</span>
                     </button>
                     
                     <button className="flex items-center gap-3 px-5 py-3 text-muted hover:text-success hover:bg-success/5 rounded-2xl transition-all group/stat border border-transparent hover:border-success/10 ml-auto">
@@ -260,6 +276,18 @@ export default function Feed() {
                       <span className="text-[10px] font-bold uppercase tracking-widest hidden sm:inline">Broadcast</span>
                     </button>
                   </div>
+
+                  {activeComments.has(item.id) && (
+                    <CommentSection 
+                      postId={item.id} 
+                      onCommentAdded={() => {
+                        // Optimistically update comment count or refetch
+                        setItems(prev => prev.map(i => 
+                          i.id === item.id ? { ...i, comment_count: (i.comment_count || 0) + 1 } : i
+                        ));
+                      }}
+                    />
+                  )}
                 </div>
               </div>
             ))}

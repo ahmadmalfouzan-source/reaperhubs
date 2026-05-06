@@ -184,7 +184,7 @@ export async function getFeedItems() {
     // posts table uses: user_id, body, post_type, is_private
     const { data: postsData, error } = await supabase
       .from('posts')
-      .select('*, users!user_id(username, display_name, avatar_url)')
+      .select('*, users!inner(username, display_name, avatar_url)')
       .eq('is_private', false)
       .eq('is_deleted', false)
       .order('created_at', { ascending: false })
@@ -199,6 +199,49 @@ export async function getFeedItems() {
   } catch (err) {
     console.error('Error fetching feed:', err);
     return [];
+  }
+}
+
+export async function getComments(postId: string) {
+  try {
+    const { data, error } = await supabase
+      .from('comments')
+      .select('*, users!inner(username, display_name, avatar_url)')
+      .eq('post_id', postId)
+      .order('created_at', { ascending: true });
+
+    if (error) throw error;
+    return data || [];
+  } catch (err) {
+    console.error('Error fetching comments:', err);
+    return [];
+  }
+}
+
+export async function addComment(postId: string, content: string) {
+  try {
+    const user = await getCurrentUser();
+    if (!user) throw new Error('Not logged in');
+
+    const { data, error } = await supabase
+      .from('comments')
+      .insert({
+        post_id: postId,
+        user_id: user.id,
+        content: content
+      })
+      .select('*, users!inner(username, display_name, avatar_url)')
+      .single();
+
+    if (error) throw error;
+
+    // Increment comment_count in posts table
+    await supabase.rpc('increment_comment_count', { post_id_param: postId });
+
+    return { data, error: null, success: true };
+  } catch (error: any) {
+    console.error('Error adding comment:', error);
+    return { data: null, error: error.message || 'Unknown database error', success: false };
   }
 }
 

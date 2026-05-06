@@ -382,7 +382,7 @@ export default function MediaDetail() {
         {/* Content Info */}
         <div className="md:col-span-2 space-y-12">
           {inLibrary && (
-            <section className="bg-surface-2 border-2 border-primary/20 rounded-[32px] p-6 md:p-8 shadow-2xl relative overflow-hidden group">
+            <section className="bg-surface-2 border-2 border-primary/20 rounded-[32px] p-6 md:p-8 shadow-2xl relative overflow-hidden group pb-48 sm:pb-8">
               <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-30 transition-opacity pointer-events-none">
                 <Save size={64} className="text-primary" />
               </div>
@@ -476,27 +476,27 @@ export default function MediaDetail() {
                 </div>
                 
                 <div className="relative flex items-center justify-center">
-                  <svg className="w-16 h-16 md:w-20 md:h-20 transform -rotate-90">
+                  <svg className="w-20 h-20 md:w-24 md:h-24 transform -rotate-90">
                     <circle
                       cx="50%"
                       cy="50%"
-                      r="40%"
+                      r="38%"
                       className="stroke-surface-2 fill-none"
-                      strokeWidth="6"
+                      strokeWidth="8"
                     />
                     <circle
                       cx="50%"
                       cy="50%"
-                      r="40%"
-                      className="stroke-primary-2 fill-none transition-all duration-1000 ease-out"
-                      strokeWidth="6"
-                      strokeDasharray="251.2"
-                      strokeDashoffset={251.2 - (251.2 * calculateOverallProgress()) / 100}
+                      r="38%"
+                      className="stroke-primary-2 fill-none transition-all duration-1000 ease-out shadow-[0_0_15px_var(--color-primary-2)]"
+                      strokeWidth="8"
+                      strokeDasharray="238.7"
+                      strokeDashoffset={238.7 - (238.7 * calculateOverallProgress()) / 100}
                       strokeLinecap="round"
                     />
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-xs font-display font-bold text-white leading-none">{calculateOverallProgress()}%</span>
+                    <span className="text-sm font-display font-bold text-white leading-none">{calculateOverallProgress()}%</span>
                   </div>
                 </div>
               </div>
@@ -593,11 +593,11 @@ export default function MediaDetail() {
               <div className="flex overflow-x-auto gap-4 pb-4 scrollbar-none snap-x -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-4 md:overflow-visible">
                 {media.credits.cast.slice(0, 8).map((person: any) => (
                   <div key={person.id} className="group bg-surface hover:bg-surface-2 border border-border p-3 rounded-2xl transition-all shadow-md flex-shrink-0 w-32 md:w-auto snap-start">
-                    <div className="aspect-square rounded-xl overflow-hidden mb-3 grayscale group-hover:grayscale-0 transition-all duration-500 border border-border/50">
+                    <div className="aspect-square rounded-xl overflow-hidden mb-3 transition-all duration-500 border border-border/50">
                       <img 
                         src={person.profile_path ? getTMDBImageUrl(person.profile_path) : `https://ui-avatars.com/api/?name=${encodeURIComponent(person.name)}&background=random`} 
                         alt={person.name} 
-                        className="w-full h-full object-cover" 
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
                         onError={(e) => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(person.name)}&background=random`; }}
                       />
                     </div>

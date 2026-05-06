@@ -249,7 +249,7 @@ export default function MediaDetail() {
   return (
     <div className="max-w-5xl mx-auto space-y-8 md:space-y-12 animate-in fade-in duration-500 pb-40 md:pb-24">
       {/* Hero Backdrop */}
-      <div className="relative h-[250px] md:h-[450px] rounded-[32px] md:rounded-[40px] overflow-hidden shadow-2xl group mx-4 md:mx-0">
+      <div className="relative z-0 h-[250px] md:h-[450px] rounded-[32px] md:rounded-[40px] overflow-hidden shadow-2xl group mx-4 md:mx-0">
         {backdrop ? (
           <img 
             src={backdrop} 

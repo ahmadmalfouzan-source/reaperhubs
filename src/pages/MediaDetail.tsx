@@ -271,10 +271,10 @@ export default function MediaDetail() {
         <div className="absolute bottom-6 left-6 right-6 md:bottom-8 md:left-8 md:right-8 flex items-end justify-between gap-6 z-10">
           <div className="space-y-2 md:space-y-4">
             <div className="flex items-center gap-2">
-              <span className="px-2 md:px-3 py-0.5 md:py-1 bg-primary rounded-full text-[8px] md:text-[10px] font-bold uppercase tracking-widest text-black shadow-lg">
+              <span className="px-2 md:px-3 py-0.5 md:py-1 bg-primary rounded-full text-[8px] md:text-xs font-bold uppercase tracking-widest text-black shadow-lg">
                 {type.toUpperCase()}
               </span>
-              <div className="flex items-center gap-1.5 px-2 md:px-3 py-0.5 md:py-1 bg-black/40 backdrop-blur-md rounded-full text-[8px] md:text-[10px] font-bold text-primary-2 border border-white/5">
+              <div className="flex items-center gap-1.5 px-2 md:px-3 py-0.5 md:py-1 bg-black/40 backdrop-blur-md rounded-full text-[8px] md:text-xs font-bold text-primary-2 border border-white/5">
                 <Star size={10} className="fill-current" />
                 {media.vote_average?.toFixed(1)} / 10
               </div>
@@ -327,7 +327,7 @@ export default function MediaDetail() {
                       <button 
                         onClick={handleToggleLibrary}
                         disabled={actionLoading}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-danger hover:bg-danger/5 transition-all"
+                        className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold uppercase tracking-widest text-danger hover:bg-danger/5 transition-all"
                       >
                         {actionLoading ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
                         Purge Entry
@@ -371,7 +371,7 @@ export default function MediaDetail() {
             
             <div className="flex flex-wrap gap-2 pt-2">
               {media.genres?.map((g: any) => (
-                <span key={g.id || g.name} className="px-3 py-1.5 bg-surface-2 border border-border rounded-xl text-[10px] font-bold text-muted uppercase">
+                <span key={g.id || g.name} className="px-3 py-1.5 bg-surface-2 border border-border rounded-xl text-xs font-bold text-muted uppercase">
                   {g.name}
                 </span>
               ))}
@@ -408,7 +408,7 @@ export default function MediaDetail() {
                 </div>
 
                 <div className="space-y-4">
-                  <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted px-1">After-Action Review</label>
+                  <label className="text-xs font-bold uppercase tracking-[0.2em] text-muted px-1">After-Action Review</label>
                   <textarea
                     value={review}
                     onChange={(e) => setReview(e.target.value)}
@@ -423,8 +423,8 @@ export default function MediaDetail() {
                     disabled={isUpdating}
                     className="w-full sm:w-auto flex items-center justify-center gap-3 px-8 py-3 bg-primary text-black font-bold rounded-xl hover:bg-primary/90 transition-all active:scale-95 disabled:opacity-50 shadow-lg shadow-primary/20"
                   >
-                    {isUpdating ? <Loader2 className="animate-spin size={16} /> : <Save size={16} />}
-                    <span className="uppercase tracking-widest text-[10px]">Sync Intel</span>
+                    {isUpdating ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
+                    <span className="uppercase tracking-widest text-xs">Sync Intel</span>
                   </button>
                 </div>
               </div>
@@ -452,7 +452,7 @@ export default function MediaDetail() {
             {media.overview?.length > 200 && (
               <button 
                 onClick={() => setShowFullOverview(!showFullOverview)}
-                className="flex items-center gap-2 text-primary font-bold text-[10px] uppercase tracking-[0.2em] md:hidden pt-2"
+                className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-[0.2em] md:hidden pt-2"
               >
                 {showFullOverview ? (
                   <>Collapse Dossier <ChevronUp size={14} /></>
@@ -472,7 +472,7 @@ export default function MediaDetail() {
                     <span className="w-2 h-8 bg-primary-2 rounded-full"></span>
                     Mission Progress
                   </h2>
-                  <p className="text-[9px] md:text-[10px] text-muted font-bold uppercase tracking-widest">Unit deployment across sectors</p>
+                  <p className="text-[9px] md:text-xs text-muted font-bold uppercase tracking-widest">Unit deployment across sectors</p>
                 </div>
                 
                 <div className="relative flex items-center justify-center">
@@ -524,9 +524,9 @@ export default function MediaDetail() {
                           <div className="flex-1 min-w-0">
                             <h3 className="font-display font-bold text-base md:text-lg text-white uppercase tracking-tight truncate">{season.name}</h3>
                             <div className="flex items-center gap-2 mt-1">
-                              <span className="text-[8px] md:text-[10px] text-muted font-bold uppercase tracking-widest">{season.episode_count} EP</span>
+                              <span className="text-[8px] md:text-xs text-muted font-bold uppercase tracking-widest">{season.episode_count} EP</span>
                               <span className="w-1 h-1 bg-border rounded-full"></span>
-                              <span className="text-[8px] md:text-[10px] text-primary-2 font-bold uppercase tracking-widest">{progress.watched} Clear</span>
+                              <span className="text-[8px] md:text-xs text-primary-2 font-bold uppercase tracking-widest">{progress.watched} Clear</span>
                             </div>
                             <div className="mt-2 w-full h-1 bg-surface rounded-full overflow-hidden border border-border/10 sm:hidden">
                               <div className="h-full bg-primary-2/60 transition-all duration-1000" style={{ width: `${progress.percentage}%` }} />
@@ -547,7 +547,7 @@ export default function MediaDetail() {
                           {loadingSeasons && !data ? (
                             <div className="flex flex-col items-center py-8 space-y-4 opacity-50">
                               <Loader2 className="w-6 h-6 animate-spin text-primary-2" />
-                              <span className="text-[10px] font-bold uppercase tracking-widest">Intercepting intel...</span>
+                              <span className="text-xs font-bold uppercase tracking-widest">Intercepting intel...</span>
                             </div>
                           ) : data?.episodes?.map((ep: any) => {
                             const watched = isEpisodeWatched(season.season_number, ep.episode_number);
@@ -601,8 +601,8 @@ export default function MediaDetail() {
                         onError={(e) => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(person.name)}&background=random`; }}
                       />
                     </div>
-                    <p className="font-bold text-[10px] md:text-xs truncate text-white">{person.name}</p>
-                    <p className="text-[8px] md:text-[10px] text-muted truncate uppercase tracking-widest">{person.character}</p>
+                    <p className="font-bold text-xs md:text-xs truncate text-white">{person.name}</p>
+                    <p className="text-[8px] md:text-xs text-muted truncate uppercase tracking-widest">{person.character}</p>
                   </div>
                 ))}
               </div>

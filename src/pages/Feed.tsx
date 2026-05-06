@@ -1,8 +1,8 @@
 import { useEffect, useState, useCallback } from 'react';
-import { getFeedItems, getCurrentUser , createPost, toggleLike, getUserLikes} from '../lib/reaperhub/queries';
+import { getFeedItems, getCurrentUser, createPost, toggleLike, getUserLikes, deletePost, updatePost } from '../lib/reaperhub/queries';
 import { supabase } from '../lib/supabase';
 import { Link } from 'react-router-dom';
-import { MessageSquare, Heart, Share2, Film, Gamepad2, Send, MoreHorizontal, User, TrendingUp, Sparkles, Hash, Users, Zap as ZapIcon, Loader2, Calendar } from 'lucide-react';
+import { MessageSquare, Heart, Share2, Film, Gamepad2, Send, MoreHorizontal, User, TrendingUp, Sparkles, Hash, Users, Zap as ZapIcon, Loader2, Calendar, Edit3, Trash2, X } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { toast } from 'sonner';
 import CommentSection from '../components/CommentSection';

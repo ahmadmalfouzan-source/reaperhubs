@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { getMediaDetails as getTMDBDetails, getTMDBImageUrl, getSeasonDetails, getSimilarMedia } from '../services/tmdbService';
-import { getGameDetails, mapRAWGToMedia } from '../services/rawgService';
+import { getGameDetails, getGameSuggested, mapRAWGToMedia } from '../services/rawgService';
 import { getHLTBData, HLTBData } from '../services/hltbService';
 import { getGameBosses } from '../services/wikipediaService';
 import { 
@@ -86,13 +86,13 @@ export default function MediaDetail() {
     const fetchMetadata = async () => {
       let data: any;
       if (type === 'game') {
-        const game = await getGameDetails(id);
+        const [game, suggested] = await Promise.all([
+          getGameDetails(id),
+          getGameSuggested(id)
+        ]);
         if (game) {
           data = mapRAWGToMedia(game);
-          data.backdrop_path = game.background_image;
-          data.poster_path = game.background_image;
-          data.genres = game.genres;
-          data.vote_average = game.rating;
+          setSimilarMedia(suggested.map(mapRAWGToMedia) || []);
 
           // Fetch HLTB and Bosses
           getHLTBData(data.title).then(setHltb);
@@ -331,7 +331,7 @@ export default function MediaDetail() {
 
   const backdrop = type === 'game' ? media.backdrop_path : getTMDBImageUrl(media.backdrop_path, 'original');
   const poster = type === 'game' ? media.poster_path : getTMDBImageUrl(media.poster_path, 'w500');
-  const year = type === 'game' ? media.release_year : new Date(media.release_date || media.first_air_date).getFullYear();
+  const year = new Date(media.release_date || media.first_air_date).getFullYear() || 'N/A';
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 md:space-y-12 animate-in fade-in duration-500 pb-48 md:pb-32">
@@ -476,6 +476,13 @@ export default function MediaDetail() {
                 </>
               )}
             </div>
+            <div className="flex flex-wrap gap-2">
+              {media.genres?.map((g: any) => (
+                <span key={g.id || g.name} className="px-2 py-1 bg-surface-2 border border-border rounded-lg text-[9px] font-bold text-muted uppercase">
+                  {g.name}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -491,11 +498,47 @@ export default function MediaDetail() {
               )}
             </div>
             {media.overview?.length > 200 && (
-              <button onClick={() => setShowFullOverview(!showFullOverview)} className="text-primary font-bold text-xs uppercase tracking-widest">
+              <button onClick={() => setShowFullOverview(!showFullOverview)} className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-widest">
                 {showFullOverview ? 'Collapse' : 'Expand'} Dossier
               </button>
             )}
           </section>
+
+          {/* Priority Targets (Game Only) */}
+          {type === 'game' && bosses.length > 0 && (
+            <section className="space-y-8">
+              <div className="flex items-center gap-3 border-b border-border/30 pb-6">
+                <Target size={24} className="text-danger" />
+                <h2 className="text-xl font-display font-bold text-white uppercase tracking-tight">Priority Targets</h2>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {bosses.map((boss) => (
+                  <button
+                    key={boss}
+                    onClick={() => handleToggleBoss(boss)}
+                    className={cn(
+                      "flex items-center justify-between p-4 rounded-2xl border transition-all text-left group/boss",
+                      defeatedBosses.includes(boss)
+                        ? "bg-danger/10 border-danger/30 text-white"
+                        : "bg-surface-2 border-border/50 text-muted hover:border-danger/30"
+                    )}
+                  >
+                    <span className={cn("text-xs font-bold uppercase tracking-widest", defeatedBosses.includes(boss) && "line-through opacity-50")}>
+                      {boss}
+                    </span>
+                    <div className={cn(
+                      "w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all",
+                      defeatedBosses.includes(boss) 
+                        ? "bg-danger border-danger shadow-lg shadow-danger/20" 
+                        : "border-border group-hover/boss:border-danger/50"
+                    )}>
+                      {defeatedBosses.includes(boss) && <Swords size={12} className="text-black" />}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
 
           {inLibrary && (
             <section className="bg-surface-2 border-2 border-primary/20 rounded-[32px] p-6 md:p-8 shadow-2xl relative overflow-hidden group pb-48 sm:pb-8">
@@ -533,42 +576,6 @@ export default function MediaDetail() {
                     <span className="uppercase tracking-widest text-xs">Sync Intel</span>
                   </button>
                 </div>
-              </div>
-            </section>
-          )}
-
-          {/* Priority Targets (Game Only) */}
-          {type === 'game' && bosses.length > 0 && (
-            <section className="space-y-8">
-              <div className="flex items-center gap-3 border-b border-border/30 pb-6">
-                <Target size={24} className="text-danger" />
-                <h2 className="text-xl font-display font-bold text-white uppercase tracking-tight">Priority Targets</h2>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {bosses.map((boss) => (
-                  <button
-                    key={boss}
-                    onClick={() => handleToggleBoss(boss)}
-                    className={cn(
-                      "flex items-center justify-between p-4 rounded-2xl border transition-all text-left group/boss",
-                      defeatedBosses.includes(boss)
-                        ? "bg-danger/10 border-danger/30 text-white"
-                        : "bg-surface-2 border-border/50 text-muted hover:border-danger/30"
-                    )}
-                  >
-                    <span className={cn("text-xs font-bold uppercase tracking-widest", defeatedBosses.includes(boss) && "line-through opacity-50")}>
-                      {boss}
-                    </span>
-                    <div className={cn(
-                      "w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all",
-                      defeatedBosses.includes(boss) 
-                        ? "bg-danger border-danger shadow-lg shadow-danger/20" 
-                        : "border-border group-hover/boss:border-danger/50"
-                    )}>
-                      {defeatedBosses.includes(boss) && <Swords size={12} className="text-black" />}
-                    </div>
-                  </button>
-                ))}
               </div>
             </section>
           )}
@@ -642,24 +649,43 @@ export default function MediaDetail() {
             </section>
           )}
 
-          {type !== 'game' && media.credits?.cast && media.credits.cast.length > 0 && (
+          {/* Developers / Cast Section */}
+          {(type === 'game' ? media.developers?.length > 0 : media.credits?.cast?.length > 0) && (
             <section className="space-y-6">
-              <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Field Operatives</h2>
+              <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-primary">
+                {type === 'game' ? 'Development Team' : 'Field Operatives'}
+              </h2>
               <div className="flex overflow-x-auto gap-4 pb-4 scrollbar-none snap-x -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-4 md:overflow-visible">
-                {media.credits.cast.slice(0, 8).map((person: any) => (
-                  <div key={person.id} className="group bg-surface hover:bg-surface-2 border border-border p-3 rounded-2xl transition-all shadow-md flex-shrink-0 w-32 md:w-auto snap-start">
-                    <div className="aspect-square rounded-xl overflow-hidden mb-3 transition-all duration-500 border border-border/50">
-                      <img 
-                        src={person.profile_path ? getTMDBImageUrl(person.profile_path) : `https://ui-avatars.com/api/?name=${encodeURIComponent(person.name)}&background=random`} 
-                        alt={person.name} 
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
-                        onError={(e) => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(person.name)}&background=random`; }}
-                      />
+                {type === 'game' ? (
+                   media.developers.slice(0, 8).map((dev: any) => (
+                    <div key={dev.id} className="group bg-surface hover:bg-surface-2 border border-border p-3 rounded-2xl transition-all shadow-md flex-shrink-0 w-32 md:w-auto snap-start">
+                      <div className="aspect-square rounded-xl overflow-hidden mb-3 transition-all duration-500 border border-border/50 bg-surface-2 flex items-center justify-center">
+                         {dev.image_background ? (
+                           <img src={dev.image_background} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={dev.name} />
+                         ) : (
+                           <Zap size={24} className="text-muted/30" />
+                         )}
+                      </div>
+                      <p className="font-bold text-xs truncate text-white">{dev.name}</p>
+                      <p className="text-[8px] md:text-xs text-muted truncate uppercase tracking-widest">Main Developer</p>
                     </div>
-                    <p className="font-bold text-xs truncate text-white">{person.name}</p>
-                    <p className="text-[8px] md:text-xs text-muted truncate uppercase tracking-widest">{person.character}</p>
-                  </div>
-                ))}
+                   ))
+                ) : (
+                  media.credits.cast.slice(0, 8).map((person: any) => (
+                    <div key={person.id} className="group bg-surface hover:bg-surface-2 border border-border p-3 rounded-2xl transition-all shadow-md flex-shrink-0 w-32 md:w-auto snap-start">
+                      <div className="aspect-square rounded-xl overflow-hidden mb-3 transition-all duration-500 border border-border/50">
+                        <img 
+                          src={person.profile_path ? getTMDBImageUrl(person.profile_path) : `https://ui-avatars.com/api/?name=${encodeURIComponent(person.name)}&background=random`} 
+                          alt={person.name} 
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                          onError={(e) => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(person.name)}&background=random`; }}
+                        />
+                      </div>
+                      <p className="font-bold text-xs truncate text-white">{person.name}</p>
+                      <p className="text-[8px] md:text-xs text-muted truncate uppercase tracking-widest">{person.character}</p>
+                    </div>
+                  ))
+                )}
               </div>
             </section>
           )}
@@ -674,12 +700,12 @@ export default function MediaDetail() {
                 {similarMedia.slice(0, 10).map((item: any) => (
                   <Link 
                     key={item.id} 
-                    to={`/media/${item.id}?type=${type}`}
+                    to={`/media/${type}/${item.id.toString().replace('rawg-', '')}`}
                     className="flex-shrink-0 w-32 md:w-40 space-y-3 group snap-start"
                   >
                     <div className="aspect-[2/3] rounded-2xl overflow-hidden border border-border/50 relative shadow-lg">
                       <img 
-                        src={getTMDBImageUrl(item.poster_path)} 
+                        src={type === 'game' ? item.cover_url : getTMDBImageUrl(item.poster_path)} 
                         alt={item.title || item.name} 
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
                       />
@@ -691,7 +717,7 @@ export default function MediaDetail() {
                       <p className="text-xs font-bold text-white truncate uppercase tracking-tight">{item.title || item.name}</p>
                       <div className="flex items-center gap-1.5 text-[9px] font-bold text-muted uppercase tracking-widest">
                          <Star size={10} className="text-primary-2 fill-current" />
-                         {(item.vote_average / 2).toFixed(1)}
+                         {(item.vote_average > 5 ? item.vote_average / 2 : item.vote_average).toFixed(1)}
                       </div>
                     </div>
                   </Link>

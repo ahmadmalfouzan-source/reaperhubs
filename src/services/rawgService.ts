@@ -12,6 +12,7 @@ export interface RAWGGame {
   genres: { name: string }[];
   description_raw?: string;
   platforms?: { platform: { name: string } }[];
+  developers?: { id: number, name: string, image_background: string }[];
 }
 
 export async function searchGames(query: string): Promise<RAWGGame[]> {
@@ -39,6 +40,19 @@ export async function getGameDetails(id: string | number): Promise<RAWGGame | nu
   }
 }
 
+export async function getGameSuggested(id: string | number): Promise<RAWGGame[]> {
+  try {
+    const url = `${BASE_URL}/games/${id}/suggested?key=${API_KEY}`;
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('RAWG API error');
+    const data = await response.json();
+    return data.results || [];
+  } catch (error) {
+    console.error('Error fetching suggested games from RAWG:', error);
+    return [];
+  }
+}
+
 export function mapRAWGToMedia(game: RAWGGame) {
   return {
     id: `rawg-${game.id}`,
@@ -53,7 +67,8 @@ export function mapRAWGToMedia(game: RAWGGame) {
     vote_average: game.rating || 0,
     vote_count: 0,
     genre_ids: [],
-    genres: game.genres?.map(g => g.name) || [],
+    genres: game.genres?.map(g => ({ name: g.name })) || [],
+    developers: game.developers || [],
     popularity: (game.rating || 0) * 100,
   };
 }

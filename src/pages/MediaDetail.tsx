@@ -504,7 +504,7 @@ export default function MediaDetail() {
             )}
           </section>
 
-          {/* Priority Targets (Game Only) */}
+          {/* Priority Targets (Game Only) - RELOCATED OUTSIDE inLibrary */}
           {type === 'game' && bosses.length > 0 && (
             <section className="space-y-8 animate-in fade-in duration-700">
               <div className="flex items-center gap-3 border-b border-border/30 pb-6">
@@ -667,7 +667,7 @@ export default function MediaDetail() {
                          )}
                       </div>
                       <p className="font-bold text-xs truncate text-white">{dev.name}</p>
-                      <p className="text-[8px] md:text-xs text-muted truncate uppercase tracking-widest">Main Developer</p>
+                      <p className="text-[8px] md:text-xs text-muted truncate uppercase tracking-widest">Lead Unit</p>
                     </div>
                    ))
                 ) : (

@@ -312,7 +312,7 @@ export default function MediaDetail() {
                     <MoreVertical size={16} />
                   </button>
                   {showMenu && (
-                    <div className="fixed md:absolute right-6 md:right-0 bottom-32 md:bottom-full mb-2 w-48 bg-surface border border-border shadow-2xl rounded-2xl overflow-hidden z-50">
+                    <div className="fixed md:absolute right-6 md:right-0 bottom-32 md:bottom-full mb-2 w-48 bg-surface border border-border shadow-2xl rounded-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-bottom-2">
                       <button 
                         onClick={handleToggleLibrary}
                         disabled={actionLoading}
@@ -361,6 +361,23 @@ export default function MediaDetail() {
         </div>
 
         <div className="md:col-span-2 space-y-12">
+          <section className="space-y-6">
+            <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Synopsis</h2>
+            <div className="relative">
+              <p className={cn("text-lg md:text-xl leading-relaxed text-text/80 transition-all", !showFullOverview && "line-clamp-4 overflow-hidden")}>
+                {media.overview || 'No intelligence provided.'}
+              </p>
+              {!showFullOverview && media.overview?.length > 200 && (
+                <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-background to-transparent pointer-events-none"></div>
+              )}
+            </div>
+            {media.overview?.length > 200 && (
+              <button onClick={() => setShowFullOverview(!showFullOverview)} className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-widest">
+                {showFullOverview ? <><ChevronUp size={14} /> Collapse Dossier</> : <><ChevronDown size={14} /> Expand Dossier</>}
+              </button>
+            )}
+          </section>
+
           {inLibrary && (
             <section className="bg-surface-2 border-2 border-primary/20 rounded-[32px] p-6 md:p-8 shadow-2xl relative overflow-hidden group pb-48 sm:pb-8">
               <div className="space-y-8 relative z-10">
@@ -384,8 +401,8 @@ export default function MediaDetail() {
                 <textarea
                   value={review}
                   onChange={(e) => setReview(e.target.value)}
-                  placeholder="Document findings..."
-                  className="w-full bg-surface border border-border rounded-2xl p-4 text-sm text-white focus:outline-none focus:border-primary min-h-[120px]"
+                  placeholder="Document your findings, operative..."
+                  className="w-full bg-surface border border-border rounded-2xl p-4 text-sm text-white focus:outline-none focus:border-primary min-h-[120px] italic"
                 />
                 <div className="flex justify-end">
                   <button
@@ -400,23 +417,6 @@ export default function MediaDetail() {
               </div>
             </section>
           )}
-
-          <section className="space-y-6">
-            <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Synopsis</h2>
-            <div className="relative">
-              <p className={cn("text-lg md:text-xl leading-relaxed text-text/80 transition-all", !showFullOverview && "line-clamp-4 overflow-hidden")}>
-                {media.overview || 'No intelligence provided.'}
-              </p>
-              {!showFullOverview && media.overview?.length > 200 && (
-                <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-background to-transparent pointer-events-none"></div>
-              )}
-            </div>
-            {media.overview?.length > 200 && (
-              <button onClick={() => setShowFullOverview(!showFullOverview)} className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-widest">
-                {showFullOverview ? <><ChevronUp size={14} /> Collapse Dossier</> : <><ChevronDown size={14} /> Expand Dossier</>}
-              </button>
-            )}
-          </section>
 
           {type === 'tv' && seasons.length > 0 && (
             <section className="space-y-8">

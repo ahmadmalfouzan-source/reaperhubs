@@ -114,7 +114,7 @@ export default function Leaderboard() {
                             index === 0 && "border-yellow-500/50"
                           )}>
                             {user?.avatar_url ? (
-                              <img src={user.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                              <img loading="lazy" src={user.avatar_url} alt="Avatar" className="w-full h-full object-cover"  onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=300&q=80'; }} />
                             ) : (
                               <User className="w-6 h-6 text-primary/40 group-hover/user:text-primary-2 transition-colors" />
                             )}

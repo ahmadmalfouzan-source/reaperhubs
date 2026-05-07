@@ -30,16 +30,35 @@ export async function searchTMDB(query: string, type: 'movie' | 'tv' | 'multi' =
 
 export async function discoverTMDB(options: {
   type: 'movie' | 'tv';
-  genreId?: string;
+  genreIds?: string[];
   sortBy?: string;
   page?: number;
+  minYear?: number;
+  maxYear?: number;
+  minRating?: number;
+  maxRating?: number;
 }) {
-  const { type, genreId, sortBy = 'popularity.desc', page = 1 } = options;
+  const { type, genreIds, sortBy = 'popularity.desc', page = 1, minYear, maxYear, minRating, maxRating } = options;
 
   let url = `${BASE_URL}/discover/${type}?sort_by=${sortBy}&page=${page}&api_key=${API_KEY}`;
 
-  if (genreId && genreId !== 'all') {
-    url += `&with_genres=${genreId}`;
+  if (genreIds && genreIds.length > 0) {
+    // TMDB allows comma-separated for OR, or pipe-separated for AND.
+    // Using comma-separated for multi-select genre filtering.
+    url += `&with_genres=${genreIds.join(',')}`;
+  }
+
+  if (minYear) {
+    url += type === 'movie' ? `&primary_release_date.gte=${minYear}-01-01` : `&first_air_date.gte=${minYear}-01-01`;
+  }
+  if (maxYear) {
+    url += type === 'movie' ? `&primary_release_date.lte=${maxYear}-12-31` : `&first_air_date.lte=${maxYear}-12-31`;
+  }
+  if (minRating !== undefined) {
+    url += `&vote_average.gte=${minRating}`;
+  }
+  if (maxRating !== undefined) {
+    url += `&vote_average.lte=${maxRating}`;
   }
 
   try {

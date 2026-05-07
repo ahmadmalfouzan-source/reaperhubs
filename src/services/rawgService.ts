@@ -46,7 +46,7 @@ export async function getGameSuggested(id: string | number): Promise<RAWGGame[]>
   const numericId = id.toString().replace('rawg-', '');
   console.log('Fetching RAWG related games for ID:', numericId);
   try {
-    // Attempt to fetch games in the same series first
+    // 1. Attempt to fetch games in the same series
     const seriesUrl = `${BASE_URL}/games/${numericId}/game-series?key=${API_KEY}`;
     const seriesResponse = await fetch(seriesUrl);
 
@@ -57,13 +57,29 @@ export async function getGameSuggested(id: string | number): Promise<RAWGGame[]>
       results = seriesData.results || [];
     }
 
-    // If series is empty, attempt to fetch additions/DLCs
+    // 2. If series is empty, attempt to fetch additions/DLCs
     if (results.length === 0) {
       const additionsUrl = `${BASE_URL}/games/${numericId}/additions?key=${API_KEY}`;
       const additionsResponse = await fetch(additionsUrl);
       if (additionsResponse.ok) {
         const additionsData = await additionsResponse.json();
         results = additionsData.results || [];
+      }
+    }
+
+    // 3. Task 1.1: Final Fallback - Search by tags if still empty
+    if (results.length === 0) {
+      // Get game details first to find tags
+      const gameDetails = await getGameDetails(numericId);
+      if (gameDetails && gameDetails.genres && gameDetails.genres.length > 0) {
+        const genreIds = gameDetails.genres.map(g => g.name.toLowerCase()).join(',');
+        const fallbackUrl = `${BASE_URL}/games?genres=${genreIds}&page_size=10&key=${API_KEY}&exclude_additions=true`;
+        const fallbackResponse = await fetch(fallbackUrl);
+        if (fallbackResponse.ok) {
+          const fallbackData = await fallbackResponse.json();
+          // Exclude the current game from results
+          results = (fallbackData.results || []).filter((g: any) => g.id.toString() !== numericId);
+        }
       }
     }
 

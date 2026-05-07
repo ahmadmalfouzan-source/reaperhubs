@@ -116,14 +116,14 @@ export default function Dashboard() {
           <p className="text-muted font-medium text-sm">Welcome back, operative.</p>
         </div>
         <div className="text-left sm:text-right">
-          <div className="text-xs font-bold uppercase tracking-widest text-primary mb-1">Access Terminal</div>
-          <div className="text-muted font-mono text-xs sm:text-sm truncate max-w-[200px] sm:max-w-none">{data?.user?.email}</div>
+          <div className="text-sm md:text-xs font-bold uppercase tracking-widest text-primary mb-1">Access Terminal</div>
+          <div className="text-muted font-mono text-sm md:text-xs sm:text-sm truncate max-w-[200px] sm:max-w-none">{data?.user?.email}</div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         <div className="group bg-surface hover:bg-surface-2 border border-border rounded-[24px] p-6 border-l-4 border-l-blue-500 shadow-xl transition-all duration-300">
-          <div className="text-muted text-[10px] font-bold uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+          <div className="text-muted text-sm md:text-sm md:text-xs font-bold uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
             <Target className="w-4 h-4 text-blue-500" />
             Clearance Level
           </div>
@@ -133,20 +133,20 @@ export default function Dashboard() {
           </div>
         </div>
         <div className="group bg-surface hover:bg-surface-2 border border-border rounded-[24px] p-6 border-l-4 border-l-purple-500 shadow-xl transition-all duration-300">
-          <div className="text-muted text-[10px] font-bold uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+          <div className="text-muted text-sm md:text-sm md:text-xs font-bold uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
             <Zap className="w-4 h-4 text-purple-500 fill-purple-500/20" />
             Current XP
           </div>
           <div className="font-display font-bold text-4xl sm:text-5xl text-white group-hover:text-purple-400 transition-colors">{data.xp}</div>
-          <p className="text-[10px] text-muted font-bold mt-4 uppercase tracking-widest">Next Evolution: 2,500 XP</p>
+          <p className="text-sm md:text-sm md:text-xs text-muted font-bold mt-4 uppercase tracking-widest">Next Evolution: 2,500 XP</p>
         </div>
         <div className="group bg-surface hover:bg-surface-2 border border-border rounded-[24px] p-6 border-l-4 border-l-green-500 shadow-xl transition-all duration-300 sm:col-span-2 md:col-span-1">
-          <div className="text-muted text-[10px] font-bold uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+          <div className="text-muted text-sm md:text-sm md:text-xs font-bold uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
             <Coins className="w-4 h-4 text-green-500 fill-green-500/20" />
             Credit Balance
           </div>
           <div className="font-display font-bold text-4xl sm:text-5xl text-white group-hover:text-green-400 transition-colors uppercase">{data.coins}</div>
-          <p className="text-[10px] text-muted font-bold mt-4 uppercase tracking-widest">Market is active</p>
+          <p className="text-sm md:text-sm md:text-xs text-muted font-bold mt-4 uppercase tracking-widest">Market is active</p>
         </div>
       </div>
       
@@ -159,7 +159,7 @@ export default function Dashboard() {
           <Link 
             key={link.to}
             to={link.to} 
-            className="flex-1 sm:flex-none flex items-center justify-center sm:justify-start gap-3 bg-surface hover:bg-surface-2 border border-border rounded-2xl px-4 sm:px-6 py-3 sm:py-3.5 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all shadow-lg active:scale-95 border-b-4 border-b-border active:border-b-0 active:translate-y-1"
+            className="flex-1 sm:flex-none flex items-center justify-center sm:justify-start gap-3 bg-surface hover:bg-surface-2 border border-border rounded-2xl px-4 sm:px-6 py-3 sm:py-3.5 text-sm md:text-sm md:text-xs sm:text-sm md:text-xs font-bold uppercase tracking-widest transition-all shadow-lg active:scale-95 border-b-4 border-b-border active:border-b-0 active:translate-y-1"
           >
             {link.icon}
             {link.label}
@@ -177,7 +177,7 @@ export default function Dashboard() {
             </div>
             <div className="space-y-1">
               <h2 className="font-display font-bold text-2xl uppercase tracking-tighter text-white">Market Intel</h2>
-              <p className="text-[10px] text-muted font-bold uppercase tracking-[0.2em]">Trending deployments</p>
+              <p className="text-sm md:text-sm md:text-xs text-muted font-bold uppercase tracking-[0.2em]">Trending deployments</p>
             </div>
           </div>
         </div>
@@ -210,7 +210,7 @@ export default function Dashboard() {
                     <img loading="lazy"
                       src={item.poster} 
                       alt={item.title} 
-                      className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
+                      className="w-full h-full object-cover grayscale-0 md:grayscale md:group-hover:grayscale-0 transition-all duration-700"
 
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=185&q=80';
@@ -222,10 +222,10 @@ export default function Dashboard() {
                   <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent"></div>
                   
                   <div className="absolute top-4 left-4 z-10 flex flex-wrap gap-2">
-                    <span className="text-[8px] uppercase font-bold px-2.5 py-1 rounded-full bg-primary text-black shadow-lg">
+                    <span className="text-sm md:text-xs md:text-[10px] uppercase font-bold px-2.5 py-1 rounded-full bg-primary text-black shadow-lg">
                       {item.type}
                     </span>
-                    <span className="text-[8px] uppercase font-bold px-2.5 py-1 rounded-full bg-black/80 text-white border border-white/10 backdrop-blur-md">
+                    <span className="text-sm md:text-xs md:text-[10px] uppercase font-bold px-2.5 py-1 rounded-full bg-black/80 text-white border border-white/10 backdrop-blur-md">
                       {item.genre}
                     </span>
                   </div>
@@ -235,7 +235,7 @@ export default function Dashboard() {
                   <h3 className="font-display font-medium text-lg text-white leading-tight line-clamp-1 group-hover:text-primary transition-colors">
                     {item.title}
                   </h3>
-                  <p className="text-[10px] text-muted line-clamp-2 leading-relaxed h-8 font-medium">
+                  <p className="text-sm md:text-sm md:text-xs text-muted line-clamp-2 leading-relaxed h-8 font-medium">
                     {item.reason}
                   </p>
                   <div className="flex gap-2">
@@ -246,7 +246,7 @@ export default function Dashboard() {
                       }}
                       disabled={addedIds.has(item.title)}
                       className={cn(
-                        "flex-1 py-3 px-4 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2 border shadow-lg active:scale-95",
+                        "flex-1 py-3 px-4 rounded-xl text-sm md:text-xs md:text-sm md:text-sm md:text-xs min-h-[44px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2 border shadow-lg active:scale-95",
                         addedIds.has(item.title)
                           ? "bg-success/10 border-success/20 text-success"
                           : "bg-surface-2 border-border text-text hover:bg-white hover:text-black group-hover:border-primary/50"
@@ -258,7 +258,7 @@ export default function Dashboard() {
                         <><Plus className="w-3.5 h-3.5" /> Archive</>
                       )}
                     </button>
-                    <button className="p-3 bg-surface-2 border border-border rounded-xl text-muted hover:text-primary transition-colors">
+                    <button className="p-3 min-w-[44px] min-h-[44px] bg-surface-2 border border-border rounded-xl text-muted hover:text-primary transition-colors flex items-center justify-center">
                       <ArrowRight size={14} />
                     </button>
                   </div>
@@ -279,14 +279,14 @@ export default function Dashboard() {
             <div className="bg-surface/50 border border-dashed border-border rounded-[32px] p-12 flex flex-col items-center justify-center text-center text-muted h-[240px]">
               <MessageSquare className="w-12 h-12 mb-4 opacity-10" />
               <p className="text-sm font-bold uppercase tracking-widest opacity-40">System Silence</p>
-              <p className="text-[10px] mt-2 max-w-[180px]">Initialize communications via the Community Feed.</p>
+              <p className="text-sm md:text-sm md:text-xs mt-2 max-w-[180px]">Initialize communications via the Community Feed.</p>
             </div>
           ) : (
             <div className="space-y-4">
               {data.recentPosts.map((post: any) => (
                 <div key={post.id} className="group bg-surface hover:bg-surface-2 border border-border rounded-[24px] p-6 transition-all duration-300 shadow-lg hover:border-primary-2/30">
                   <p className="text-sm leading-relaxed mb-4 text-muted group-hover:text-text transition-colors">{post.content}</p>
-                  <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-muted/60">
+                  <div className="flex items-center justify-between text-sm md:text-sm md:text-xs font-bold uppercase tracking-widest text-muted/60">
                     <span>Alpha Sector</span>
                     <span>{new Date(post.created_at).toLocaleDateString()}</span>
                   </div>
@@ -305,7 +305,7 @@ export default function Dashboard() {
             <div className="bg-surface/50 border border-dashed border-border rounded-[32px] p-12 flex flex-col items-center justify-center text-center text-muted h-[240px]">
               <BellRing className="w-12 h-12 mb-4 opacity-10" />
               <p className="text-sm font-bold uppercase tracking-widest opacity-40">Frequency Clear</p>
-              <p className="text-[10px] mt-2 max-w-[180px]">No immediate threats or intel updates recorded.</p>
+              <p className="text-sm md:text-sm md:text-xs mt-2 max-w-[180px]">No immediate threats or intel updates recorded.</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -320,7 +320,7 @@ export default function Dashboard() {
                   <p className={cn("text-sm leading-relaxed mb-4", !notif.is_read ? "text-text font-medium" : "text-muted")}>
                     {notif.content}
                   </p>
-                  <div className="text-[10px] font-bold uppercase tracking-widest text-muted/60">
+                  <div className="text-sm md:text-sm md:text-xs font-bold uppercase tracking-widest text-muted/60">
                     {new Date(notif.created_at).toLocaleDateString()}
                   </div>
                 </div>

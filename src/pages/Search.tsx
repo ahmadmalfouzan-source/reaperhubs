@@ -31,7 +31,7 @@ function DiscoverImage({ title, type }: { title: string; type: string }) {
 
   if (loading) return <Skeleton className="w-full h-full rounded-none" />;
   if (!url) return (
-    <div className="w-full h-full bg-surface-2 flex items-center justify-center text-[10px] text-muted text-center p-2 uppercase font-bold">
+    <div className="w-full h-full bg-surface-2 flex items-center justify-center text-sm md:text-sm md:text-xs text-muted text-center p-2 uppercase font-bold">
       {type}
     </div>
   );
@@ -363,7 +363,7 @@ export default function Search() {
               <h1 className="font-display font-bold text-2xl">Filters</h1>
               <button
                 onClick={clearFilters}
-                className="text-xs font-bold text-muted hover:text-danger transition-colors flex items-center gap-1"
+                className="text-sm md:text-xs font-bold text-muted hover:text-danger transition-colors flex items-center gap-1"
               >
                 <Trash2 size={12} /> Clear
               </button>
@@ -371,13 +371,13 @@ export default function Search() {
 
             {/* Media Type */}
             <div className="space-y-3">
-              <label className="text-xs font-bold uppercase tracking-widest text-muted">Media Type</label>
+              <label className="text-sm md:text-xs font-bold uppercase tracking-widest text-muted">Media Type</label>
               <div className="flex flex-wrap gap-2">
                 {(['all', 'movie', 'tv', 'game'] as MediaType[]).map((t) => (
                   <button
                     key={t}
                     onClick={() => setMediaType(t)}
-                    className={`flex-1 px-3 py-2 rounded-lg text-xs font-bold border transition-all ${mediaType === t ? 'bg-primary/20 border-primary text-primary' : 'bg-surface-2 border-border text-muted hover:border-text/30'}`}
+                    className={`flex-1 px-3 py-2 rounded-lg text-sm md:text-xs font-bold border transition-all ${mediaType === t ? 'bg-primary/20 border-primary text-primary' : 'bg-surface-2 border-border text-muted hover:border-text/30'}`}
                   >
                     {t.charAt(0).toUpperCase() + t.slice(1)}
                   </button>
@@ -387,7 +387,7 @@ export default function Search() {
 
             {/* Sort */}
             <div className="space-y-3">
-              <label className="text-xs font-bold uppercase tracking-widest text-muted">Sort By</label>
+              <label className="text-sm md:text-xs font-bold uppercase tracking-widest text-muted">Sort By</label>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as SortOption)}
@@ -403,22 +403,24 @@ export default function Search() {
             {/* Year Range */}
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <label className="text-xs font-bold uppercase tracking-widest text-muted">Year</label>
-                <span className="text-xs text-primary font-mono">{minYear} - {maxYear}</span>
+                <label className="text-sm md:text-xs font-bold uppercase tracking-widest text-muted">Year</label>
+                <span className="text-sm md:text-xs text-primary font-mono">{minYear} - {maxYear}</span>
               </div>
               <div className="flex items-center gap-2">
                 <input
                   type="number"
+                  inputMode="numeric"
                   value={minYear}
                   onChange={(e) => setMinYear(Math.max(1900, Math.min(maxYear, parseInt(e.target.value) || 1900)))}
-                  className="w-full bg-surface-2 border border-border rounded-lg px-2 py-1.5 text-xs text-center"
+                  className="w-full bg-surface-2 border border-border rounded-lg px-2 py-1.5 text-sm md:text-xs text-center"
                 />
                 <span className="text-muted">-</span>
                 <input
                   type="number"
+                  inputMode="numeric"
                   value={maxYear}
                   onChange={(e) => setMaxYear(Math.min(new Date().getFullYear(), Math.max(minYear, parseInt(e.target.value) || new Date().getFullYear())))}
-                  className="w-full bg-surface-2 border border-border rounded-lg px-2 py-1.5 text-xs text-center"
+                  className="w-full bg-surface-2 border border-border rounded-lg px-2 py-1.5 text-sm md:text-xs text-center"
                 />
               </div>
             </div>
@@ -426,8 +428,8 @@ export default function Search() {
             {/* Rating Range */}
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <label className="text-xs font-bold uppercase tracking-widest text-muted">Rating</label>
-                <span className="text-xs text-yellow-500 font-mono">★ {minRating} - {maxRating}</span>
+                <label className="text-sm md:text-xs font-bold uppercase tracking-widest text-muted">Rating</label>
+                <span className="text-sm md:text-xs text-yellow-500 font-mono">★ {minRating} - {maxRating}</span>
               </div>
               <div className="px-2">
                 <input
@@ -450,9 +452,9 @@ export default function Search() {
             {/* Genre Multi-select */}
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <label className="text-xs font-bold uppercase tracking-widest text-muted">Genres</label>
+                <label className="text-sm md:text-xs font-bold uppercase tracking-widest text-muted">Genres</label>
                 {selectedGenres.length > 0 && (
-                  <button onClick={() => setSelectedGenres([])} className="text-[10px] text-muted hover:text-danger">Clear</button>
+                  <button onClick={() => setSelectedGenres([])} className="text-sm md:text-sm md:text-xs text-muted hover:text-danger">Clear</button>
                 )}
               </div>
               <div className="flex flex-wrap gap-1.5 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
@@ -466,7 +468,7 @@ export default function Search() {
                             isSelected ? prev.filter(id => id !== String(g.id)) : [...prev, String(g.id)]
                           );
                        }}
-                       className={`px-2 py-1 rounded-md text-[10px] font-bold border transition-all ${isSelected ? 'bg-primary-2/20 border-primary-2 text-primary-2' : 'bg-surface-2 border-border/50 text-muted hover:border-text/30'}`}
+                       className={`px-2 py-1 rounded-md text-sm md:text-sm md:text-xs font-bold border transition-all ${isSelected ? 'bg-primary-2/20 border-primary-2 text-primary-2' : 'bg-surface-2 border-border/50 text-muted hover:border-text/30'}`}
                      >
                        {g.name}
                      </button>
@@ -478,13 +480,13 @@ export default function Search() {
             <div className="md:hidden flex justify-end pt-4 border-t border-border mt-6">
                <button
                  onClick={clearFilters}
-                 className="flex items-center gap-2 text-xs font-bold text-muted hover:text-danger transition-colors mr-4"
+                 className="flex items-center gap-2 text-sm md:text-xs font-bold text-muted hover:text-danger transition-colors mr-4"
                >
                  <X size={14} /> Clear All
                </button>
                <button
                  onClick={() => setShowFilters(false)}
-                 className="px-4 py-2 bg-primary text-white rounded-lg text-xs font-bold"
+                 className="px-4 py-2 bg-primary text-white rounded-lg text-sm md:text-xs font-bold"
                >
                  Apply Filters
                </button>
@@ -496,19 +498,19 @@ export default function Search() {
 
         <div className="flex flex-wrap gap-2 mb-2">
           {mediaType !== 'all' && (
-            <span className="flex items-center gap-1.5 px-3 py-1 bg-primary/10 border border-primary/30 text-primary rounded-full text-[10px] font-bold uppercase tracking-tighter">
+            <span className="flex items-center gap-1.5 px-3 py-1 bg-primary/10 border border-primary/30 text-primary rounded-full text-sm md:text-sm md:text-xs font-bold uppercase tracking-tighter">
               Type: {mediaType}
               <X size={10} className="ml-1 cursor-pointer" onClick={() => setMediaType('all')} />
             </span>
           )}
           {selectedGenres.length > 0 && (
-            <span className="flex items-center gap-1.5 px-3 py-1 bg-primary-2/10 border border-primary-2/30 text-primary-2 rounded-full text-[10px] font-bold uppercase tracking-tighter">
+            <span className="flex items-center gap-1.5 px-3 py-1 bg-primary-2/10 border border-primary-2/30 text-primary-2 rounded-full text-sm md:text-sm md:text-xs font-bold uppercase tracking-tighter">
               Genres: {selectedGenres.length} selected
               <X size={10} className="ml-1 cursor-pointer" onClick={() => setSelectedGenres([])} />
             </span>
           )}
           {sortBy !== 'relevance' && sortBy !== 'popularity.desc' && (
-            <span className="flex items-center gap-1.5 px-3 py-1 bg-success/10 border border-success/30 text-success rounded-full text-[10px] font-bold uppercase tracking-tighter">
+            <span className="flex items-center gap-1.5 px-3 py-1 bg-success/10 border border-success/30 text-success rounded-full text-sm md:text-sm md:text-xs font-bold uppercase tracking-tighter">
               Sort: {sortBy.split('.')[0]}
               <X size={10} className="ml-1 cursor-pointer" onClick={() => setSortBy('relevance')} />
             </span>
@@ -521,6 +523,7 @@ export default function Search() {
               <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
               <input
                 type="text"
+                inputMode="search"
                 value={query}
                 onChange={(e) => {
                   setQuery(e.target.value);
@@ -542,7 +545,7 @@ export default function Search() {
 
           {/* Suggestions Dropdown */}
           {showSuggestions && query.trim().length > 0 && suggestions.length > 0 && (
-            <div className="absolute top-full left-0 right-[104px] mt-2 bg-surface border border-border rounded-xl shadow-2xl overflow-hidden z-50">
+            <div className="absolute top-full left-0 right-0 md:right-[104px] mt-2 bg-surface border border-border rounded-xl shadow-2xl overflow-hidden z-50">
               {suggestions.map((item, idx) => (
                 <div
                   key={idx}
@@ -552,7 +555,7 @@ export default function Search() {
                   <SearchIcon size={14} className="text-muted flex-shrink-0" />
                   <div className="flex-1 truncate">
                     <span className="text-sm text-text font-medium">{item.title}</span>
-                    {item.release_year && <span className="text-xs text-muted ml-2">({item.release_year})</span>}
+                    {item.release_year && <span className="text-sm md:text-xs text-muted ml-2">({item.release_year})</span>}
                   </div>
                   <span className="text-[9px] uppercase font-bold px-2 py-0.5 rounded-md bg-surface-2 text-muted border border-border/50">
                     {item.type}
@@ -566,19 +569,19 @@ export default function Search() {
           {/* Recent Searches (when input is empty) */}
           {!query.trim() && recentSearches.length > 0 && (
              <div className="mt-4 flex flex-wrap items-center gap-2">
-                <span className="text-xs font-bold text-muted flex items-center gap-1 mr-2"><Clock size={12}/> Recent:</span>
+                <span className="text-sm md:text-xs font-bold text-muted flex items-center gap-1 mr-2"><Clock size={12}/> Recent:</span>
                 {recentSearches.map((term, idx) => (
                   <button
                     key={idx}
                     onClick={() => handleRecentSearchClick(term)}
-                    className="px-3 py-1 rounded-full text-xs bg-surface-2 border border-border/50 text-text hover:border-primary/50 hover:text-primary transition-colors"
+                    className="px-3 py-1 rounded-full text-sm md:text-xs bg-surface-2 border border-border/50 text-text hover:border-primary/50 hover:text-primary transition-colors"
                   >
                     {term}
                   </button>
                 ))}
                 <button
                   onClick={() => setRecentSearches([])}
-                  className="ml-auto text-[10px] text-muted hover:text-danger flex items-center gap-1"
+                  className="ml-auto text-sm md:text-sm md:text-xs text-muted hover:text-danger flex items-center gap-1"
                 >
                   Clear History
                 </button>
@@ -613,7 +616,7 @@ export default function Search() {
                 {item.cover_url ? (
                   <img loading="lazy" src={item.cover_url} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=300&q=80'; }} />
                 ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center text-xs text-muted bg-surface">
+                  <div className="w-full h-full flex flex-col items-center justify-center text-sm md:text-xs text-muted bg-surface">
                     <span className="text-4xl mb-2 opacity-50">🎬</span>
                     No Cover
                   </div>
@@ -622,11 +625,11 @@ export default function Search() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent pointer-events-none"></div>
 
                 <div className="absolute top-3 left-3 z-10 flex flex-col gap-1">
-                  <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full backdrop-blur-md bg-black/60 text-white border border-white/10">
+                  <span className="text-sm md:text-sm md:text-xs uppercase font-bold px-2 py-0.5 rounded-full backdrop-blur-md bg-black/60 text-white border border-white/10">
                     {item.type}
                   </span>
                   {item.rating > 0 && (
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full backdrop-blur-md bg-yellow-500/20 text-yellow-500 border border-yellow-500/30">
+                    <span className="text-sm md:text-sm md:text-xs font-bold px-2 py-0.5 rounded-full backdrop-blur-md bg-yellow-500/20 text-yellow-500 border border-yellow-500/30">
                       ★ {item.rating.toFixed(1)}
                     </span>
                   )}
@@ -636,7 +639,7 @@ export default function Search() {
                   <h3 className="font-display font-medium text-lg text-white leading-tight mb-2">
                     {item.title} {item.release_year ? `(${item.release_year})` : ''}
                   </h3>
-                  <p className="text-[10px] text-muted line-clamp-3 mb-4 italic leading-relaxed">
+                  <p className="text-sm md:text-sm md:text-xs text-muted line-clamp-3 mb-4 italic leading-relaxed">
                     {item.overview || 'No overview available.'}
                   </p>
                   <button
@@ -654,7 +657,7 @@ export default function Search() {
                       handleAdd(item);
                     }}
                     disabled={addedIds.has(item.title)}
-                    className="w-full py-2 bg-primary hover:bg-primary/90 text-white rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 disabled:opacity-50 relative z-30"
+                    className="w-full py-2 bg-primary hover:bg-primary/90 text-white rounded-lg text-sm md:text-xs font-bold transition-all flex items-center justify-center gap-2 disabled:opacity-50 relative z-30"
                   >
                     {addedIds.has(item.title) ? (
                       <><Check size={14} /> In Library</>
@@ -681,7 +684,7 @@ export default function Search() {
           {!discoverLoading && (
             <button 
               onClick={fetchDiscoverPicks}
-              className="text-xs font-bold text-primary hover:text-primary-2 transition-colors uppercase tracking-widest"
+              className="text-sm md:text-xs font-bold text-primary hover:text-primary-2 transition-colors uppercase tracking-widest"
             >
               Refresh Intel
             </button>
@@ -730,14 +733,14 @@ export default function Search() {
                     <h3 className="font-display font-bold text-xl text-white leading-tight mb-2 group-hover:text-primary-2 transition-colors">
                       {item.title}
                     </h3>
-                    <p className="text-xs text-muted leading-relaxed line-clamp-2 italic">
+                    <p className="text-sm md:text-xs text-muted leading-relaxed line-clamp-2 italic">
                       "{item.description}"
                     </p>
                   </div>
                   <button
                     onClick={() => handleAdd(item)}
                     disabled={addedIds.has(item.title)}
-                    className="mt-4 flex items-center justify-center gap-2 py-2 px-4 bg-primary-2/10 hover:bg-primary-2 text-primary-2 hover:text-black rounded-xl text-xs font-bold transition-all border border-primary-2/20 disabled:opacity-50"
+                    className="mt-4 flex items-center justify-center gap-2 py-2 px-4 bg-primary-2/10 hover:bg-primary-2 text-primary-2 hover:text-black rounded-xl text-sm md:text-xs font-bold transition-all border border-primary-2/20 disabled:opacity-50"
                   >
                     {addedIds.has(item.title) ? (
                       <><Check size={14} /> In Library</>

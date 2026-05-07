@@ -249,7 +249,7 @@ function Layout({ children }: { children: ReactNode }) {
         </div>
       </header>
       
-      <main className="flex-1 max-w-[1180px] w-full mx-auto px-4 py-8 pb-24 md:pb-8">
+      <main className="flex-1 max-w-[1180px] w-full mx-auto px-4 py-8 pb-32 md:pb-8">
         <ErrorBoundary>
           {children}
         </ErrorBoundary>

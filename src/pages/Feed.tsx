@@ -175,7 +175,7 @@ export default function Feed() {
     <div className="max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-10 animate-in fade-in duration-700">
       <div className="lg:col-span-2 space-y-8">
         <div className="space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full border border-primary/20 text-[10px] font-bold text-primary uppercase tracking-[0.2em] mb-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full border border-primary/20 text-sm md:text-sm md:text-xs font-bold text-primary uppercase tracking-[0.2em] mb-2">
             Collective Pulse
           </div>
           <h1 className="font-display font-bold text-4xl md:text-5xl uppercase tracking-tighter text-white">Transmission Feed</h1>
@@ -213,7 +213,7 @@ export default function Feed() {
                       type="button"
                       onClick={() => setSelectedTag(tag.id)}
                       className={cn(
-                        "flex items-center gap-2 px-4 py-2 rounded-2xl border text-[10px] font-bold uppercase tracking-widest transition-all whitespace-nowrap",
+                        "flex items-center gap-2 px-4 py-2 rounded-2xl border text-sm md:text-sm md:text-xs font-bold uppercase tracking-widest transition-all whitespace-nowrap",
                         selectedTag === tag.id 
                           ? "bg-primary border-primary text-black shadow-xl shadow-primary/20 scale-105" 
                           : "bg-surface-2 border-border text-muted hover:border-text/30"
@@ -281,7 +281,7 @@ export default function Feed() {
                       <Link to={`/profile/${item.users?.username || ''}`} className="font-display font-bold text-xl text-white hover:text-primary transition-colors block leading-tight tracking-tight uppercase">
                         {item.users?.username || 'Redacted Agent'}
                       </Link>
-                      <div className="flex items-center gap-3 text-[10px] md:text-xs text-muted mt-1.5 font-bold uppercase tracking-widest">
+                      <div className="flex items-center gap-3 text-sm md:text-sm md:text-xs md:text-sm md:text-xs text-muted mt-1.5 font-bold uppercase tracking-widest">
                         <span className="text-primary-2">Field Operative</span>
                         <span className="w-1 h-1 bg-border rounded-full"></span>
                         <span className="flex items-center gap-1.5 opacity-60">
@@ -303,14 +303,14 @@ export default function Feed() {
                       <div className="absolute right-0 mt-2 w-48 bg-surface border border-border shadow-2xl rounded-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                         <button 
                           onClick={() => startEditing(item)}
-                          className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold uppercase tracking-widest text-muted hover:text-primary hover:bg-primary/5 transition-all"
+                          className="w-full flex items-center gap-3 px-4 py-3 text-sm md:text-xs font-bold uppercase tracking-widest text-muted hover:text-primary hover:bg-primary/5 transition-all"
                         >
                           <Edit3 size={14} />
                           Edit Signal
                         </button>
                         <button 
                           onClick={() => handleDeletePost(item.id)}
-                          className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold uppercase tracking-widest text-muted hover:text-danger hover:bg-danger/5 transition-all border-t border-border/50"
+                          className="w-full flex items-center gap-3 px-4 py-3 text-sm md:text-xs font-bold uppercase tracking-widest text-muted hover:text-danger hover:bg-danger/5 transition-all border-t border-border/50"
                         >
                           <Trash2 size={14} />
                           Abort Trans
@@ -333,7 +333,7 @@ export default function Feed() {
                           <button
                             type="submit"
                             disabled={updating || !editContent.trim()}
-                            className="bg-primary hover:bg-primary/90 text-black font-bold rounded-xl px-6 py-2 text-[10px] uppercase tracking-widest transition-all disabled:opacity-50 flex items-center gap-2"
+                            className="bg-primary hover:bg-primary/90 text-black font-bold rounded-xl px-6 py-2 text-sm md:text-sm md:text-xs uppercase tracking-widest transition-all disabled:opacity-50 flex items-center gap-2"
                           >
                             {updating ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
                             Recalibrate
@@ -341,7 +341,7 @@ export default function Feed() {
                           <button
                             type="button"
                             onClick={() => setEditingPostId(null)}
-                            className="bg-surface-2 border border-border text-muted hover:text-white font-bold rounded-xl px-6 py-2 text-[10px] uppercase tracking-widest transition-all flex items-center gap-2"
+                            className="bg-surface-2 border border-border text-muted hover:text-white font-bold rounded-xl px-6 py-2 text-sm md:text-sm md:text-xs uppercase tracking-widest transition-all flex items-center gap-2"
                           >
                             <X size={14} />
                             Cancel
@@ -359,7 +359,7 @@ export default function Feed() {
                   </div>
 
                   {item.media_type && (
-                     <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-primary-2/10 border border-primary-2/20 rounded-xl text-[10px] font-bold text-primary-2 uppercase tracking-[0.2em] shadow-lg">
+                     <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-primary-2/10 border border-primary-2/20 rounded-xl text-sm md:text-sm md:text-xs font-bold text-primary-2 uppercase tracking-[0.2em] shadow-lg">
                         <ZapIcon size={12} className="fill-current" />
                         Intel Sector: {item.media_type}
                      </div>
@@ -376,7 +376,7 @@ export default function Feed() {
                       )}
                     >
                       <Heart className={cn("w-5 h-5 transition-transform group-active/stat:scale-150", likedPosts.has(item.id) && "fill-current")} />
-                      <span className="text-xs font-bold leading-none">{item.like_count || 0}</span>
+                      <span className="text-sm md:text-xs font-bold leading-none">{item.like_count || 0}</span>
                     </button>
                     
                     <button 
@@ -389,12 +389,12 @@ export default function Feed() {
                       )}
                     >
                       <MessageSquare size={18} className="transition-transform group-active/stat:scale-125" />
-                      <span className="text-xs font-bold leading-none">{item.comment_count || 0}</span>
+                      <span className="text-sm md:text-xs font-bold leading-none">{item.comment_count || 0}</span>
                     </button>
                     
                     <button className="flex items-center gap-3 px-5 py-3 text-muted hover:text-success hover:bg-success/5 rounded-2xl transition-all group/stat border border-transparent hover:border-success/10 ml-auto">
                       <Share2 size={18} className="transition-transform group-active/stat:scale-125" />
-                      <span className="text-[10px] font-bold uppercase tracking-widest hidden sm:inline">Broadcast</span>
+                      <span className="text-sm md:text-sm md:text-xs font-bold uppercase tracking-widest inline-block">Broadcast</span>
                     </button>
                   </div>
 
@@ -416,7 +416,7 @@ export default function Feed() {
         )}
       </div>
 
-      <div className="hidden lg:block space-y-10 sticky top-28 h-fit">
+      <div className="block space-y-10 lg:sticky top-28 h-fit mt-10 lg:mt-0">
         <section className="bg-surface border-2 border-border/50 rounded-[40px] p-8 space-y-8 shadow-2xl relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-32 h-32 bg-primary-2/5 blur-[80px] pointer-events-none group-hover:bg-primary-2/10 transition-all"></div>
           <div className="flex items-center gap-3 border-b border-border/30 pb-4">
@@ -427,17 +427,17 @@ export default function Feed() {
             {['#REAPERHAB', '#SUMMER_SLAY', '#TV_INTEL', '#GAME_ARCHIVE'].map((tag, i) => (
               <div key={tag} className="group/tag cursor-pointer flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <span className="text-muted/30 font-mono text-[10px] font-bold">0{i+1}</span>
+                  <span className="text-muted/30 font-mono text-sm md:text-sm md:text-xs font-bold">0{i+1}</span>
                   <span className="text-muted group-hover/tag:text-primary transition-all font-bold text-sm uppercase tracking-widest">{tag}</span>
                 </div>
                 <div className="flex flex-col items-end">
                    <span className="text-[9px] text-muted font-mono uppercase">Signal</span>
-                   <span className="text-[10px] text-primary-2 font-display font-bold">+ {Math.floor(Math.random() * 200)}%</span>
+                   <span className="text-sm md:text-sm md:text-xs text-primary-2 font-display font-bold">+ {Math.floor(Math.random() * 200)}%</span>
                 </div>
               </div>
             ))}
           </div>
-          <button className="w-full py-4 text-[10px] font-bold uppercase tracking-[0.3em] text-muted hover:text-primary transition-all bg-surface-2/50 rounded-2xl border border-border/50 hover:border-primary/30">
+          <button className="w-full py-4 text-sm md:text-sm md:text-xs font-bold uppercase tracking-[0.3em] text-muted hover:text-primary transition-all bg-surface-2/50 rounded-2xl border border-border/50 hover:border-primary/30">
             Monitor All Trends
           </button>
         </section>
@@ -463,7 +463,7 @@ export default function Feed() {
                 </div>
              ))}
           </div>
-          <button className="w-full py-4 text-[10px] font-bold uppercase tracking-[0.3em] text-success border border-success/20 rounded-2xl hover:bg-success/5 transition-all shadow-lg active:scale-95 transform">
+          <button className="w-full py-4 text-sm md:text-sm md:text-xs font-bold uppercase tracking-[0.3em] text-success border border-success/20 rounded-2xl hover:bg-success/5 transition-all shadow-lg active:scale-95 transform">
             Secure Recruitment
           </button>
         </section>

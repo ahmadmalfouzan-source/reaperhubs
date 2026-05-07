@@ -45,7 +45,7 @@ export default function Leaderboard() {
     <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-700">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-4">
         <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full border border-primary/20 text-[10px] font-bold text-primary uppercase tracking-[0.2em] mb-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full border border-primary/20 text-sm md:text-sm md:text-xs font-bold text-primary uppercase tracking-[0.2em] mb-2">
             Global Rankings
           </div>
           <h1 className="font-display font-bold text-4xl md:text-5xl uppercase tracking-tighter flex items-center gap-4 text-white">
@@ -57,7 +57,7 @@ export default function Leaderboard() {
         
         <div className="bg-surface-2/50 backdrop-blur-md border border-border rounded-2xl px-6 py-4 flex items-center gap-4 shadow-xl">
           <Info size={20} className="text-primary-2" />
-          <p className="text-[10px] text-muted font-bold uppercase tracking-widest leading-relaxed">
+          <p className="text-sm md:text-sm md:text-xs text-muted font-bold uppercase tracking-widest leading-relaxed">
             XP is earned via tracking,<br />communications & achievements.
           </p>
         </div>
@@ -81,14 +81,14 @@ export default function Leaderboard() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[600px]">
+            <table className="w-full text-left border-collapse min-w-[600px] hidden md:table">
               <thead>
                 <tr className="bg-surface-2/30 border-b border-border/50">
-                  <th className="px-8 py-6 text-[10px] font-bold uppercase tracking-[0.3em] text-muted">Rank</th>
-                  <th className="px-8 py-6 text-[10px] font-bold uppercase tracking-[0.3em] text-muted">Agent</th>
-                  <th className="px-8 py-6 text-[10px] font-bold uppercase tracking-[0.3em] text-muted text-center">Clearance</th>
-                  <th className="px-8 py-6 text-[10px] font-bold uppercase tracking-[0.3em] text-muted text-right">XP</th>
-                  <th className="px-8 py-6 text-[10px] font-bold uppercase tracking-[0.3em] text-muted text-right">Credits</th>
+                  <th className="px-8 py-6 text-sm md:text-sm md:text-xs font-bold uppercase tracking-[0.3em] text-muted">Rank</th>
+                  <th className="px-8 py-6 text-sm md:text-sm md:text-xs font-bold uppercase tracking-[0.3em] text-muted">Agent</th>
+                  <th className="px-8 py-6 text-sm md:text-sm md:text-xs font-bold uppercase tracking-[0.3em] text-muted text-center">Clearance</th>
+                  <th className="px-8 py-6 text-sm md:text-sm md:text-xs font-bold uppercase tracking-[0.3em] text-muted text-right">XP</th>
+                  <th className="px-8 py-6 text-sm md:text-sm md:text-xs font-bold uppercase tracking-[0.3em] text-muted text-right">Credits</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/30">
@@ -152,6 +152,52 @@ export default function Leaderboard() {
                 })}
               </tbody>
             </table>
+
+            <div className="md:hidden flex flex-col divide-y divide-border/30 mt-6">
+              {data.map((item, index) => {
+                const user = Array.isArray(item.users) ? item.users[0] : item.users;
+                const coins = Array.isArray(item.user_coins) ? item.user_coins[0] : item.user_coins;
+                return (
+                  <div key={item.user_id} className="p-4 flex flex-col gap-3 group border-b border-border/30 last:border-0 hover:bg-primary/5 transition-all">
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex items-center gap-3">
+                        <span className="font-bold text-muted w-6 text-center">{index < 3 ? <Medal size={20} className={getMedalColor(index)} /> : index + 1}</span>
+                        <Link to={`/profile/${user?.username}`} className="flex items-center gap-3">
+                          <div className={cn(
+                            "w-10 h-10 rounded-xl bg-surface-2 overflow-hidden border border-border flex items-center justify-center transition-all",
+                            index === 0 && "border-yellow-500/50"
+                          )}>
+                            {user?.avatar_url ? <img src={user.avatar_url} className="w-full h-full object-cover" /> : <User className="w-5 h-5 text-primary/40 group-hover:text-primary-2 transition-colors" />}
+                          </div>
+                          <div>
+                            <p className="font-bold text-sm uppercase tracking-tight">{user?.username || 'Redacted Agent'}</p>
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                              <span className="w-1 h-1 bg-success rounded-full"></span>
+                              <span className="text-sm md:text-xs md:text-[10px] text-muted font-bold uppercase tracking-widest">Active Operative</span>
+                            </div>
+                          </div>
+                        </Link>
+                      </div>
+                      <div className="text-right">
+                        <span className="px-3 py-1 bg-surface-2 rounded-xl font-display text-sm text-primary font-bold border border-border">
+                          Lvl {item.level || 1}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/20 w-full px-2">
+                      <div className="inline-flex items-center gap-1.5 text-primary-2 font-bold text-sm md:text-xs">
+                        <Zap size={12} className="fill-current" />
+                        {item.xp?.toLocaleString() || 0} XP
+                      </div>
+                      <div className="inline-flex items-center gap-1.5 text-success font-bold font-mono text-sm md:text-xs">
+                        <Coins size={12} className="fill-current opacity-40" />
+                        {coins?.balance?.toLocaleString() || 0} CR
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
       </div>

@@ -5,6 +5,7 @@ import { searchGames as searchRAWG, mapRAWGToMedia } from '../services/rawgServi
 import { TrendingUp, Plus, Check, Search as SearchIcon, Filter, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import Skeleton from '../components/Skeleton';
 
 function DiscoverImage({ title, type }: { title: string; type: string }) {
   const [url, setUrl] = useState<string | null>(null);
@@ -28,7 +29,7 @@ function DiscoverImage({ title, type }: { title: string; type: string }) {
     }
   }, [title, type]);
 
-  if (loading) return <div className="w-full h-full bg-surface-2 animate-pulse" />;
+  if (loading) return <Skeleton className="w-full h-full rounded-none" />;
   if (!url) return (
     <div className="w-full h-full bg-surface-2 flex items-center justify-center text-[10px] text-muted text-center p-2 uppercase font-bold">
       {type}
@@ -314,12 +315,15 @@ export default function Search() {
         {loading ? (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[...Array(8)].map((_, i) => (
-              <div key={i} className="aspect-[2/3] bg-surface-2 rounded-2xl animate-pulse border border-border/50"></div>
+              <Skeleton key={i} className="aspect-[2/3] rounded-2xl" />
             ))}
           </div>
         ) : results.length === 0 && query ? (
-          <div className="text-center py-20 text-muted bg-surface rounded-[18px] border border-border">
-            Nothing found for "{query}".
+          <div className="text-center py-20 text-muted bg-surface/30 rounded-[32px] border border-dashed border-border/50 flex flex-col items-center justify-center space-y-4">
+            <SearchIcon className="w-12 h-12 text-muted opacity-20" />
+            <div className="space-y-1">
+              <p className="text-sm text-muted italic">No signals detected. Try different keywords.</p>
+            </div>
           </div>
         ) : results.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">

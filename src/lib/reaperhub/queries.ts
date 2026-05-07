@@ -725,16 +725,48 @@ export async function getProfileByUsername(username: string) {
   return getUserProfile(username);
 }
 
+export async function getAllAchievements() {
+  try {
+    const { data, error } = await supabase
+      .from('achievements')
+      .select('*')
+      .order('category', { ascending: true });
+    if (error) throw error;
+    return data || [];
+  } catch (err) {
+    console.error('Error fetching achievements:', err);
+    return [];
+  }
+}
+
 export async function getUserAchievements(userId: string) {
   try {
     const { data, error } = await supabase
       .from('user_achievements')
-      .select('*')
+      .select('*, achievements!inner(*)')
       .eq('user_id', userId);
     if (error) throw error;
     return data || [];
   } catch {
     return [];
+  }
+}
+
+export async function awardAchievement(achievementSlug: string) {
+  try {
+    const user = await getCurrentUser();
+    if (!user) return { success: false };
+
+    const { data, error } = await supabase.rpc('check_and_award_achievement', {
+      user_id_param: user.id,
+      achievement_slug_param: achievementSlug
+    });
+
+    if (error) throw error;
+    return { success: !!data };
+  } catch (err) {
+    console.error('Error awarding achievement:', err);
+    return { success: false };
   }
 }
 

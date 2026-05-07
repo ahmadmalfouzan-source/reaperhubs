@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
-import { Home, Compass, Search, Library, Bell, Settings, User, LogOut, ChevronDown, Trophy } from 'lucide-react';
+import { Home, Compass, Search, Library, Bell, Settings, User, LogOut, ChevronDown, Trophy, Award } from 'lucide-react';
 import { cn } from './lib/utils';
 import { useEffect, useState, useRef } from 'react';
 import type { ReactNode } from 'react';
@@ -16,6 +16,7 @@ import NotificationsPage from './pages/Notifications';
 import SettingsPage from './pages/Settings';
 import ProfilePage from './pages/Profile';
 import LeaderboardPage from './pages/Leaderboard';
+import AchievementsPage from './pages/Achievements';
 import SignUpPage from './pages/SignUp';
 import MediaDetailPage from './pages/MediaDetail';
 import { Toaster } from 'sonner';
@@ -57,26 +58,6 @@ function Layout({ children }: { children: ReactNode }) {
 
     return () => subscription.unsubscribe();
   }, []);
-
-  // Real-time notifications listener (DISABLED DUE TO WEBSOCKET FAILURES)
-  /*
-  useEffect(() => {
-    if (!user) return;
-
-    const channel = supabase
-      .channel('schema-db-changes')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
-        () => fetchUnreadCount()
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user]);
-  */
 
   // Close menu on route change
   useEffect(() => {
@@ -138,6 +119,13 @@ function Layout({ children }: { children: ReactNode }) {
             >
               <Trophy className="w-5 h-5" />
               <span>Hall of Fame</span>
+            </Link>
+            <Link 
+              to="/achievements" 
+              className={cn("p-2 rounded-lg transition-colors flex items-center gap-2", isActive('/achievements') ? "text-primary bg-primary/10" : "text-muted hover:text-text hover:bg-surface-2")}
+            >
+              <Award className="w-5 h-5" />
+              <span>Milestones</span>
             </Link>
             
             {user ? (
@@ -325,6 +313,7 @@ export default function App() {
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/profile/:username" element={<ProfilePage />} />
           <Route path="/leaderboard" element={<LeaderboardPage />} />
+          <Route path="/achievements" element={<AchievementsPage />} />
           <Route path="/signup" element={<SignUpPage />} />
           <Route path="/media/:type/:id" element={<MediaDetailPage />} />
           <Route path="/media/:id" element={<MediaDetailPage />} />

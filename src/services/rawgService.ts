@@ -44,17 +44,33 @@ export async function getGameDetails(id: string | number): Promise<RAWGGame | nu
 
 export async function getGameSuggested(id: string | number): Promise<RAWGGame[]> {
   const numericId = id.toString().replace('rawg-', '');
-  console.log('Fetching RAWG suggested games for ID:', numericId);
+  console.log('Fetching RAWG related games for ID:', numericId);
   try {
-    const url = `${BASE_URL}/games/${numericId}/suggested?key=${API_KEY}`;
-    const response = await fetch(url);
-    console.log('RAWG Suggested Response Status:', response.status);
-    if (!response.ok) throw new Error(`RAWG API error: ${response.status}`);
-    const data = await response.json();
-    console.log('RAWG Suggested Games Count:', data.results?.length || 0);
-    return data.results || [];
+    // Attempt to fetch games in the same series first
+    const seriesUrl = `${BASE_URL}/games/${numericId}/game-series?key=${API_KEY}`;
+    const seriesResponse = await fetch(seriesUrl);
+
+    let results: RAWGGame[] = [];
+
+    if (seriesResponse.ok) {
+      const seriesData = await seriesResponse.json();
+      results = seriesData.results || [];
+    }
+
+    // If series is empty, attempt to fetch additions/DLCs
+    if (results.length === 0) {
+      const additionsUrl = `${BASE_URL}/games/${numericId}/additions?key=${API_KEY}`;
+      const additionsResponse = await fetch(additionsUrl);
+      if (additionsResponse.ok) {
+        const additionsData = await additionsResponse.json();
+        results = additionsData.results || [];
+      }
+    }
+
+    console.log('RAWG Related Games Count:', results.length);
+    return results;
   } catch (error) {
-    console.error('Error fetching suggested games from RAWG:', error);
+    console.error('Error fetching related games from RAWG:', error);
     return [];
   }
 }

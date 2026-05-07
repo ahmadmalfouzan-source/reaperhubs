@@ -618,7 +618,7 @@ export async function getUserProfile(username: string) {
   }
 }
 
-export async function updateProfile(updates: { display_name?: string; bio?: string; avatar_url?: string }) {
+export async function updateProfile(updates: { display_name?: string; bio?: string; avatar_url?: string; cover_url?: string }) {
   try {
     const user = await getCurrentUser();
     if (!user) throw new Error('Not logged in');
@@ -988,5 +988,87 @@ export async function getProfileWithPosts(username: string) {
   } catch (err) {
     console.error('Error fetching profile with posts:', err);
     return null;
+  }
+}
+
+export async function getUserStreak(userId: string) {
+  try {
+    const { data, error } = await supabase
+      .from('activity_logs')
+      .select('created_at')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (error || !data || data.length === 0) return 0;
+
+    const dates = [...new Set(data.map(log => new Date(log.created_at).toDateString()))];
+
+    let streak = 0;
+    let currentDate = new Date();
+    currentDate.setHours(0, 0, 0, 0);
+
+    for (let i = 0; i < dates.length; i++) {
+      const logDate = new Date(dates[i]);
+      logDate.setHours(0, 0, 0, 0);
+
+      const diffTime = Math.abs(currentDate.getTime() - logDate.getTime());
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+      if (i === 0 && diffDays > 1) {
+        break;
+      }
+
+      if (i > 0) {
+        const prevDate = new Date(dates[i - 1]);
+        prevDate.setHours(0, 0, 0, 0);
+        const diffBetweenLogs = Math.abs(prevDate.getTime() - logDate.getTime());
+        const daysBetweenLogs = Math.floor(diffBetweenLogs / (1000 * 60 * 60 * 24));
+        if (daysBetweenLogs > 1) break;
+      }
+
+      streak++;
+    }
+
+    return streak;
+  } catch (err) {
+    console.error('Error fetching user streak:', err);
+    return 0;
+  }
+}
+
+export async function getUserStats(userId: string) {
+  try {
+    // 1. Average Rating
+    const { data: libraryItems, error: libError } = await supabase
+      .from('library_items')
+      .select('rating')
+      .eq('user_id', userId)
+      .gt('rating', 0);
+
+    let averageRating = 0;
+    if (!libError && libraryItems && libraryItems.length > 0) {
+      const totalRating = libraryItems.reduce((acc, item) => acc + (item.rating || 0), 0);
+      averageRating = totalRating / libraryItems.length;
+    }
+
+    // 2. Total Hours (sum of duration_minutes / 60)
+    const { data: gameSessions, error: gsError } = await supabase
+      .from('game_sessions')
+      .select('duration_minutes')
+      .eq('user_id', userId);
+
+    let totalHours = 0;
+    if (!gsError && gameSessions) {
+      const totalMinutes = gameSessions.reduce((acc, session) => acc + (session.duration_minutes || 0), 0);
+      totalHours = totalMinutes / 60;
+    }
+
+    return {
+      averageRating: parseFloat(averageRating.toFixed(1)),
+      totalHours: Math.round(totalHours)
+    };
+  } catch (err) {
+    console.error('Error fetching user stats:', err);
+    return { averageRating: 0, totalHours: 0 };
   }
 }

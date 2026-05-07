@@ -1,5 +1,17 @@
 import { supabase } from '../supabase';
 
+
+export async function logActivity(userId: string, actionType: string) {
+  try {
+    const { error } = await supabase
+      .from('activity_logs')
+      .insert({ user_id: userId, action_type: actionType });
+    if (error) console.error('Error logging activity:', error);
+  } catch (err) {
+    console.error('Error logging activity:', err);
+  }
+}
+
 export async function getCurrentUser() {
   try {
     const { data: { user } } = await supabase.auth.getUser();
@@ -92,6 +104,9 @@ export async function awardXPAndCoins(
       .single();
 
     const newLevel = newXpData?.xp_current_level || 1;
+
+    // Log the activity
+    await logActivity(user.id, eventType);
 
     return {
       success: true,
@@ -618,7 +633,7 @@ export async function getUserProfile(username: string) {
   }
 }
 
-export async function updateProfile(updates: { display_name?: string; bio?: string; avatar_url?: string }) {
+export async function updateProfile(updates: { display_name?: string; bio?: string; avatar_url?: string; cover_url?: string }) {
   try {
     const user = await getCurrentUser();
     if (!user) throw new Error('Not logged in');
@@ -988,5 +1003,64 @@ export async function getProfileWithPosts(username: string) {
   } catch (err) {
     console.error('Error fetching profile with posts:', err);
     return null;
+  }
+}
+
+
+export async function getUserStreak(userId: string) {
+  try {
+    // Get all dates where user had activity, ordered descending
+    const { data, error } = await supabase
+      .from('activity_logs')
+      .select('created_at')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    if (!data || data.length === 0) return 0;
+
+    let streak = 0;
+
+    // Convert to unique local dates (YYYY-MM-DD)
+    const dates = [...new Set(data.map((log: any) => new Date(log.created_at).toLocaleDateString()))];
+
+    if (dates.length === 0) return 0;
+
+    const todayStr = new Date().toLocaleDateString();
+
+    // Check if the first date is today or yesterday
+    let currentDateObj = new Date(dates[0]);
+    let todayObj = new Date(todayStr);
+
+    // Calculate difference in days between today and the most recent activity
+    const diffTime = Math.abs(todayObj.getTime() - currentDateObj.getTime());
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays > 1) {
+       return 0; // Streak broken
+    }
+
+    streak = 1;
+
+    // Count consecutive days
+    for (let i = 1; i < dates.length; i++) {
+        const prevDate = new Date(dates[i - 1]);
+        const currDate = new Date(dates[i]);
+
+        // Difference should be exactly 1 day
+        const diffT = Math.abs(prevDate.getTime() - currDate.getTime());
+        const diffD = Math.round(diffT / (1000 * 60 * 60 * 24));
+
+        if (diffD === 1) {
+            streak++;
+        } else if (diffD > 1) {
+            break; // Gap found, streak ends
+        }
+    }
+
+    return streak;
+  } catch (err) {
+    console.error('Error fetching user streak:', err);
+    return 0;
   }
 }

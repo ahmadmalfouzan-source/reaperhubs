@@ -13,6 +13,8 @@ export default function Settings() {
   const [displayName, setDisplayName] = useState('');
   const [bio, setBio] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
+  const [coverUrl, setCoverUrl] = useState('');
+  const [uploadingCover, setUploadingCover] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -33,6 +35,7 @@ export default function Settings() {
         setDisplayName(data.display_name || '');
         setBio(data.bio || '');
         setAvatarUrl(data.avatar_url || '');
+        setCoverUrl(data.cover_url || '');
       }
       setLoading(false);
     });
@@ -86,11 +89,12 @@ export default function Settings() {
         display_name: displayName,
         bio,
         avatar_url: avatarUrl,
+        cover_url: coverUrl,
       });
 
       if (!res.success) throw new Error(res.message);
       
-      setProfile({ ...profile, display_name: displayName, bio, avatar_url: avatarUrl });
+      setProfile({ ...profile, display_name: displayName, bio, avatar_url: avatarUrl, cover_url: coverUrl });
       toast.success('System configuration updated.');
     } catch (err: any) {
       toast.error('Error updating settings: ' + err.message);
@@ -135,7 +139,7 @@ export default function Settings() {
   const hasChanges = username !== (profile?.username || '') || 
                      displayName !== (profile?.display_name || '') ||
                      bio !== (profile?.bio || '') || 
-                     avatarUrl !== (profile?.avatar_url || '');
+                     avatarUrl !== (profile?.avatar_url || '') || coverUrl !== (profile?.cover_url || '');
 
   return (
     <div className="max-w-xl mx-auto space-y-10 animate-in fade-in duration-700 pb-20">

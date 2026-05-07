@@ -5,6 +5,8 @@ import { searchGames as searchRAWG, mapRAWGToMedia } from '../services/rawgServi
 import { TrendingUp, Plus, Check, Search as SearchIcon, Filter, X, Clock, Trash2, ArrowUpRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import Skeleton from '../components/Skeleton';
+
 
 function DiscoverImage({ title, type }: { title: string; type: string }) {
   const [url, setUrl] = useState<string | null>(null);
@@ -42,6 +44,9 @@ type MediaType = 'movie' | 'tv' | 'game' | 'all';
 type SortOption = 'relevance' | 'popularity.desc' | 'vote_average.desc' | 'release_date.desc';
 const RECENT_SEARCHES_KEY = 'reaperhub_recent_searches';
 const MAX_RECENT_SEARCHES = 10;
+
+
+
 
 export default function Search() {
   const [query, setQuery] = useState('');
@@ -588,12 +593,18 @@ export default function Search() {
         {loading ? (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[...Array(8)].map((_, i) => (
-              <div key={i} className="aspect-[2/3] bg-surface-2 rounded-2xl animate-pulse border border-border/50"></div>
+              <Skeleton key={i} className="aspect-[2/3] w-full rounded-2xl" />
             ))}
           </div>
         ) : results.length === 0 && query ? (
-          <div className="text-center py-20 text-muted bg-surface rounded-[18px] border border-border">
-            Nothing found for "{query}".
+          <div className="text-center py-32 space-y-6 bg-surface/30 rounded-[40px] border-2 border-dashed border-border/50 max-w-2xl mx-auto">
+            <div className="w-20 h-20 bg-surface-2 rounded-full flex items-center justify-center mx-auto border border-border">
+              <SearchIcon className="w-10 h-10 text-muted opacity-20" />
+            </div>
+            <div className="space-y-2">
+              <p className="text-2xl font-display font-bold text-white uppercase tracking-tight opacity-50">No Data Found</p>
+              <p className="text-sm text-muted italic max-w-xs mx-auto">No matching data streams found for "{query}". Check spelling or try a broader search.</p>
+            </div>
           </div>
         ) : results.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">

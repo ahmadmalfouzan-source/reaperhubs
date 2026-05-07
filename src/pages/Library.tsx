@@ -132,18 +132,18 @@ export default function Library() {
       </div>
 
       {filteredItems.length === 0 ? (
-        <div className="text-center py-32 space-y-8 bg-surface-2/30 rounded-[40px] border border-dashed border-border border-2 max-w-2xl mx-auto">
-          <div className="relative mx-auto w-24 h-24 flex items-center justify-center">
-            <Ghost className="w-16 h-16 text-muted opacity-10 absolute animate-bounce" />
-            <LibraryIcon className="w-12 h-12 text-muted opacity-20" />
+        <div className="text-center py-32 space-y-8 bg-surface/50 rounded-[40px] border border-dashed border-border/50 max-w-2xl mx-auto shadow-xl relative overflow-hidden group">
+          <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div className="relative mx-auto w-24 h-24 bg-surface-2 rounded-full border border-border flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner">
+            <LibraryIcon className="w-10 h-10 text-muted opacity-40" />
           </div>
-          <div className="space-y-3">
-            <h2 className="font-display font-bold text-2xl text-white uppercase tracking-tight">No archives yet</h2>
-            <p className="text-muted text-sm max-w-xs mx-auto italic leading-relaxed">
-              Start tracking media to build your collection. Detection protocols return zero entries for this status.
+          <div className="space-y-3 relative z-10">
+            <h2 className="font-display font-bold text-2xl text-white uppercase tracking-tight opacity-70">Archive Empty</h2>
+            <p className="text-muted text-sm max-w-sm mx-auto italic leading-relaxed">
+              No intelligence entries match this filter. Start tracking targets to populate your classified database.
             </p>
           </div>
-          <button onClick={() => navigate('/search')} className="px-8 py-3 bg-primary text-black font-bold rounded-xl uppercase text-xs tracking-widest shadow-lg shadow-primary/20 hover:scale-105 transition-all">
+          <button onClick={() => navigate('/search')} className="relative z-10 px-8 py-3 bg-primary/20 text-primary border border-primary/30 font-bold rounded-xl uppercase text-xs tracking-widest hover:bg-primary hover:text-black hover:scale-105 transition-all">
              Begin Infiltration
           </button>
         </div>

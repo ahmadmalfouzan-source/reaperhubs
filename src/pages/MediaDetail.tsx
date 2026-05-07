@@ -542,9 +542,16 @@ export default function MediaDetail() {
               </div>
               
               {bosses.length === 0 ? (
-                <div className="bg-surface-2 border-2 border-dashed border-border/50 rounded-3xl p-8 text-center space-y-4">
-                   <p className="text-xs text-muted font-bold uppercase tracking-widest">No intelligence found in Wikipedia archives.</p>
-                   <form onSubmit={handleAddManualBoss} className="flex gap-2 max-w-sm mx-auto">
+                <div className="bg-surface/50 border border-dashed border-border/50 rounded-3xl p-12 text-center space-y-6 max-w-2xl mx-auto flex flex-col items-center shadow-lg relative overflow-hidden group">
+                   <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                   <div className="w-16 h-16 bg-surface-2 rounded-full flex items-center justify-center border border-border group-hover:rotate-12 transition-transform">
+                     <Target className="w-8 h-8 text-muted opacity-50" />
+                   </div>
+                   <div className="text-center">
+                     <p className="text-sm font-bold uppercase tracking-widest text-white/70">Targets Unknown</p>
+                     <p className="text-xs text-muted mt-2 max-w-xs mx-auto">No high-value targets identified in external archives. Manual entry required.</p>
+                   </div>
+                   <form onSubmit={handleAddManualBoss} className="flex gap-2 w-full max-w-sm mx-auto z-10 relative">
                       <input 
                         type="text" 
                         value={newBossName}
@@ -760,9 +767,15 @@ export default function MediaDetail() {
             </h2>
             
             {similarMedia.length === 0 ? (
-              <div className="bg-surface/30 border border-dashed border-border/30 rounded-3xl p-8 flex flex-col items-center justify-center space-y-4 opacity-50">
-                 <Search size={32} className="text-muted" />
-                 <p className="text-xs font-bold uppercase tracking-widest">No related signals detected in this sector.</p>
+              <div className="bg-surface-2 border border-dashed border-border/50 rounded-3xl p-12 flex flex-col items-center justify-center space-y-4 max-w-lg mx-auto shadow-lg relative overflow-hidden group">
+                 <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                 <div className="w-16 h-16 bg-surface rounded-full flex items-center justify-center border border-border group-hover:scale-110 transition-transform">
+                   <Search className="w-8 h-8 text-muted opacity-50" />
+                 </div>
+                 <div className="text-center">
+                   <p className="text-sm font-bold uppercase tracking-widest text-white/70">Data Void</p>
+                   <p className="text-xs text-muted mt-2 max-w-[250px]">No related signals or intelligence detected in this sector.</p>
+                 </div>
               </div>
             ) : (
               <div className="flex overflow-x-auto gap-4 pb-4 scrollbar-none snap-x -mx-4 px-4 md:mx-0 md:px-0">

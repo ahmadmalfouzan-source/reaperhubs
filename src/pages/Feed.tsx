@@ -1,6 +1,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import { getFeedItems, getCurrentUser, createPost, toggleLike, getUserLikes, deletePost, updatePost } from '../lib/reaperhub/queries';
 import { supabase } from '../lib/supabase';
+import Skeleton, { PostSkeleton } from '../components/Skeleton';
+
 import { Link } from 'react-router-dom';
 import { MessageSquare, Heart, Share2, Film, Gamepad2, Send, MoreHorizontal, User, TrendingUp, Sparkles, Hash, Users, Zap as ZapIcon, Loader2, Calendar, Edit3, Trash2, X } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -246,9 +248,7 @@ export default function Feed() {
         {loading && items.length === 0 ? (
           <div className="space-y-6">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-64 bg-surface border border-border rounded-[40px] animate-pulse relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full animate-[shimmer_2s_infinite]"></div>
-              </div>
+              <PostSkeleton key={i} />
             ))}
           </div>
         ) : items.length === 0 ? (

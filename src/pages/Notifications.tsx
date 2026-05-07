@@ -3,6 +3,36 @@ import { useNavigate } from 'react-router-dom';
 import { getNotifications, getCurrentUser, markNotificationAsRead, markAllNotificationsAsRead } from '../lib/reaperhub/queries';
 import { Bell, Heart, UserPlus, Zap, Award, CheckCheck, Clock } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import Skeleton from '../components/Skeleton';
+
+
+
+const NotificationsSkeleton = () => (
+  <div className="max-w-2xl mx-auto space-y-8">
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-3">
+        <Skeleton className="w-12 h-12 rounded-2xl" />
+        <Skeleton className="h-8 w-48" />
+      </div>
+    </div>
+    <div className="space-y-4">
+      {[...Array(5)].map((_, i) => (
+        <div key={i} className="bg-surface border border-border/50 rounded-[24px] p-5 flex gap-5">
+          <Skeleton className="w-11 h-11 rounded-2xl flex-shrink-0" />
+          <div className="flex-1 space-y-2 py-1">
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-3 w-16" />
+              <Skeleton className="w-1 h-1 rounded-full" />
+              <Skeleton className="h-3 w-20" />
+            </div>
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-4 w-1/2" />
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
 
 export default function Notifications() {
   const [items, setItems] = useState<any[]>([]);
@@ -69,7 +99,7 @@ export default function Notifications() {
     }
   };
 
-  if (loading) return <div className="text-center py-20 text-muted italic">Initializing interceptors...</div>;
+  if (loading) return <NotificationsSkeleton />;
 
   const unreadCount = items.filter(i => !i.is_read).length;
 

@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 
 export default function Achievements() {
   const [achievements, setAchievements] = useState<any[]>([]);
-  const [unlockedIds, setUnlockedIds] = useState<Set<string>>(new Set());
+  const [unlockedIds, setUnlockedIds] = useState<Map<string, string>>(new Map());
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
 
@@ -24,7 +24,7 @@ export default function Achievements() {
       
       if (currentUser) {
         const userAchs = await getUserAchievements(currentUser.id);
-        setUnlockedIds(new Set(userAchs.map((ua: any) => ua.achievement_id)));
+        setUnlockedIds(new Map(userAchs.map((ua: any) => [ua.achievement_id, ua.unlocked_at || ua.created_at])));
       }
       setLoading(false);
     }
@@ -62,7 +62,7 @@ export default function Achievements() {
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full border border-primary/20 text-[10px] font-bold text-primary uppercase tracking-[0.2em]">
             Service Record
           </div>
-          <h1 className="font-display font-bold text-5xl md:text-6xl uppercase tracking-tighter text-white italic">
+          <h1 className="font-display font-bold text-4xl md:text-5xl lg:text-6xl uppercase tracking-tighter text-white italic">
             Milestones
           </h1>
           <p className="text-muted text-sm font-medium max-w-md italic">
@@ -121,9 +121,10 @@ export default function Achievements() {
 
         {/* Achievement Grid */}
         <div className="lg:col-span-3">
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {achievements.map((ach) => {
-              const unlocked = unlockedIds.has(ach.id);
+              const unlockedAt = unlockedIds.get(ach.id);
+              const unlocked = !!unlockedAt;
               return (
                 <motion.div 
                   key={ach.id}
@@ -162,6 +163,22 @@ export default function Achievements() {
                        <p className="text-[11px] text-muted leading-relaxed font-medium italic">
                           "{ach.description}"
                        </p>
+
+                       {/* Progress Bar */}
+                       <div className="pt-3">
+                         <div className="flex justify-between items-center text-[9px] font-bold uppercase tracking-wider mb-1">
+                           <span className={unlocked ? "text-primary" : "text-muted"}>Progress</span>
+                           <span className={unlocked ? "text-primary" : "text-muted"}>{unlocked ? '100%' : 'Locked'}</span>
+                         </div>
+                         <div className="h-1.5 w-full bg-surface-2 rounded-full overflow-hidden border border-border/30">
+                           <motion.div
+                             initial={{ width: 0 }}
+                             animate={{ width: unlocked ? '100%' : '0%' }}
+                             transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
+                             className={cn("h-full shadow-[0_0_10px_rgba(0,183,255,0.5)]", unlocked ? "bg-primary" : "bg-muted/30")}
+                           />
+                         </div>
+                       </div>
                     </div>
 
                     <div className="flex items-center gap-3 pt-4 border-t border-border/30">
@@ -172,6 +189,11 @@ export default function Achievements() {
                           +{ach.coin_reward} CR
                        </div>
                     </div>
+                    {unlockedAt && (
+                      <div className="text-[10px] text-muted text-right font-medium">
+                        Unlocked {new Date(unlockedAt).toLocaleDateString()}
+                      </div>
+                    )}
                   </div>
                 </motion.div>
               );

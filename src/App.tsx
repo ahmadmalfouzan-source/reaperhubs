@@ -21,6 +21,7 @@ import StatsPage from './pages/Stats';
 import SignUpPage from './pages/SignUp';
 import MediaDetailPage from './pages/MediaDetail';
 import { Toaster } from 'sonner';
+import AchievementListener from './components/AchievementListener';
 import ErrorBoundary from './components/ErrorBoundary';
 
 function Layout({ children }: { children: ReactNode }) {
@@ -329,6 +330,7 @@ export default function App() {
         </Routes>
       </Layout>
       <Toaster position="top-right" theme="dark" closeButton richColors />
+      <AchievementListener />
     </BrowserRouter>
   );
 }

@@ -5,6 +5,7 @@ const hltbService = new HowLongToBeatService();
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { q } = req.query;
+  console.log('HLTB Request Query:', q);
 
   if (!q || typeof q !== 'string') {
     return res.status(400).json({ error: 'Missing query parameter q' });
@@ -12,10 +13,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const results = await hltbService.search(q);
+    console.log(`HLTB Results for "${q}":`, results?.length || 0);
     
     if (results && results.length > 0) {
       // Find the closest match
       const bestMatch = results[0];
+      console.log('HLTB Best Match:', bestMatch.name);
       return res.status(200).json({
         main: bestMatch.gameplayMain ? `${bestMatch.gameplayMain}h` : '--',
         extra: bestMatch.gameplayMainExtra ? `${bestMatch.gameplayMainExtra}h` : '--',

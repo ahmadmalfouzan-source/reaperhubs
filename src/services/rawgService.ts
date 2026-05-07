@@ -41,11 +41,14 @@ export async function getGameDetails(id: string | number): Promise<RAWGGame | nu
 }
 
 export async function getGameSuggested(id: string | number): Promise<RAWGGame[]> {
+  console.log('Fetching RAWG suggested games for ID:', id);
   try {
     const url = `${BASE_URL}/games/${id}/suggested?key=${API_KEY}`;
     const response = await fetch(url);
+    console.log('RAWG Suggested Response Status:', response.status);
     if (!response.ok) throw new Error('RAWG API error');
     const data = await response.json();
+    console.log('RAWG Suggested Games Count:', data.results?.length || 0);
     return data.results || [];
   } catch (error) {
     console.error('Error fetching suggested games from RAWG:', error);

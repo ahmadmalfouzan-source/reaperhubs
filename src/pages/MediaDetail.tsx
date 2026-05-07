@@ -22,7 +22,7 @@ import {
   Star, Calendar, Plus, Trash2, ChevronLeft, Loader2, Save, 
   ChevronDown, ChevronUp, CheckCircle2, Circle, Play, 
   MoreVertical, Sparkles, Clock, Target, Swords, Zap, 
-  Map, Wrench, BookOpen, Skull, Trophy, History
+  Map, Wrench, BookOpen, Skull, Trophy, History, Search
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Skeleton from '../components/Skeleton';
@@ -71,6 +71,7 @@ export default function MediaDetail() {
   const [hltb, setHltb] = useState<HLTBData | null>(null);
   const [bosses, setBosses] = useState<string[]>([]);
   const [defeatedBosses, setDefeatedBosses] = useState<string[]>([]);
+  const [newBossName, setNewBossName] = useState('');
   const [showSessionLog, setShowSessionLog] = useState(false);
   const [sessionHours, setSessionHours] = useState('1');
   const [lastSession, setLastSession] = useState<any>(null);
@@ -86,6 +87,7 @@ export default function MediaDetail() {
     const fetchMetadata = async () => {
       let data: any;
       if (type === 'game') {
+        console.log('Detected Game Page. Fetching RAWG/HLTB/Wikipedia...');
         const [game, suggested] = await Promise.all([
           getGameDetails(id),
           getGameSuggested(id)
@@ -96,11 +98,20 @@ export default function MediaDetail() {
 
           // Fetch HLTB and Bosses
           getHLTBData(data.title).then(setHltb);
-          getGameBosses(data.title).then(setBosses);
+          getGameBosses(data.title).then(res => {
+            console.log('Wikipedia Bosses found:', res.length);
+            setBosses(res);
+          });
           
           // Fetch user specific game data
           getGameBossesProgress(id).then(res => {
             setDefeatedBosses(res.filter((b: any) => b.is_defeated).map((b: any) => b.boss_name));
+            // Add manually tracked bosses that might not be in Wikipedia list
+            const manual = res.map((b: any) => b.boss_name);
+            setBosses(prev => {
+              const combined = [...new Set([...prev, ...manual])];
+              return combined;
+            });
           });
           getGameSessions(id).then(res => {
             if (res.length > 0) setLastSession(res[0]);
@@ -239,6 +250,21 @@ export default function MediaDetail() {
     } else if (!isDefeated) {
       toast.success(`${bossName} neutralized.`);
     }
+  };
+
+  const handleAddManualBoss = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newBossName.trim() || !id) return;
+    
+    const name = newBossName.trim();
+    if (bosses.includes(name)) {
+      toast.error("Target already identified.");
+      return;
+    }
+
+    setBosses(prev => [...prev, name]);
+    setNewBossName('');
+    handleToggleBoss(name); // Auto mark as defeated if adding manually? No, just add to list
   };
 
   const handleLogSession = async (activityId: string) => {
@@ -457,22 +483,23 @@ export default function MediaDetail() {
                     <div className="flex items-center gap-2 text-muted">Total Time</div>
                     <span className="text-success font-bold font-mono">{totalPlaytime.toFixed(1)}h</span>
                   </div>
-                  {hltb && (
-                    <div className="space-y-3 pt-2">
-                      <div className="flex items-center justify-between text-[10px]">
-                        <span className="text-muted uppercase font-bold tracking-widest">Main Story</span>
-                        <span className="text-white font-mono">{hltb.main}</span>
-                      </div>
-                      <div className="flex items-center justify-between text-[10px]">
-                        <span className="text-muted uppercase font-bold tracking-widest">Main + Extras</span>
-                        <span className="text-white font-mono">{hltb.extra}</span>
-                      </div>
-                      <div className="flex items-center justify-between text-[10px]">
-                        <span className="text-muted uppercase font-bold tracking-widest">Completionist</span>
-                        <span className="text-white font-mono">{hltb.completionist}</span>
-                      </div>
+                  <div className="space-y-3 pt-2">
+                    <div className="flex items-center justify-between text-[10px]">
+                      <span className="text-muted uppercase font-bold tracking-widest">Main Story</span>
+                      <span className="text-white font-mono">{hltb?.main || '--'}</span>
                     </div>
-                  )}
+                    <div className="flex items-center justify-between text-[10px]">
+                      <span className="text-muted uppercase font-bold tracking-widest">Main + Extras</span>
+                      <span className="text-white font-mono">{hltb?.extra || '--'}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-[10px]">
+                      <span className="text-muted uppercase font-bold tracking-widest">Completionist</span>
+                      <span className="text-white font-mono">{hltb?.completionist || '--'}</span>
+                    </div>
+                    {!hltb && !loading && (
+                      <div className="text-[8px] text-danger font-bold uppercase tracking-widest text-center pt-1 opacity-60">Intercepting HLTB intel...</div>
+                    )}
+                  </div>
                 </>
               )}
             </div>
@@ -504,39 +531,74 @@ export default function MediaDetail() {
             )}
           </section>
 
-          {/* Priority Targets (Game Only) - RELOCATED OUTSIDE inLibrary */}
-          {type === 'game' && bosses.length > 0 && (
+          {/* Priority Targets (Game Only) */}
+          {type === 'game' && (
             <section className="space-y-8 animate-in fade-in duration-700">
-              <div className="flex items-center gap-3 border-b border-border/30 pb-6">
-                <Target size={24} className="text-danger" />
-                <h2 className="text-xl font-display font-bold text-white uppercase tracking-tight">Priority Targets</h2>
+              <div className="flex items-center justify-between border-b border-border/30 pb-6">
+                <div className="flex items-center gap-3">
+                  <Target size={24} className="text-danger" />
+                  <h2 className="text-xl font-display font-bold text-white uppercase tracking-tight">Priority Targets</h2>
+                </div>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {bosses.map((boss) => (
-                  <button
-                    key={boss}
-                    onClick={() => handleToggleBoss(boss)}
-                    className={cn(
-                      "flex items-center justify-between p-4 rounded-2xl border transition-all text-left group/boss",
-                      defeatedBosses.includes(boss)
-                        ? "bg-danger/10 border-danger/30 text-white"
-                        : "bg-surface-2 border-border/50 text-muted hover:border-danger/30"
-                    )}
-                  >
-                    <span className={cn("text-xs font-bold uppercase tracking-widest", defeatedBosses.includes(boss) && "line-through opacity-50")}>
-                      {boss}
-                    </span>
-                    <div className={cn(
-                      "w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all",
-                      defeatedBosses.includes(boss) 
-                        ? "bg-danger border-danger shadow-lg shadow-danger/20" 
-                        : "border-border group-hover/boss:border-danger/50"
-                    )}>
-                      {defeatedBosses.includes(boss) && <Swords size={12} className="text-black" />}
-                    </div>
-                  </button>
-                ))}
-              </div>
+              
+              {bosses.length === 0 ? (
+                <div className="bg-surface-2 border-2 border-dashed border-border/50 rounded-3xl p-8 text-center space-y-4">
+                   <p className="text-xs text-muted font-bold uppercase tracking-widest">No intelligence found in Wikipedia archives.</p>
+                   <form onSubmit={handleAddManualBoss} className="flex gap-2 max-w-sm mx-auto">
+                      <input 
+                        type="text" 
+                        value={newBossName}
+                        onChange={(e) => setNewBossName(e.target.value)}
+                        placeholder="Identify new target..."
+                        className="flex-1 bg-surface border border-border rounded-xl px-4 py-2 text-xs text-white focus:border-danger transition-all"
+                      />
+                      <button type="submit" className="p-2 bg-danger text-black rounded-xl hover:bg-danger/80 transition-all">
+                         <Plus size={20} />
+                      </button>
+                   </form>
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {bosses.map((boss) => (
+                      <button
+                        key={boss}
+                        onClick={() => handleToggleBoss(boss)}
+                        className={cn(
+                          "flex items-center justify-between p-4 rounded-2xl border transition-all text-left group/boss",
+                          defeatedBosses.includes(boss)
+                            ? "bg-danger/10 border-danger/30 text-white"
+                            : "bg-surface-2 border-border/50 text-muted hover:border-danger/30"
+                        )}
+                      >
+                        <span className={cn("text-xs font-bold uppercase tracking-widest", defeatedBosses.includes(boss) && "line-through opacity-50")}>
+                          {boss}
+                        </span>
+                        <div className={cn(
+                          "w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all",
+                          defeatedBosses.includes(boss) 
+                            ? "bg-danger border-danger shadow-lg shadow-danger/20" 
+                            : "border-border group-hover/boss:border-danger/50"
+                        )}>
+                          {defeatedBosses.includes(boss) && <Swords size={12} className="text-black" />}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                  <form onSubmit={handleAddManualBoss} className="flex gap-2 max-w-sm pt-4">
+                      <input 
+                        type="text" 
+                        value={newBossName}
+                        onChange={(e) => setNewBossName(e.target.value)}
+                        placeholder="Add manual target..."
+                        className="flex-1 bg-surface-2 border border-border/50 rounded-xl px-4 py-2 text-xs text-white focus:border-danger transition-all"
+                      />
+                      <button type="submit" className="p-2 bg-surface border border-border text-muted hover:text-danger rounded-xl transition-all">
+                         <Plus size={20} />
+                      </button>
+                   </form>
+                </>
+              )}
             </section>
           )}
 
@@ -690,12 +752,19 @@ export default function MediaDetail() {
             </section>
           )}
 
-          {similarMedia.length > 0 && (
-            <section className="space-y-6">
-              <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-primary flex items-center gap-2">
-                 <Sparkles size={14} />
-                 Related Intel
-              </h2>
+          {/* Related Intel Section */}
+          <section className="space-y-6">
+            <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-primary flex items-center gap-2">
+               <Sparkles size={14} />
+               Related Intel
+            </h2>
+            
+            {similarMedia.length === 0 ? (
+              <div className="bg-surface/30 border border-dashed border-border/30 rounded-3xl p-8 flex flex-col items-center justify-center space-y-4 opacity-50">
+                 <Search size={32} className="text-muted" />
+                 <p className="text-xs font-bold uppercase tracking-widest">No related signals detected in this sector.</p>
+              </div>
+            ) : (
               <div className="flex overflow-x-auto gap-4 pb-4 scrollbar-none snap-x -mx-4 px-4 md:mx-0 md:px-0">
                 {similarMedia.slice(0, 10).map((item: any) => (
                   <Link 
@@ -724,8 +793,8 @@ export default function MediaDetail() {
                   </Link>
                 ))}
               </div>
-            </section>
-          )}
+            )}
+          </section>
         </div>
       </div>
 

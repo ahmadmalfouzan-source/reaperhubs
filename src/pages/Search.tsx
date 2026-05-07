@@ -35,7 +35,7 @@ function DiscoverImage({ title, type }: { title: string; type: string }) {
     </div>
   );
 
-  return <img src={url} alt={title} className="w-full h-full object-cover transition-transform group-hover:scale-110" onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=300&q=80'; }} />;
+  return <img loading="lazy" src={url} alt={title} className="w-full h-full object-cover transition-transform group-hover:scale-110" onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=300&q=80'; }} />;
 }
 
 type MediaType = 'movie' | 'tv' | 'game' | 'all';
@@ -333,7 +333,7 @@ export default function Search() {
                   className="relative group rounded-2xl overflow-hidden bg-surface-2 cursor-pointer touch-manipulation aspect-[2/3] shadow-lg border border-border/50"
                 >
                 {item.cover_url ? (
-                  <img src={item.cover_url} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=300&q=80'; }} />
+                  <img loading="lazy" src={item.cover_url} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=300&q=80'; }} />
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center text-xs text-muted bg-surface">
                     <span className="text-4xl mb-2 opacity-50">🎬</span>

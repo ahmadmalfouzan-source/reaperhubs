@@ -364,7 +364,7 @@ export default function MediaDetail() {
       {/* Hero Backdrop */}
       <div className="relative z-0 h-[250px] md:h-[450px] rounded-[32px] md:rounded-[40px] overflow-visible shadow-2xl group mx-4 md:mx-0">
         {backdrop ? (
-          <img 
+          <img loading="lazy"
             src={backdrop} 
             alt="Backdrop" 
             className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105 rounded-[32px] md:rounded-[40px]" 
@@ -410,7 +410,7 @@ export default function MediaDetail() {
         <div className="space-y-8">
           <div className="hidden md:block relative group rounded-3xl overflow-hidden shadow-2xl border border-border/50">
             {poster ? (
-              <img src={poster} alt={media.title || media.name} className="w-full object-cover" />
+              <img loading="lazy" src={poster} alt={media.title || media.name} className="w-full object-cover"  onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=300&q=80'; }} />
             ) : (
               <div className="aspect-[2/3] bg-surface-2 flex items-center justify-center text-muted">No Poster</div>
             )}
@@ -666,7 +666,7 @@ export default function MediaDetail() {
                         <button onClick={() => toggleSeasonCollapse(season.season_number)} className="w-full flex items-center justify-between text-left">
                           <div className="flex items-center gap-4">
                             <div className="w-10 h-14 rounded-lg overflow-hidden border border-border/50 flex-shrink-0 bg-surface">
-                              {season.poster_path && <img src={getTMDBImageUrl(season.poster_path)} className="w-full h-full object-cover" alt="" />}
+                              {season.poster_path && <img loading="lazy" src={getTMDBImageUrl(season.poster_path)} className="w-full h-full object-cover" alt=""  onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=300&q=80'; }} />}
                             </div>
                             <div className="flex-1 min-w-0">
                               <h3 className="font-display font-bold text-base text-white uppercase truncate">{season.name}</h3>
@@ -723,7 +723,7 @@ export default function MediaDetail() {
                     <div key={dev.id} className="group bg-surface hover:bg-surface-2 border border-border p-3 rounded-2xl transition-all shadow-md flex-shrink-0 w-32 md:w-auto snap-start">
                       <div className="aspect-square rounded-xl overflow-hidden mb-3 transition-all duration-500 border border-border/50 bg-surface-2 flex items-center justify-center">
                          {dev.image_background ? (
-                           <img src={dev.image_background} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={dev.name} />
+                           <img loading="lazy" src={dev.image_background} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={dev.name}  onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=300&q=80'; }} />
                          ) : (
                            <Zap size={24} className="text-muted/30" />
                          )}
@@ -736,7 +736,7 @@ export default function MediaDetail() {
                   media.credits.cast.slice(0, 8).map((person: any) => (
                     <div key={person.id} className="group bg-surface hover:bg-surface-2 border border-border p-3 rounded-2xl transition-all shadow-md flex-shrink-0 w-32 md:w-auto snap-start">
                       <div className="aspect-square rounded-xl overflow-hidden mb-3 transition-all duration-500 border border-border/50">
-                        <img 
+                        <img loading="lazy"
                           src={person.profile_path ? getTMDBImageUrl(person.profile_path) : `https://ui-avatars.com/api/?name=${encodeURIComponent(person.name)}&background=random`} 
                           alt={person.name} 
                           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
@@ -773,7 +773,7 @@ export default function MediaDetail() {
                     className="flex-shrink-0 w-32 md:w-40 space-y-3 group snap-start"
                   >
                     <div className="aspect-[2/3] rounded-2xl overflow-hidden border border-border/50 relative shadow-lg">
-                      <img 
+                      <img loading="lazy"
                         src={type === 'game' ? item.cover_url : getTMDBImageUrl(item.poster_path)} 
                         alt={item.title || item.name} 
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 

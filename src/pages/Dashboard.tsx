@@ -207,11 +207,11 @@ export default function Dashboard() {
               >
                 <div className="aspect-[2/3] relative">
                   {item.poster ? (
-                    <img 
+                    <img loading="lazy"
                       src={item.poster} 
                       alt={item.title} 
                       className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
-                      loading="lazy"
+
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=185&q=80';
                       }}

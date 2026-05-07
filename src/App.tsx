@@ -6,22 +6,24 @@ import type { ReactNode } from 'react';
 import { supabase } from './lib/supabase';
 import { getUnreadNotificationCount } from './lib/reaperhub/queries';
 
-import HomePage from './pages/Home';
-import LoginPage from './pages/Login';
-import DashboardPage from './pages/Dashboard';
-import FeedPage from './pages/Feed';
-import SearchPage from './pages/Search';
-import LibraryPage from './pages/Library';
-import NotificationsPage from './pages/Notifications';
-import SettingsPage from './pages/Settings';
-import ProfilePage from './pages/Profile';
-import LeaderboardPage from './pages/Leaderboard';
-import AchievementsPage from './pages/Achievements';
-import StatsPage from './pages/Stats';
-import SignUpPage from './pages/SignUp';
-import MediaDetailPage from './pages/MediaDetail';
+import { lazy, Suspense } from 'react';
 import { Toaster } from 'sonner';
 import ErrorBoundary from './components/ErrorBoundary';
+
+const HomePage = lazy(() => import('./pages/Home'));
+const LoginPage = lazy(() => import('./pages/Login'));
+const DashboardPage = lazy(() => import('./pages/Dashboard'));
+const FeedPage = lazy(() => import('./pages/Feed'));
+const SearchPage = lazy(() => import('./pages/Search'));
+const LibraryPage = lazy(() => import('./pages/Library'));
+const NotificationsPage = lazy(() => import('./pages/Notifications'));
+const SettingsPage = lazy(() => import('./pages/Settings'));
+const ProfilePage = lazy(() => import('./pages/Profile'));
+const LeaderboardPage = lazy(() => import('./pages/Leaderboard'));
+const AchievementsPage = lazy(() => import('./pages/Achievements'));
+const StatsPage = lazy(() => import('./pages/Stats'));
+const SignUpPage = lazy(() => import('./pages/SignUp'));
+const MediaDetailPage = lazy(() => import('./pages/MediaDetail'));
 
 function Layout({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<any>(null);
@@ -169,7 +171,7 @@ function Layout({ children }: { children: ReactNode }) {
                   >
                     <div className="w-8 h-8 rounded bg-surface-2 border border-border flex items-center justify-center overflow-hidden">
                       {profile?.avatar_url ? (
-                        <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                        <img loading="lazy" src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover"  onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=300&q=80'; }} />
                       ) : (
                         <User className="w-4 h-4 text-primary" />
                       )}
@@ -309,24 +311,26 @@ export default function App() {
   return (
     <BrowserRouter>
       <Layout>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/feed" element={<FeedPage />} />
-          <Route path="/search" element={<SearchPage />} />
-          <Route path="/library" element={<LibraryPage />} />
-          <Route path="/notifications" element={<NotificationsPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/profile/:username" element={<ProfilePage />} />
-          <Route path="/leaderboard" element={<LeaderboardPage />} />
-          <Route path="/achievements" element={<AchievementsPage />} />
-          <Route path="/stats" element={<StatsPage />} />
-          <Route path="/signup" element={<SignUpPage />} />
-          <Route path="/media/:type/:id" element={<MediaDetailPage />} />
-          <Route path="/media/:id" element={<MediaDetailPage />} />
-        </Routes>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/feed" element={<FeedPage />} />
+            <Route path="/search" element={<SearchPage />} />
+            <Route path="/library" element={<LibraryPage />} />
+            <Route path="/notifications" element={<NotificationsPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/profile/:username" element={<ProfilePage />} />
+            <Route path="/leaderboard" element={<LeaderboardPage />} />
+            <Route path="/achievements" element={<AchievementsPage />} />
+            <Route path="/stats" element={<StatsPage />} />
+            <Route path="/signup" element={<SignUpPage />} />
+            <Route path="/media/:type/:id" element={<MediaDetailPage />} />
+            <Route path="/media/:id" element={<MediaDetailPage />} />
+          </Routes>
+        </Suspense>
       </Layout>
       <Toaster position="top-right" theme="dark" closeButton richColors />
     </BrowserRouter>

@@ -19,6 +19,7 @@ import LeaderboardPage from './pages/Leaderboard';
 import SignUpPage from './pages/SignUp';
 import MediaDetailPage from './pages/MediaDetail';
 import { Toaster } from 'sonner';
+import ErrorBoundary from './components/ErrorBoundary';
 
 function Layout({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<any>(null);
@@ -249,7 +250,9 @@ function Layout({ children }: { children: ReactNode }) {
       </header>
       
       <main className="flex-1 max-w-[1180px] w-full mx-auto px-4 py-8 pb-24 md:pb-8">
-        {children}
+        <ErrorBoundary>
+          {children}
+        </ErrorBoundary>
       </main>
 
       {/* Mobile Bottom Navigation */}

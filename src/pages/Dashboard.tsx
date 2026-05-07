@@ -4,7 +4,7 @@ import { getDashboardData, addToLibrary } from '../lib/reaperhub/queries';
 import { getTrendingTMDB, getTMDBImageUrl } from '../services/tmdbService';
 import { Target, Zap, Coins, Compass, Library, Trophy, MessageSquare, BellRing, TrendingUp, Plus, Check, ArrowRight, Sparkles } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { toast } from 'sonner';
+import { toast } from '../lib/toastUtils';
 import Skeleton from '../components/Skeleton';
 
 export default function Dashboard() {
@@ -63,12 +63,12 @@ export default function Dashboard() {
     if (res.success) {
       setAddedIds(prev => new Set(prev).add(item.title));
       if (res.rewards) {
-        toast.success(`+${res.rewards.earnedXp} XP! Item added to library!`, { icon: '✨' });
+        toast.success(`+${res.rewards.earnedXp} XP! Item added to archive!`, "Mission progress updated.");
       } else {
-        toast.success(`Item added to library!`);
+        toast.archive.added();
       }
     } else {
-      toast.error(res.message || "Archive failed. System interference.");
+      toast.archive.error();
     }
   };
 
@@ -79,15 +79,27 @@ export default function Dashboard() {
         <Skeleton className="h-4 w-32" />
       </div>
       <div className="grid md:grid-cols-3 gap-6">
-        {[...Array(3)].map((_, i) => <div key={i}><Skeleton className="h-32 w-full rounded-[24px]" /></div>)}
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="bg-surface border border-border rounded-[24px] p-6 h-32 space-y-4">
+             <Skeleton className="h-3 w-24" />
+             <Skeleton className="h-8 w-16" />
+             <Skeleton className="h-1.5 w-full" />
+          </div>
+        ))}
       </div>
       <div className="flex gap-4">
-        {[...Array(3)].map((_, i) => <div key={i}><Skeleton className="h-10 w-32 rounded-full" /></div>)}
+        {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-12 w-32 rounded-2xl" />)}
       </div>
       <section className="space-y-6">
         <Skeleton className="h-8 w-64" />
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => <div key={i}><Skeleton className="aspect-[2/3] w-full rounded-2xl" /></div>)}
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="space-y-3">
+              <Skeleton className="aspect-[2/3] w-full rounded-3xl" />
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-3 w-1/2" />
+            </div>
+          ))}
         </div>
       </section>
     </div>
@@ -320,4 +332,3 @@ export default function Dashboard() {
     </div>
   );
 }
-

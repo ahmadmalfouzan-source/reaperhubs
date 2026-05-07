@@ -4,6 +4,7 @@ import { getLibraryItems, getCurrentUser } from '../lib/reaperhub/queries';
 import { Library as LibraryIcon, Search, Play, Ghost, Sparkles } from 'lucide-react';
 import Skeleton from '../components/Skeleton';
 import { cn } from '../lib/utils';
+import { toast } from '../lib/toastUtils';
 
 const STATUS_TABS = [
   { id: 'all', label: 'All Intel' },
@@ -22,10 +23,13 @@ export default function Library() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Guest mode is allowed, so we don't redirect to login here
     getLibraryItems().then(data => {
       setItems(data);
       setFilteredItems(data);
+      setLoading(false);
+    }).catch(err => {
+      console.error('Library fetch error:', err);
+      toast.archive.error();
       setLoading(false);
     });
   }, []);
@@ -39,20 +43,27 @@ export default function Library() {
   }, [activeStatus, items]);
 
   const LibrarySkeleton = () => (
-    <div className="space-y-8">
-      <Skeleton className="h-10 w-48" />
-      <div className="flex gap-4 overflow-x-auto pb-2">
+    <div className="space-y-12">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-border pb-8">
+        <div className="space-y-2">
+          <Skeleton className="h-12 w-64" />
+          <Skeleton className="h-4 w-48" />
+        </div>
+        <Skeleton className="h-12 w-32 rounded-2xl" />
+      </div>
+      <div className="flex gap-4 overflow-x-auto pb-4">
         {[...Array(6)].map((_, i) => (
-          <div key={i} className="flex-shrink-0">
-            <Skeleton className="h-10 w-24 rounded-xl" />
-          </div>
+          <Skeleton key={i} className="h-10 w-28 rounded-2xl flex-shrink-0" />
         ))}
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-        {[...Array(8)].map((_, i) => (
-          <div key={i} className="space-y-3">
-            <Skeleton className="aspect-[2/3] w-full rounded-2xl" />
-            <Skeleton className="h-4 w-3/4" />
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
+        {[...Array(10)].map((_, i) => (
+          <div key={i} className="space-y-4">
+            <Skeleton className="aspect-[2/3] w-full rounded-[32px]" />
+            <div className="space-y-2">
+               <Skeleton className="h-3 w-1/3" />
+               <Skeleton className="h-5 w-full" />
+            </div>
           </div>
         ))}
       </div>
@@ -127,17 +138,20 @@ export default function Library() {
             <LibraryIcon className="w-12 h-12 text-muted opacity-20" />
           </div>
           <div className="space-y-3">
-            <h2 className="font-display font-bold text-2xl text-white uppercase tracking-tight">No intelligence found</h2>
+            <h2 className="font-display font-bold text-2xl text-white uppercase tracking-tight">No archives yet</h2>
             <p className="text-muted text-sm max-w-xs mx-auto italic leading-relaxed">
-              Detection protocols return zero entries for this status. Update your mission parameters or Infiltrate the Database.
+              Start tracking media to build your collection. Detection protocols return zero entries for this status.
             </p>
           </div>
+          <button onClick={() => navigate('/search')} className="px-8 py-3 bg-primary text-black font-bold rounded-xl uppercase text-xs tracking-widest shadow-lg shadow-primary/20 hover:scale-105 transition-all">
+             Begin Infiltration
+          </button>
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
           {filteredItems.map((item) => {
-                    const mediaType = item.media_type || item.media_items?.type || 'movie';
-                    const detailPath = `/media/${mediaType}/${item.media_id || item.media_items?.tmdb_id || item.media_items?.rawg_id || item.id}`;
+            const mediaType = item.media_type || item.media_items?.type || 'movie';
+            const detailPath = `/media/${mediaType}/${item.media_id || item.media_items?.tmdb_id || item.media_items?.rawg_id || item.id}`;
             
             return (
               <div 
@@ -147,11 +161,12 @@ export default function Library() {
               >
                 <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none"></div>
                 
-                          {(item.poster_url || item.cover_url || item.media_items?.cover_url) ? (
+                {(item.poster_url || item.cover_url || item.media_items?.cover_url) ? (
                   <img 
-                                src={item.poster_url || item.cover_url || item.media_items?.cover_url}
+                    src={item.poster_url || item.cover_url || item.media_items?.cover_url}
                     alt="Cover" 
                     className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105" 
+                    loading="lazy"
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=300&q=80';
                     }}
@@ -184,10 +199,10 @@ export default function Library() {
                 {/* Bottom Info Area */}
                 <div className="absolute bottom-0 left-0 right-0 p-6 z-30 space-y-1">
                   <div className="text-[10px] text-primary font-bold uppercase tracking-[0.2em] mb-1 drop-shadow-md">
-                              {item.media_type || item.media_items?.type || 'media'}
+                    {item.media_type || item.media_items?.type || 'media'}
                   </div>
                   <h3 className="font-display font-bold text-xl md:text-2xl text-white leading-tight line-clamp-2 drop-shadow-2xl italic group-hover:text-primary transition-colors" title={item.media_items?.title || 'Unknown'}>
-                              {item.title || item.media_items?.title || 'Unknown'}
+                    {item.title || item.media_items?.title || 'Unknown'}
                   </h3>
                 </div>
               </div>

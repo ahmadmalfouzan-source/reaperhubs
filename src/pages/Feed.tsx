@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 import { Link } from 'react-router-dom';
 import { MessageSquare, Heart, Share2, Film, Gamepad2, Send, MoreHorizontal, User, TrendingUp, Sparkles, Hash, Users, Zap as ZapIcon, Loader2, Calendar, Edit3, Trash2, X } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { toast } from 'sonner';
+import { toast } from '../lib/toastUtils';
 import CommentSection from '../components/CommentSection';
 
 const TAGS = [
@@ -69,9 +69,6 @@ export default function Feed() {
     if (!content.trim()) return;
     setPosting(true);
     
-    // Use the explicit mediaType if it's not the default 'general'
-    const finalMediaType = selectedTag === 'general' ? null : selectedTag;
-    
     try {
       const postType = selectedTag === 'general' ? 'status' : selectedTag === 'movie' ? 'review_share' : selectedTag === 'series' ? 'review_share' : selectedTag === 'game' ? 'review_share' : 'status';
       const result = await createPost(content, postType);
@@ -79,13 +76,13 @@ export default function Feed() {
         setContent('');
         setSelectedTag('general');
         fetchFeed();
-        toast.success("Transmission broadcasted successfully.");
+        toast.transmission.sent();
       } else {
         throw new Error(result.error || 'Failed to post');
       }
     } catch (error) {
       console.error('Post error:', error);
-      toast.error("Transmission failed. Field interference detected.");
+      toast.transmission.error();
     } finally {
       setPosting(false);
     }
@@ -141,7 +138,7 @@ export default function Feed() {
     const result = await deletePost(postId);
     if (result.success) {
       setItems(prev => prev.filter(item => item.id !== postId));
-      toast.success("Transmission terminated.");
+      toast.transmission.deleted();
     } else {
       toast.error("Failed to abort transmission.");
     }
@@ -166,7 +163,7 @@ export default function Feed() {
       ));
       setEditingPostId(null);
       setEditContent('');
-      toast.success("Transmission recalibrated.");
+      toast.transmission.updated();
     } else {
       toast.error("Failed to recalibrate transmission.");
     }
@@ -192,7 +189,7 @@ export default function Feed() {
               <div className="flex gap-5">
                 <div className="w-14 h-14 rounded-3xl bg-surface-2 border-2 border-border flex items-center justify-center overflow-hidden flex-shrink-0 shadow-lg group-hover:border-primary/30 transition-all">
                   {user.avatar_url ? (
-                    <img src={user.avatar_url} alt="You" className="w-full h-full object-cover" />
+                    <img src={user.avatar_url} alt="You" className="w-full h-full object-cover" loading="lazy" />
                   ) : (
                     <User className="w-6 h-6 text-primary" />
                   )}
@@ -273,7 +270,7 @@ export default function Feed() {
                     <Link to={`/profile/${item.users?.username || ''}`} className="relative group/avatar">
                       <div className="w-14 h-14 rounded-3xl bg-surface-2 border-2 border-border overflow-hidden shadow-2xl transition-all group-hover/avatar:border-primary/80 group-hover/avatar:shadow-[0_0_20px_rgba(0,183,255,0.3)]">
                         {item.users?.avatar_url ? (
-                          <img src={item.users.avatar_url} alt={item.users?.username} className="w-full h-full object-cover grayscale group-hover/avatar:grayscale-0 transition-all duration-700" />
+                          <img src={item.users.avatar_url} alt={item.users?.username} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" loading="lazy" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center bg-primary/5">
                             <span className="text-primary font-display font-bold text-2xl">{item.users?.username?.[0]?.toUpperCase() || '?'}</span>

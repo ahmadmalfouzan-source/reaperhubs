@@ -14,11 +14,11 @@ import {
 } from '../lib/reaperhub/queries';
 import { 
   Award, Lock, Camera, ExternalLink, 
-  Loader2, Sparkles, Ghost, Library, UserPlus, UserMinus, Users
+  Loader2, Sparkles, Ghost, Library, UserPlus, UserMinus, Users, MessageSquare
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { cn } from '../lib/utils';
-import { toast } from 'sonner';
+import { toast } from '../lib/toastUtils';
 import Skeleton from '../components/Skeleton';
 
 export default function Profile() {
@@ -44,7 +44,6 @@ export default function Profile() {
       
       let targetUsername = username;
       if (!targetUsername && currentUser) {
-        // Find current user profile
         const { data: userProfile } = await supabase
           .from('users')
           .select('username')
@@ -58,7 +57,7 @@ export default function Profile() {
       }
 
       if (targetUsername) {
-              const res = await getProfileWithPosts(targetUsername);
+        const res = await getProfileWithPosts(targetUsername);
         setData(res);
         
         if (res?.user) {
@@ -95,15 +94,14 @@ export default function Profile() {
     });
     
     if (res.success) {
-      toast.success("Profile updated successfully.");
+      toast.success("Profile recalibrated", "Dossier updated successfully.");
       setEditing(false);
-      // Refresh data
       if (username) {
         const refreshed = await getProfileWithPosts(username);
         setData(refreshed);
       }
     } else {
-      toast.error("Update failed. Error in data transmission.");
+      toast.error("Transmission error", "Failed to update profile registry.");
     }
     setUpdating(false);
   };
@@ -116,42 +114,42 @@ export default function Profile() {
         await unfollowUser(data.user.id);
         setIsFollowing(false);
         setFollowStats(prev => ({ ...prev, followersCount: prev.followersCount - 1 }));
-        toast.success(`Broadcasting signal disconnected from ${data.user.username}`);
+        toast.transmission.deleted();
       } else {
         await followUser(data.user.id);
         setIsFollowing(true);
         setFollowStats(prev => ({ ...prev, followersCount: prev.followersCount + 1 }));
-        toast.success(`Broadcasting signal linked to ${data.user.username}`);
+        toast.transmission.sent();
       }
     } catch (err) {
-      toast.error("Connection failed.");
+      toast.error("Link failed", "Field interference detected.");
     } finally {
       setFollowLoading(false);
     }
   };
 
   const ProfileSkeleton = () => (
-    <div className="max-w-4xl mx-auto space-y-12">
-      <div className="bg-surface border border-border rounded-[40px] p-12 flex flex-col md:flex-row gap-10 items-center">
-        <Skeleton className="w-40 h-40 rounded-full" />
-        <div className="flex-1 space-y-4 text-center md:text-left">
-          <Skeleton className="h-12 w-64 mx-auto md:mx-0" />
-          <Skeleton className="h-4 w-48 mx-auto md:mx-0" />
-          <Skeleton className="h-20 w-full" />
+    <div className="max-w-5xl mx-auto space-y-12">
+      <div className="bg-surface border border-border rounded-[48px] p-14 flex flex-col md:flex-row gap-10 items-center">
+        <Skeleton className="w-48 h-48 rounded-[40px]" />
+        <div className="flex-1 space-y-4 text-center md:text-left w-full">
+          <Skeleton className="h-14 w-64 mx-auto md:mx-0" />
+          <Skeleton className="h-4 w-32 mx-auto md:mx-0" />
+          <Skeleton className="h-24 w-full rounded-3xl" />
         </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-        <div className="space-y-4">
-          <Skeleton className="h-8 w-48" />
-          <div className="grid grid-cols-4 gap-4">
-            {[...Array(4)].map((_, i) => <div key={i}><Skeleton className="h-24 w-full rounded-2xl" /></div>)}
-          </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+        <div className="space-y-6">
+           <Skeleton className="h-8 w-48" />
+           <div className="grid grid-cols-2 gap-4">
+              {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-28 w-full rounded-3xl" />)}
+           </div>
         </div>
-        <div className="space-y-4">
-          <Skeleton className="h-8 w-48" />
-          <div className="space-y-4">
-            {[...Array(3)].map((_, i) => <div key={i}><Skeleton className="h-16 w-full rounded-2xl" /></div>)}
-          </div>
+        <div className="lg:col-span-2 space-y-6">
+           <Skeleton className="h-8 w-64" />
+           <div className="space-y-4">
+              {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-32 w-full rounded-3xl" />)}
+           </div>
         </div>
       </div>
     </div>
@@ -169,7 +167,7 @@ export default function Profile() {
           <h2 className="text-2xl font-display font-bold text-white uppercase tracking-tight">Agent not found</h2>
           <p className="text-muted text-sm italic">The requested operative does not exist in the collective database.</p>
         </div>
-        <button onClick={() => navigate('/dashboard')} className="px-8 py-3 bg-surface border border-border rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-surface-2 transition-all">
+        <button onClick={() => navigate('/dashboard')} className="px-8 py-3 bg-primary text-black font-bold rounded-xl uppercase text-xs tracking-widest hover:scale-105 transition-all">
           Return to HQ
         </button>
       </div>
@@ -179,7 +177,7 @@ export default function Profile() {
   const { user, posts } = data;
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 md:space-y-12 animate-in fade-in duration-1000 px-4 sm:px-0">
+    <div className="max-w-5xl mx-auto space-y-8 md:space-y-12 animate-in fade-in duration-1000 px-4 sm:px-0 pb-20">
       {/* Profile Header */}
       <div className="bg-surface border-2 border-border/50 rounded-[32px] md:rounded-[48px] p-6 md:p-14 flex flex-col md:flex-row gap-8 md:gap-10 items-center md:items-start text-center md:text-left relative overflow-hidden shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)]">
         <div className="absolute top-0 right-0 w-64 h-64 md:w-96 md:h-96 bg-primary/10 rounded-full blur-[80px] md:blur-[120px] pointer-events-none -translate-y-1/2 translate-x-1/4"></div>
@@ -187,7 +185,7 @@ export default function Profile() {
         <div className="relative group">
           <div className="w-32 h-32 md:w-48 md:h-48 rounded-[32px] md:rounded-[40px] bg-surface-2 border-4 border-primary-2/20 flex items-center justify-center overflow-hidden flex-shrink-0 relative z-10 shadow-2xl transition-all duration-700 group-hover:scale-105 group-hover:rotate-2">
             {user?.avatar_url ? (
-              <img src={user.avatar_url} alt={user?.username || 'Profile'} className="w-full h-full object-cover" />
+              <img src={user.avatar_url} alt={user?.username || 'Profile'} className="w-full h-full object-cover" loading="lazy" />
             ) : (
               <span className="text-primary-2 font-display font-bold text-5xl md:text-6xl drop-shadow-lg">{user?.username?.[0]?.toUpperCase() || '?'}</span>
             )}
@@ -211,7 +209,7 @@ export default function Profile() {
                     type="text" 
                     value={displayName} 
                     onChange={(e) => setDisplayName(e.target.value)}
-                    className="bg-surface-2 border border-primary/50 rounded-xl px-4 py-2 text-xl md:text-2xl font-display font-bold focus:outline-none w-full"
+                    className="bg-surface-2 border border-primary/50 rounded-xl px-4 py-2 text-xl md:text-2xl font-display font-bold focus:outline-none w-full text-white"
                   />
                 ) : (
                   <h1 className="font-display font-bold text-3xl sm:text-4xl md:text-6xl text-white tracking-tighter italic break-words">{user.display_name || user.username}</h1>
@@ -267,7 +265,7 @@ export default function Profile() {
               <textarea
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
-                className="w-full bg-surface-2 border border-primary/30 rounded-xl p-4 text-sm focus:outline-none min-h-[100px]"
+                className="w-full bg-surface-2 border border-primary/30 rounded-xl p-4 text-sm focus:outline-none min-h-[100px] text-white"
                 placeholder="Update your operative bio..."
               />
             ) : (
@@ -293,6 +291,14 @@ export default function Profile() {
                 </button>
               </div>
             )}
+            {isCurrentUser && !editing && (
+               <button 
+                onClick={() => setEditing(true)}
+                className="absolute top-8 right-8 text-[8px] font-bold uppercase text-muted hover:text-primary transition-all opacity-0 group-hover/bio:opacity-100"
+               >
+                 Recalibrate
+               </button>
+            )}
           </div>
         </div>
       </div>
@@ -306,27 +312,35 @@ export default function Profile() {
               <h2 className="font-display font-bold text-xl md:text-2xl uppercase tracking-tighter">Killstreak</h2>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              {achievements.slice(0, 4).map((badge) => (
-                <div 
-                  key={badge.id}
-                  className={cn(
-                    "relative overflow-hidden rounded-[24px] md:rounded-3xl border p-4 md:p-5 text-center transition-all duration-500",
-                    badge.unlocked 
-                      ? 'border-primary/40 bg-primary/5 shadow-lg grayscale-0 scale-100' 
-                      : 'border-border bg-surface-2/30 grayscale opacity-40 hover:opacity-60 scale-95'
-                  )}
-                >
-                  <div className="text-3xl md:text-4xl mb-3">{badge.icon}</div>
-                  <h3 className="text-[8px] md:text-[10px] font-bold uppercase tracking-widest mb-1 text-white truncate px-1">
-                    {badge.title}
-                  </h3>
-                  {!badge.unlocked && (
-                    <div className="absolute top-2 right-2">
-                      <Lock size={10} className="text-muted/30 md:w-3 md:h-3" />
-                    </div>
-                  )}
-                </div>
-              ))}
+              {achievements.length === 0 ? (
+                [...Array(4)].map((_, i) => (
+                  <div key={i} className="bg-surface-2/20 border border-border rounded-3xl h-24 flex items-center justify-center opacity-20">
+                     <Lock size={20} />
+                  </div>
+                ))
+              ) : (
+                achievements.slice(0, 4).map((badge) => (
+                  <div 
+                    key={badge.id}
+                    className={cn(
+                      "relative overflow-hidden rounded-[24px] md:rounded-3xl border p-4 md:p-5 text-center transition-all duration-500",
+                      badge.unlocked 
+                        ? 'border-primary/40 bg-primary/5 shadow-lg grayscale-0 scale-100' 
+                        : 'border-border bg-surface-2/30 grayscale opacity-40 hover:opacity-60 scale-95'
+                    )}
+                  >
+                    <div className="text-3xl md:text-4xl mb-3">{badge.icon}</div>
+                    <h3 className="text-[8px] md:text-[10px] font-bold uppercase tracking-widest mb-1 text-white truncate px-1">
+                      {badge.title}
+                    </h3>
+                    {!badge.unlocked && (
+                      <div className="absolute top-2 right-2">
+                        <Lock size={10} className="text-muted/30 md:w-3 md:h-3" />
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
             </div>
             <button className="w-full py-3 md:py-4 text-[8px] md:text-[10px] font-bold uppercase tracking-[0.3em] text-muted hover:text-primary transition-all border border-dashed border-border rounded-xl md:rounded-2xl">
               View All Milestones
@@ -365,6 +379,7 @@ export default function Profile() {
               
               {library.length === 0 ? (
                 <div className="bg-surface/50 border border-dashed border-border p-8 md:p-12 rounded-[24px] md:rounded-[32px] text-center space-y-4">
+                  <Ghost className="w-12 h-12 mx-auto text-muted opacity-10" />
                   <p className="text-muted italic text-xs md:text-sm">No data points saved in active archive.</p>
                   <button onClick={() => navigate('/search')} className="text-[8px] md:text-[10px] font-bold text-white bg-surface-2 px-5 md:px-6 py-2 rounded-full uppercase tracking-tighter border border-border hover:border-primary transition-all">
                     Search Registry
@@ -375,10 +390,14 @@ export default function Profile() {
                   {library.slice(0, 3).map((item) => (
                     <div 
                       key={item.id} 
-                      onClick={() => navigate(`/search?q=${item.media_items?.title}`)}
+                      onClick={() => {
+                         const mediaType = item.media_type || item.media_items?.type || 'movie';
+                         const mediaId = item.media_id || item.media_items?.tmdb_id || item.media_items?.rawg_id || item.id;
+                         navigate(`/media/${mediaType}/${mediaId}`);
+                      }}
                       className="aspect-[2/3] rounded-xl md:rounded-2xl overflow-hidden relative group cursor-pointer shadow-xl border border-border/50"
                     >
-                      <img src={item.media_items?.cover_url} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                      <img src={item.media_items?.cover_url} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" loading="lazy" />
                       <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80"></div>
                       <div className="absolute bottom-3 md:bottom-4 left-3 md:left-4 right-3 md:right-4">
                         <p className="text-[7px] md:text-[9px] font-bold text-primary uppercase tracking-widest mb-1">{item.media_items?.type}</p>
@@ -397,7 +416,8 @@ export default function Profile() {
               <span className="text-[8px] md:text-[10px] text-muted font-bold uppercase tracking-widest">{posts.length} Transmissions</span>
             </div>
             {posts.length === 0 ? (
-              <div className="bg-surface/50 border border-border rounded-[24px] md:rounded-[32px] p-8 md:p-10 text-center">
+              <div className="bg-surface/50 border border-border rounded-[24px] md:rounded-[32px] p-8 md:p-10 text-center space-y-4">
+                <MessageSquare className="w-12 h-12 mx-auto text-muted opacity-10" />
                 <p className="text-muted text-xs md:text-sm italic">Zero radio chatter detected from this origin.</p>
               </div>
             ) : (

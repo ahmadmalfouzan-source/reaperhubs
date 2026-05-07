@@ -19,6 +19,13 @@ export const toast = {
       duration: 4000,
     });
   },
+  achievement: (name: string, icon: string) => {
+    sonnerToast.success(name, {
+      description: "Achievement Unlocked",
+      icon: icon,
+      duration: 6000,
+    });
+  },
   transmission: {
     sent: () => toast.success("Transmission broadcasted", "Signal locked and transmitted to the collective."),
     error: () => toast.error("Transmission failed", "Field interference detected. Signal lost."),

@@ -9,6 +9,7 @@ import { InstallPrompt } from './components/InstallPrompt';
 
 import { lazy, Suspense } from 'react';
 import { Toaster } from 'sonner';
+import AchievementListener from './components/AchievementListener';
 import ErrorBoundary from './components/ErrorBoundary';
 
 const HomePage = lazy(() => import('./pages/Home'));
@@ -335,6 +336,7 @@ export default function App() {
         </Suspense>
       </Layout>
       <Toaster position="top-right" theme="dark" closeButton richColors />
+      <AchievementListener />
     </BrowserRouter>
   );
 }

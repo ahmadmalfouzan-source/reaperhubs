@@ -17,11 +17,21 @@ export default defineConfig(({mode}) => {
           name: 'ReaperHub',
           short_name: 'ReaperHub',
           description: 'Classified Media Tracking & Tactical Analysis',
-          theme_color: '#00B7FF',
+          theme_color: '#8B5CF6',
           background_color: '#0A0A0B',
           display: 'standalone',
           orientation: 'portrait',
           icons: [
+            {
+              src: '/icons/icon-192x192.png',
+              sizes: '192x192',
+              type: 'image/png'
+            },
+            {
+              src: '/icons/icon-512x512.png',
+              sizes: '512x512',
+              type: 'image/png'
+            },
             {
               src: 'mask-icon.svg',
               sizes: '512x512',
@@ -34,6 +44,13 @@ export default defineConfig(({mode}) => {
           globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
           runtimeCaching: [
             {
+              urlPattern: ({ request }) => request.destination === 'style' || request.destination === 'script' || request.destination === 'worker',
+              handler: 'StaleWhileRevalidate',
+              options: {
+                cacheName: 'static-resources',
+              },
+            },
+            {
               urlPattern: /^https:\/\/images\.tmdb\.org\/.*/i,
               handler: 'CacheFirst',
               options: {
@@ -41,6 +58,20 @@ export default defineConfig(({mode}) => {
                 expiration: {
                   maxEntries: 100,
                   maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+                },
+                cacheableResponse: {
+                  statuses: [0, 200],
+                },
+              },
+            },
+            {
+              urlPattern: ({ url }) => url.pathname.startsWith('/api/'),
+              handler: 'NetworkFirst',
+              options: {
+                cacheName: 'api-responses',
+                expiration: {
+                  maxEntries: 50,
+                  maxAgeSeconds: 5 * 60, // 5 minutes
                 },
                 cacheableResponse: {
                   statuses: [0, 200],

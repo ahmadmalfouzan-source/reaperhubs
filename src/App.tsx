@@ -5,6 +5,7 @@ import { useEffect, useState, useRef } from 'react';
 import type { ReactNode } from 'react';
 import { supabase } from './lib/supabase';
 import { getUnreadNotificationCount } from './lib/reaperhub/queries';
+import { InstallPrompt } from './components/InstallPrompt';
 
 import HomePage from './pages/Home';
 import LoginPage from './pages/Login';
@@ -301,6 +302,7 @@ function Layout({ children }: { children: ReactNode }) {
           </Link>
         )}
       </div>
+      <InstallPrompt />
     </div>
   );
 }

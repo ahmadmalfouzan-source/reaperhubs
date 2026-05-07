@@ -199,7 +199,7 @@ export default function Profile() {
           <h2 className="text-2xl font-display font-bold text-white uppercase tracking-tight">Agent not found</h2>
           <p className="text-muted text-sm italic">The requested operative does not exist in the collective database.</p>
         </div>
-        <button onClick={() => navigate('/dashboard')} className="px-8 py-3 bg-primary text-black font-bold rounded-xl uppercase text-xs tracking-widest hover:scale-105 transition-all">
+        <button onClick={() => navigate('/dashboard')} className="px-8 py-3 bg-primary text-black font-bold rounded-xl uppercase text-sm tracking-widest hover:scale-105 transition-all">
           Return to HQ
         </button>
       </div>
@@ -223,7 +223,7 @@ export default function Profile() {
           {isCurrentUser && (
             <button 
               onClick={() => navigate('/settings')}
-              className="absolute top-4 right-4 z-20 px-4 py-2 bg-black/50 hover:bg-black/80 backdrop-blur-md text-white rounded-full text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 border border-white/10 transition-all hover:border-white/30"
+              className="absolute top-4 right-4 z-20 px-4 py-2 bg-black/50 hover:bg-black/80 backdrop-blur-md text-white rounded-full text-sm font-bold uppercase tracking-widest flex items-center gap-2 border border-white/10 transition-all hover:border-white/30"
             >
               <Camera size={12} /> Edit Cover
             </button>
@@ -259,9 +259,10 @@ export default function Profile() {
                      {editing ? (
                        <input
                          type="text"
+                         inputMode="text"
                          value={displayName}
                          onChange={(e) => setDisplayName(e.target.value)}
-                         className="bg-surface-2 border border-primary/50 rounded-xl px-4 py-2 text-xl md:text-2xl font-display font-bold focus:outline-none w-full text-white"
+                         className="bg-surface-2 border border-primary/50 rounded-xl px-4 py-2 text-xl md:text-2xl min-h-[44px] font-display font-bold focus:outline-none w-full text-white"
                        />
                      ) : (
                        <h1 className="font-display font-bold text-3xl md:text-4xl text-white tracking-tighter break-words">{user.display_name || user.username}</h1>
@@ -274,7 +275,7 @@ export default function Profile() {
                        onClick={handleToggleFollow}
                        disabled={followLoading}
                        className={cn(
-                         "px-8 py-2.5 rounded-full font-bold flex items-center justify-center gap-2 transition-all active:scale-95 text-xs shadow-xl border",
+                         "px-8 py-2.5 rounded-full font-bold flex items-center justify-center gap-2 transition-all active:scale-95 text-sm shadow-xl border",
                          isFollowing
                            ? "bg-surface-2 border-border text-white hover:bg-danger/10 hover:border-danger hover:text-danger"
                            : "bg-white border-white text-black hover:bg-gray-200"
@@ -289,29 +290,29 @@ export default function Profile() {
                 {/* Inline Stats Row */}
                 <div className="flex flex-wrap items-center gap-2 md:gap-4 border-t border-border/50 pt-4 mt-2">
                    {/* Rank */}
-                   <span className="px-3 py-1.5 bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest rounded-full border border-primary/20 flex items-center gap-1.5">
+                   <span className="px-3 py-1.5 bg-primary/10 text-primary text-sm font-bold uppercase tracking-widest rounded-full border border-primary/20 flex items-center gap-1.5">
                      <Sparkles size={12} /> Rank {user.level || 1}
                    </span>
                    {/* XP */}
-                   <span className="px-3 py-1.5 bg-surface-2 text-white text-[10px] font-bold uppercase tracking-widest rounded-full border border-border flex items-center gap-1.5">
+                   <span className="px-3 py-1.5 bg-surface-2 text-white text-sm font-bold uppercase tracking-widest rounded-full border border-border flex items-center gap-1.5">
                      <Activity size={12} className="text-primary-2" /> {user.xp?.toLocaleString() || 0} XP
                    </span>
                    {/* Credits */}
-                   <span className="px-3 py-1.5 bg-surface-2 text-white text-[10px] font-bold uppercase tracking-widest rounded-full border border-border flex items-center gap-1.5">
+                   <span className="px-3 py-1.5 bg-surface-2 text-white text-sm font-bold uppercase tracking-widest rounded-full border border-border flex items-center gap-1.5">
                      <Award size={12} className="text-success" /> {user.coin_balance?.toLocaleString() || 0} CR
                    </span>
                    {/* Streak */}
-                   <span className="px-3 py-1.5 bg-surface-2 text-white text-[10px] font-bold uppercase tracking-widest rounded-full border border-border flex items-center gap-1.5">
+                   <span className="px-3 py-1.5 bg-surface-2 text-white text-sm font-bold uppercase tracking-widest rounded-full border border-border flex items-center gap-1.5">
                      <Activity size={12} className="text-orange-500" /> {streak} Day Streak
                    </span>
                    {/* Achievements */}
-                   <span className="px-3 py-1.5 bg-surface-2 text-white text-[10px] font-bold uppercase tracking-widest rounded-full border border-border flex items-center gap-1.5">
+                   <span className="px-3 py-1.5 bg-surface-2 text-white text-sm font-bold uppercase tracking-widest rounded-full border border-border flex items-center gap-1.5">
                      <Award size={12} className="text-yellow-500" /> {achievements.filter(a => a.unlocked).length} Unlocked
                    </span>
 
                    <div className="flex-1"></div>
 
-                   <div className="flex items-center gap-4 text-xs">
+                   <div className="flex items-center gap-4 text-sm">
                      <div className="flex gap-1 items-baseline">
                        <span className="font-bold text-white">{followStats.followersCount}</span>
                        <span className="text-muted">Followers</span>
@@ -333,19 +334,19 @@ export default function Profile() {
          <div className="flex gap-8">
              <button
                 onClick={() => setActiveTab('overview')}
-                className={cn("pb-4 text-xs font-bold uppercase tracking-widest transition-all", activeTab === 'overview' ? "text-primary border-b-2 border-primary" : "text-muted hover:text-white")}
+                className={cn("pb-4 text-sm font-bold uppercase tracking-widest transition-all", activeTab === 'overview' ? "text-primary border-b-2 border-primary" : "text-muted hover:text-white")}
              >
                 Overview
              </button>
              <button
                 onClick={() => setActiveTab('archive')}
-                className={cn("pb-4 text-xs font-bold uppercase tracking-widest transition-all", activeTab === 'archive' ? "text-primary border-b-2 border-primary" : "text-muted hover:text-white")}
+                className={cn("pb-4 text-sm font-bold uppercase tracking-widest transition-all", activeTab === 'archive' ? "text-primary border-b-2 border-primary" : "text-muted hover:text-white")}
              >
                 Archive
              </button>
              <button
                 onClick={() => setActiveTab('transmissions')}
-                className={cn("pb-4 text-xs font-bold uppercase tracking-widest transition-all", activeTab === 'transmissions' ? "text-primary border-b-2 border-primary" : "text-muted hover:text-white")}
+                className={cn("pb-4 text-sm font-bold uppercase tracking-widest transition-all", activeTab === 'transmissions' ? "text-primary border-b-2 border-primary" : "text-muted hover:text-white")}
              >
                 Transmissions
              </button>
@@ -358,7 +359,7 @@ export default function Profile() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
             <div className="space-y-8">
               <div className="bg-surface-2/30 backdrop-blur-xl border border-border/50 rounded-[24px] md:rounded-[32px] p-6 md:p-8 group/bio relative">
-                <h3 className="text-[8px] md:text-[10px] font-bold uppercase tracking-[0.3em] text-primary-2 mb-3 flex items-center gap-2">
+                <h3 className="text-sm md:text-sm font-bold uppercase tracking-[0.3em] text-primary-2 mb-3 flex items-center gap-2">
                    Classified Dossier <Sparkles size={10} className="animate-pulse" />
                 </h3>
                 {editing ? (
@@ -376,16 +377,16 @@ export default function Profile() {
 
                 {editing && (
                   <div className="flex gap-2 mt-4">
-                    <button onClick={handleUpdate} disabled={updating} className="px-6 py-2 bg-primary text-black font-bold rounded-xl text-[10px] uppercase tracking-widest disabled:opacity-50">
+                    <button onClick={handleUpdate} disabled={updating} className="px-6 py-2 bg-primary text-black font-bold rounded-xl text-sm uppercase tracking-widest disabled:opacity-50">
                       {updating ? <Loader2 className="animate-spin" /> : "Save Changes"}
                     </button>
-                    <button onClick={() => setEditing(false)} className="px-4 py-2 text-muted hover:text-white transition-colors text-[10px] font-bold uppercase tracking-widest">
+                    <button onClick={() => setEditing(false)} className="px-4 py-2 text-muted hover:text-white transition-colors text-sm font-bold uppercase tracking-widest">
                       Abort
                     </button>
                   </div>
                 )}
                 {isCurrentUser && !editing && (
-                   <button onClick={() => setEditing(true)} className="absolute top-8 right-8 text-[8px] font-bold uppercase text-muted hover:text-primary transition-all opacity-0 group-hover/bio:opacity-100">
+                   <button onClick={() => setEditing(true)} className="absolute top-8 right-8 text-sm font-bold uppercase text-muted hover:text-primary transition-all opacity-0 group-hover/bio:opacity-100">
                      Recalibrate
                    </button>
                 )}
@@ -394,7 +395,7 @@ export default function Profile() {
               <div className="bg-surface-2/30 border border-border/50 rounded-3xl p-6 flex flex-col items-center text-center">
                 <Activity className="w-8 h-8 text-primary mb-3" />
                 <h3 className="font-display font-bold text-lg uppercase text-white mb-2">Tactical Analytics</h3>
-                <p className="text-xs text-muted mb-4">View your complete performance history, heatmaps, and genre breakdowns.</p>
+                <p className="text-sm text-muted mb-4">View your complete performance history, heatmaps, and genre breakdowns.</p>
                 <Link to="/stats" className="w-full py-2.5 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 rounded-xl text-sm font-bold uppercase tracking-widest transition-colors">
                   View Stats
                 </Link>
@@ -419,13 +420,13 @@ export default function Profile() {
                         className={cn("relative overflow-hidden rounded-[24px] border p-4 text-center transition-all duration-500", badge.unlocked ? 'border-primary/40 bg-primary/5 shadow-lg grayscale-0 scale-100' : 'border-border bg-surface-2/30 grayscale opacity-40')}
                       >
                         <div className="text-3xl mb-3">{badge.icon}</div>
-                        <h3 className="text-[10px] font-bold uppercase tracking-widest mb-1 text-white truncate px-1">{badge.title}</h3>
+                        <h3 className="text-sm font-bold uppercase tracking-widest mb-1 text-white truncate px-1">{badge.title}</h3>
                         {!badge.unlocked && <div className="absolute top-2 right-2"><Lock size={10} className="text-muted/30" /></div>}
                       </div>
                     ))
                   )}
                 </div>
-                <button className="w-full py-3 text-[10px] font-bold uppercase tracking-[0.3em] text-muted hover:text-primary transition-all border border-dashed border-border rounded-xl">View All Milestones</button>
+                <button className="w-full py-3 text-sm font-bold uppercase tracking-[0.3em] text-muted hover:text-primary transition-all border border-dashed border-border rounded-xl">View All Milestones</button>
               </section>
             </div>
           </div>
@@ -439,7 +440,7 @@ export default function Profile() {
                 <h2 className="font-display font-bold text-xl md:text-2xl uppercase tracking-tighter">Current Archive</h2>
               </div>
               {isCurrentUser && (
-                <button onClick={() => navigate('/library')} className="text-[10px] font-bold text-primary uppercase tracking-widest flex items-center gap-2 hover:gap-3 transition-all">
+                <button onClick={() => navigate('/library')} className="text-sm font-bold text-primary uppercase tracking-widest flex items-center gap-2 hover:gap-3 transition-all">
                    Deploy Full View <ExternalLink size={10} />
                 </button>
               )}
@@ -450,7 +451,7 @@ export default function Profile() {
                 <Ghost className="w-12 h-12 mx-auto text-muted opacity-10" />
                 <p className="text-muted italic text-sm">No data points saved in active archive.</p>
                 {isCurrentUser && (
-                  <button onClick={() => navigate('/search')} className="text-[10px] font-bold text-white bg-surface-2 px-6 py-2 rounded-full uppercase tracking-tighter border border-border hover:border-primary transition-all">Search Registry</button>
+                  <button onClick={() => navigate('/search')} className="text-sm font-bold text-white bg-surface-2 px-6 py-2 rounded-full uppercase tracking-tighter border border-border hover:border-primary transition-all">Search Registry</button>
                 )}
               </div>
             ) : (
@@ -468,8 +469,8 @@ export default function Profile() {
                     <img loading="lazy" src={item.media_items?.cover_url} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=300&q=80'; }} />
                     <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80"></div>
                     <div className="absolute bottom-3 md:bottom-4 left-3 md:left-4 right-3 md:right-4">
-                      <p className="text-[7px] md:text-[9px] font-bold text-primary uppercase tracking-widest mb-1">{item.media_items?.type}</p>
-                      <p className="text-[10px] md:text-xs font-bold text-white line-clamp-1 italic">{item.media_items?.title}</p>
+                      <p className="text-sm md:text-sm font-bold text-primary uppercase tracking-widest mb-1">{item.media_items?.type}</p>
+                      <p className="text-sm md:text-sm font-bold text-white line-clamp-1 italic">{item.media_items?.title}</p>
                     </div>
                   </div>
                 ))}
@@ -482,7 +483,7 @@ export default function Profile() {
           <section className="space-y-6 animate-in slide-in-from-right-4 fade-in duration-500">
             <div className="flex items-center justify-between border-b border-border/50 pb-4">
               <h2 className="font-display font-bold text-xl md:text-2xl uppercase tracking-tighter">Transmission Registry</h2>
-              <span className="text-[10px] text-muted font-bold uppercase tracking-widest">{posts.length} Transmissions</span>
+              <span className="text-sm text-muted font-bold uppercase tracking-widest">{posts.length} Transmissions</span>
             </div>
             {posts.length === 0 ? (
               <div className="bg-surface/50 border border-border rounded-[32px] p-10 text-center space-y-4">
@@ -495,11 +496,11 @@ export default function Profile() {
                   <div key={post.id} className="bg-surface border-l-4 border-primary border border-border rounded-2xl p-6 md:p-8 hover:bg-surface-2/50 transition-all duration-300 shadow-lg">
                     <p className="mb-4 text-text/90 italic leading-relaxed font-medium text-sm md:text-base">"{post.content}"</p>
                     <div className="flex items-center justify-between pt-4 border-t border-border/50">
-                      <span className="text-[9px] text-muted font-bold uppercase tracking-[0.2em] flex items-center gap-2">
+                      <span className="text-sm text-muted font-bold uppercase tracking-[0.2em] flex items-center gap-2">
                          <span className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></span>
                          Secure Transmission Locked
                       </span>
-                      <span className="text-[9px] text-muted font-bold uppercase">{new Date(post.created_at).toLocaleDateString()}</span>
+                      <span className="text-sm text-muted font-bold uppercase">{new Date(post.created_at).toLocaleDateString()}</span>
                     </div>
                   </div>
                 ))}

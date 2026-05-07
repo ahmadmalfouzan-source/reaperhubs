@@ -58,15 +58,16 @@ export default function SignUp() {
 
         <form onSubmit={handleSignUp} className="space-y-5 relative z-10">
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold uppercase tracking-widest text-muted ml-1">Username</label>
+            <label className="text-sm font-bold uppercase tracking-widest text-muted ml-1">Username</label>
             <div className="relative">
               <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
               <input
                 type="text"
+                inputMode="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="reaper_01"
-                className="w-full bg-[#0e1430] border border-border rounded-2xl p-4 pl-12 text-text focus:outline-none focus:border-primary transition-all shadow-inner"
+                className="w-full bg-[#0e1430] border border-border rounded-2xl p-4 pl-12 text-base min-h-[44px] text-text focus:outline-none focus:border-primary transition-all shadow-inner"
                 required
                 disabled={loading}
               />
@@ -74,15 +75,16 @@ export default function SignUp() {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold uppercase tracking-widest text-muted ml-1">Email Address</label>
+            <label className="text-sm font-bold uppercase tracking-widest text-muted ml-1">Email Address</label>
             <div className="relative">
               <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
               <input
                 type="email"
+                inputMode="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="agent@reaperhub.com"
-                className="w-full bg-[#0e1430] border border-border rounded-2xl p-4 pl-12 text-text focus:outline-none focus:border-primary transition-all shadow-inner"
+                className="w-full bg-[#0e1430] border border-border rounded-2xl p-4 pl-12 text-base min-h-[44px] text-text focus:outline-none focus:border-primary transition-all shadow-inner"
                 required
                 disabled={loading}
               />
@@ -90,7 +92,7 @@ export default function SignUp() {
           </div>
           
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold uppercase tracking-widest text-muted ml-1">Password</label>
+            <label className="text-sm font-bold uppercase tracking-widest text-muted ml-1">Password</label>
             <div className="relative">
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
               <input
@@ -98,7 +100,7 @@ export default function SignUp() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full bg-[#0e1430] border border-border rounded-2xl p-4 pl-12 text-text focus:outline-none focus:border-primary transition-all shadow-inner"
+                className="w-full bg-[#0e1430] border border-border rounded-2xl p-4 pl-12 text-base min-h-[44px] text-text focus:outline-none focus:border-primary transition-all shadow-inner"
                 required
                 disabled={loading}
               />
@@ -106,7 +108,7 @@ export default function SignUp() {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold uppercase tracking-widest text-muted ml-1">Confirm Password</label>
+            <label className="text-sm font-bold uppercase tracking-widest text-muted ml-1">Confirm Password</label>
             <div className="relative">
               <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
               <input
@@ -114,7 +116,7 @@ export default function SignUp() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full bg-[#0e1430] border border-border rounded-2xl p-4 pl-12 text-text focus:outline-none focus:border-primary transition-all shadow-inner"
+                className="w-full bg-[#0e1430] border border-border rounded-2xl p-4 pl-12 text-base min-h-[44px] text-text focus:outline-none focus:border-primary transition-all shadow-inner"
                 required
                 disabled={loading}
               />

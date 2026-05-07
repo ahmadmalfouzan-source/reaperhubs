@@ -59,7 +59,7 @@ export default function Achievements() {
     <div className="space-y-12 max-w-6xl mx-auto px-4 py-12 animate-in fade-in duration-700">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 border-b border-border/50 pb-10">
         <div className="space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full border border-primary/20 text-[10px] font-bold text-primary uppercase tracking-[0.2em]">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full border border-primary/20 text-sm font-bold text-primary uppercase tracking-[0.2em]">
             Service Record
           </div>
           <h1 className="font-display font-bold text-4xl md:text-5xl lg:text-6xl uppercase tracking-tighter text-white italic">
@@ -72,7 +72,7 @@ export default function Achievements() {
 
         <div className="bg-surface border border-border rounded-3xl p-6 min-w-[240px] space-y-4 shadow-2xl relative overflow-hidden group">
            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-[60px] pointer-events-none group-hover:bg-primary/10 transition-all"></div>
-           <div className="flex justify-between items-center text-xs font-bold uppercase tracking-widest text-muted">
+           <div className="flex justify-between items-center text-sm font-bold uppercase tracking-widest text-muted">
               <span>Sync Progress</span>
               <span className="text-primary">{unlockedCount} / {achievements.length}</span>
            </div>
@@ -84,7 +84,7 @@ export default function Achievements() {
                 className="h-full bg-primary shadow-[0_0_15px_rgba(0,183,255,0.5)]"
               />
            </div>
-           <p className="text-[10px] text-muted text-center font-bold uppercase tracking-widest pt-1">
+           <p className="text-sm text-muted text-center font-bold uppercase tracking-widest pt-1">
               Overall Completion: {Math.round(progressPercentage)}%
            </p>
         </div>
@@ -94,13 +94,13 @@ export default function Achievements() {
         {/* Sidebar Filters */}
         <div className="lg:col-span-1 space-y-8">
            <section className="space-y-4">
-              <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted px-2">Operational Sectors</h3>
+              <h3 className="text-sm font-bold uppercase tracking-[0.2em] text-muted px-2">Operational Sectors</h3>
               <div className="flex flex-col gap-2">
-                 <button className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-primary text-black font-bold text-xs uppercase tracking-widest shadow-lg shadow-primary/20 transition-all">
+                 <button className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-primary text-black font-bold text-sm uppercase tracking-widest shadow-lg shadow-primary/20 transition-all">
                     <History size={16} /> All Targets
                  </button>
                  {categories.map(cat => (
-                   <button key={cat.id} className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-surface-2 border border-border text-muted hover:text-white hover:border-primary/50 transition-all font-bold text-xs uppercase tracking-widest group">
+                   <button key={cat.id} className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-surface-2 border border-border text-muted hover:text-white hover:border-primary/50 transition-all font-bold text-sm uppercase tracking-widest group">
                       <span className="group-hover:text-primary transition-colors">{cat.icon}</span>
                       {cat.label}
                    </button>
@@ -109,11 +109,11 @@ export default function Achievements() {
            </section>
 
            <section className="bg-surface border border-border rounded-3xl p-6 space-y-4">
-              <div className="flex items-center gap-2 text-xs font-bold uppercase text-primary">
+              <div className="flex items-center gap-2 text-sm font-bold uppercase text-primary">
                  <Zap size={14} className="fill-current" />
                  Tactical Advantage
               </div>
-              <p className="text-[10px] text-muted leading-relaxed italic">
+              <p className="text-sm text-muted leading-relaxed italic">
                 Unlocking milestones awards XP and Credits which can be used to recalibrate your operative profile in the market.
               </p>
            </section>
@@ -166,7 +166,7 @@ export default function Achievements() {
 
                        {/* Progress Bar */}
                        <div className="pt-3">
-                         <div className="flex justify-between items-center text-[9px] font-bold uppercase tracking-wider mb-1">
+                         <div className="flex justify-between items-center text-sm font-bold uppercase tracking-wider mb-1">
                            <span className={unlocked ? "text-primary" : "text-muted"}>Progress</span>
                            <span className={unlocked ? "text-primary" : "text-muted"}>{unlocked ? '100%' : 'Locked'}</span>
                          </div>
@@ -182,15 +182,15 @@ export default function Achievements() {
                     </div>
 
                     <div className="flex items-center gap-3 pt-4 border-t border-border/30">
-                       <div className="flex items-center gap-1.5 px-2.5 py-1 bg-primary/10 rounded-lg border border-primary/20 text-[9px] font-bold text-primary">
+                       <div className="flex items-center gap-1.5 px-2.5 py-1 bg-primary/10 rounded-lg border border-primary/20 text-sm font-bold text-primary">
                           +{ach.xp_reward} XP
                        </div>
-                       <div className="flex items-center gap-1.5 px-2.5 py-1 bg-success/10 rounded-lg border border-success/20 text-[9px] font-bold text-success">
+                       <div className="flex items-center gap-1.5 px-2.5 py-1 bg-success/10 rounded-lg border border-success/20 text-sm font-bold text-success">
                           +{ach.coin_reward} CR
                        </div>
                     </div>
                     {unlockedAt && (
-                      <div className="text-[10px] text-muted text-right font-medium">
+                      <div className="text-sm text-muted text-right font-medium">
                         Unlocked {new Date(unlockedAt).toLocaleDateString()}
                       </div>
                     )}

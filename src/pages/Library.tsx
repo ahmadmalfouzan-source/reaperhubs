@@ -113,7 +113,7 @@ export default function Library() {
               key={tab.id}
               onClick={() => setActiveStatus(tab.id)}
               className={cn(
-                "px-5 py-2.5 rounded-2xl text-xs font-bold whitespace-nowrap transition-all uppercase tracking-widest",
+                "px-5 py-2.5 rounded-2xl text-sm font-bold whitespace-nowrap transition-all uppercase tracking-widest",
                 activeStatus === tab.id
                   ? "bg-primary text-black shadow-lg shadow-primary/20 scale-105"
                   : "text-muted hover:text-white hover:bg-white/5"
@@ -121,7 +121,7 @@ export default function Library() {
             >
               {tab.label}
               <span className={cn(
-                "ml-2 text-[10px] tabular-nums",
+                "ml-2 text-sm tabular-nums",
                 activeStatus === tab.id ? "text-black/60" : "text-muted/40"
               )}>
                 ({tab.id === 'all' ? items.length : items.filter(i => i.status === tab.id).length})
@@ -141,7 +141,7 @@ export default function Library() {
               No archives yet. Start tracking media to build your collection.
             </p>
           </div>
-          <button onClick={() => navigate('/search')} className="px-8 py-3 bg-primary text-black font-bold rounded-xl uppercase text-xs tracking-widest shadow-lg shadow-primary/20 hover:scale-105 transition-all">
+          <button onClick={() => navigate('/search')} className="px-8 py-3 bg-primary text-black font-bold rounded-xl uppercase text-sm tracking-widest shadow-lg shadow-primary/20 hover:scale-105 transition-all">
              Begin Infiltration
           </button>
         </div>
@@ -170,9 +170,9 @@ export default function Library() {
                     }}
                   />
                 ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center text-xs text-muted bg-surface-2">
+                  <div className="w-full h-full flex flex-col items-center justify-center text-sm text-muted bg-surface-2">
                     <Play className="w-8 h-8 mb-2 opacity-10" />
-                    <span className="font-bold uppercase tracking-widest text-[10px]">No Signal</span>
+                    <span className="font-bold uppercase tracking-widest text-sm">No Signal</span>
                   </div>
                 )}
 
@@ -181,14 +181,14 @@ export default function Library() {
 
                 {/* Status Badge */}
                 <div className="absolute top-4 left-4 z-30">
-                  <span className={`text-[9px] md:text-[10px] uppercase font-bold px-3 py-1.5 rounded-full shadow-lg backdrop-blur-md border ${getStatusColor(item.status)}`}>
+                  <span className={`text-sm md:text-sm uppercase font-bold px-3 py-1.5 rounded-full shadow-lg backdrop-blur-md border ${getStatusColor(item.status)}`}>
                     {item.status?.replace(/_/g, ' ') || 'unknown'}
                   </span>
                 </div>
 
                 {/* Rating */}
                 {item.rating > 0 && (
-                  <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-md border border-white/5 rounded-full px-3 py-1 flex items-center gap-1.5 text-yellow-400 text-[10px] md:text-[11px] font-bold shadow-lg z-30">
+                  <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-md border border-white/5 rounded-full px-3 py-1 flex items-center gap-1.5 text-yellow-400 text-sm md:text-[11px] font-bold shadow-lg z-30">
                     <Sparkles size={10} className="fill-current" />
                     {item.rating}
                   </div>
@@ -196,7 +196,7 @@ export default function Library() {
 
                 {/* Bottom Info Area */}
                 <div className="absolute bottom-0 left-0 right-0 p-6 z-30 space-y-1">
-                  <div className="text-[10px] text-primary font-bold uppercase tracking-[0.2em] mb-1 drop-shadow-md">
+                  <div className="text-sm text-primary font-bold uppercase tracking-[0.2em] mb-1 drop-shadow-md">
                     {item.media_type || item.media_items?.type || 'media'}
                   </div>
                   <h3 className="font-display font-bold text-xl md:text-2xl text-white leading-tight line-clamp-2 drop-shadow-2xl italic group-hover:text-primary transition-colors" title={item.media_items?.title || 'Unknown'}>

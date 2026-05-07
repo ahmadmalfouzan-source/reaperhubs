@@ -91,7 +91,7 @@ export default function Stats() {
   return (
     <div className="space-y-12 max-w-6xl mx-auto px-4 py-12 animate-in fade-in duration-700">
       <div className="space-y-4 border-b border-border/50 pb-10">
-        <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full border border-primary/20 text-[10px] font-bold text-primary uppercase tracking-[0.2em]">
+        <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full border border-primary/20 text-sm font-bold text-primary uppercase tracking-[0.2em]">
           Tactical Analytics
         </div>
         <h1 className="font-display font-bold text-5xl md:text-6xl uppercase tracking-tighter text-white italic">
@@ -123,7 +123,7 @@ export default function Stats() {
             <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                {card.icon}
             </div>
-            <div className="text-[10px] font-bold uppercase tracking-widest text-muted mb-2">{card.label}</div>
+            <div className="text-sm font-bold uppercase tracking-widest text-muted mb-2">{card.label}</div>
             <div className="font-display font-bold text-4xl text-white">{card.value}</div>
           </motion.div>
         ))}
@@ -238,7 +238,7 @@ export default function Stats() {
               />
             </div>
           </div>
-          <p className="text-[10px] text-muted text-center font-bold uppercase tracking-widest mt-4">Activity over the last 365 days</p>
+          <p className="text-sm text-muted text-center font-bold uppercase tracking-widest mt-4">Activity over the last 365 days</p>
         </section>
       </div>
 
@@ -257,10 +257,10 @@ export default function Stats() {
                    </div>
                    <div className="space-y-0.5">
                       <h4 className="text-sm font-bold text-white uppercase truncate max-w-[200px]">{item.title}</h4>
-                      <p className="text-[9px] text-muted uppercase font-bold tracking-widest">{item.media_type}</p>
+                      <p className="text-sm text-muted uppercase font-bold tracking-widest">{item.media_type}</p>
                    </div>
                 </div>
-                <div className="flex items-center gap-1.5 px-3 py-1 bg-yellow-400/10 rounded-full border border-yellow-400/20 text-yellow-400 text-xs font-bold">
+                <div className="flex items-center gap-1.5 px-3 py-1 bg-yellow-400/10 rounded-full border border-yellow-400/20 text-yellow-400 text-sm font-bold">
                    <Star size={12} className="fill-current" />
                    {item.rating}
                 </div>

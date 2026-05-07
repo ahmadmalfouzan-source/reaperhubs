@@ -161,11 +161,11 @@ export default function Library() {
                 <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none"></div>
                 
                 {(item.poster_url || item.cover_url || item.media_items?.cover_url) ? (
-                  <img 
+                  <img loading="lazy"
                     src={item.poster_url || item.cover_url || item.media_items?.cover_url}
                     alt="Cover" 
                     className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105" 
-                    loading="lazy"
+
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=300&q=80';
                     }}

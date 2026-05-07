@@ -10,6 +10,9 @@ import {
 } from 'lucide-react';
 import Skeleton from '../components/Skeleton';
 import { motion } from 'framer-motion';
+import CalendarHeatmap from 'react-calendar-heatmap';
+import 'react-calendar-heatmap/dist/styles.css';
+import { subDays } from 'date-fns';
 
 const COLORS = ['#00B7FF', '#7C5CFF', '#00FFA3', '#FF3D71', '#FFD600', '#FF9500'];
 
@@ -48,6 +51,37 @@ export default function Stats() {
 
   const activityData = stats.activity_heatmap || [];
   
+
+  // Calculate current streak
+  let currentStreak = 0;
+  if (stats.activity_heatmap && stats.activity_heatmap.length > 0) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Create a map of dates with activity
+    const activityDates = new Set(
+      stats.activity_heatmap
+        .filter((d: any) => d.count > 0)
+        .map((d: any) => {
+          const date = new Date(d.date);
+          date.setHours(0, 0, 0, 0);
+          return date.getTime();
+        })
+    );
+
+    let checkDate = today.getTime();
+
+    // If today has no activity, check if yesterday had activity (streak still alive)
+    if (!activityDates.has(checkDate)) {
+      checkDate -= 86400000; // subtract 1 day
+    }
+
+    while (activityDates.has(checkDate)) {
+      currentStreak++;
+      checkDate -= 86400000;
+    }
+  }
+
   const typeData = [
     { name: 'Movies', value: stats.total_tracked_movies || 0 },
     { name: 'TV Shows', value: stats.total_tracked_tv || 0 },
@@ -70,11 +104,11 @@ export default function Stats() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {[
-          { label: 'Units Tracked', value: stats.total_tracked, icon: <Target className="text-primary" />, color: 'border-primary' },
-          { label: 'Tactical Hours', value: Math.round(stats.total_hours_played), icon: <Clock className="text-success" />, color: 'border-success' },
-          { label: 'Episodes Cleared', value: stats.total_episodes_watched, icon: <Activity className="text-primary-2" />, color: 'border-primary-2' },
-          { label: 'Avg Appraisal', value: stats.average_rating.toFixed(1), icon: <Star className="text-yellow-400" />, color: 'border-yellow-400' },
+                {[
+          { label: 'Total Tracked', value: stats.total_tracked, icon: <Target className="text-primary" />, color: 'border-primary' },
+          { label: 'Total Hours', value: Math.round(stats.total_hours_played), icon: <Clock className="text-success" />, color: 'border-success' },
+          { label: 'Avg Rating', value: stats.average_rating.toFixed(1), icon: <Star className="text-yellow-400" />, color: 'border-yellow-400' },
+          { label: 'Current Streak', value: `${currentStreak} Days`, icon: <Activity className="text-primary-2" />, color: 'border-primary-2' },
         ].map((card, i) => (
           <motion.div 
             key={i}
@@ -96,6 +130,7 @@ export default function Stats() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
         {/* Genre Breakdown */}
         <section className="bg-surface border-2 border-border/50 rounded-[40px] p-8 md:p-10 shadow-2xl relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[100px] pointer-events-none group-hover:bg-primary/10 transition-all duration-1000"></div>
@@ -130,35 +165,80 @@ export default function Stats() {
           </div>
         </section>
 
-        {/* Activity Over Time */}
+
+        {/* Top 5 Genres Bar Chart */}
         <section className="bg-surface border-2 border-border/50 rounded-[40px] p-8 md:p-10 shadow-2xl relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary-2/5 blur-[100px] pointer-events-none group-hover:bg-primary-2/10 transition-all duration-1000"></div>
           <div className="flex items-center gap-3 mb-10">
-             <TrendingUp className="text-primary-2 w-6 h-6" />
-             <h3 className="font-display font-bold text-2xl uppercase tracking-tight text-white">Operational Pulse</h3>
+             <LayoutGrid className="text-primary-2 w-6 h-6" />
+             <h3 className="font-display font-bold text-2xl uppercase tracking-tight text-white">Top 5 Genres</h3>
           </div>
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={activityData.slice(-14)}>
+              <BarChart data={genreData.slice(0, 5)}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
                 <XAxis 
-                  dataKey="date" 
+                  dataKey="name"
                   stroke="#666" 
                   fontSize={10} 
                   tickLine={false} 
                   axisLine={false}
-                  tickFormatter={(str) => new Date(str).toLocaleDateString([], { month: 'short', day: 'numeric' })}
                 />
                 <YAxis stroke="#666" fontSize={10} tickLine={false} axisLine={false} />
                 <Tooltip 
                   contentStyle={{ backgroundColor: '#1A1A1A', border: '1px solid #333', borderRadius: '12px', fontSize: '12px' }}
                   cursor={{ fill: 'rgba(124, 92, 255, 0.1)' }}
                 />
-                <Bar dataKey="count" fill="#7C5CFF" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="value" fill="#7C5CFF" radius={[6, 6, 0, 0]}>
+                  {
+                    genreData.slice(0, 5).map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))
+                  }
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
-          <p className="text-[10px] text-muted text-center font-bold uppercase tracking-widest mt-4">Activity over the last 14 solar cycles</p>
+        </section>
+
+      </div>
+
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Activity Heatmap */}
+        <section className="bg-surface border-2 border-border/50 rounded-[40px] p-8 md:p-10 shadow-2xl relative overflow-hidden group lg:col-span-2">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-primary-2/5 blur-[100px] pointer-events-none group-hover:bg-primary-2/10 transition-all duration-1000"></div>
+
+          <div className="flex items-center gap-3 mb-10">
+             <TrendingUp className="text-primary-2 w-6 h-6" />
+             <h3 className="font-display font-bold text-2xl uppercase tracking-tight text-white">Activity Heatmap</h3>
+          </div>
+          <div className="w-full overflow-x-auto pb-4">
+            <div className="min-w-[700px]">
+              <CalendarHeatmap
+                startDate={subDays(new Date(), 365)}
+                endDate={new Date()}
+                values={activityData.map((d: any) => ({
+                  date: d.date,
+                  count: d.count
+                }))}
+                classForValue={(value) => {
+                  if (!value || value.count === 0) {
+                    return 'fill-surface-2';
+                  }
+                  if (value.count === 1) return 'fill-primary-2/40';
+                  if (value.count === 2) return 'fill-primary-2/60';
+                  if (value.count === 3) return 'fill-primary-2/80';
+                  return 'fill-primary-2';
+                }}
+                titleForValue={(value) => {
+                  if (!value || !value.date) return 'No activity';
+                  return `${value.date}: ${value.count} activity`;
+                }}
+              />
+            </div>
+          </div>
+          <p className="text-[10px] text-muted text-center font-bold uppercase tracking-widest mt-4">Activity over the last 365 days</p>
         </section>
       </div>
 
@@ -166,10 +246,10 @@ export default function Stats() {
       <section className="space-y-8">
         <div className="flex items-center gap-3 border-b border-border/50 pb-4">
            <Sparkles className="text-yellow-400 w-6 h-6" />
-           <h3 className="font-display font-bold text-2xl uppercase tracking-tight text-white">Elite Reconnaissance</h3>
+           <h3 className="font-display font-bold text-2xl uppercase tracking-tight text-white">Top 10 Highest Rated Items</h3>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-           {stats.top_rated.map((item: any, i: number) => (
+           {stats.top_rated.slice(0, 10).map((item: any, i: number) => (
              <div key={i} className="flex items-center justify-between p-6 bg-surface-2/50 border border-border/50 rounded-2xl group hover:border-primary/30 transition-all">
                 <div className="flex items-center gap-4">
                    <div className="w-10 h-10 rounded-xl bg-black/40 flex items-center justify-center font-mono font-bold text-primary">
@@ -188,6 +268,38 @@ export default function Stats() {
            ))}
         </div>
       </section>
+
+      {/* 2026 Year-in-Review */}
+      <section className="space-y-8 mt-12 pt-12 border-t border-border/50">
+        <div className="flex items-center gap-3 border-b border-border/50 pb-4">
+           <Activity className="text-primary w-6 h-6" />
+           <h3 className="font-display font-bold text-2xl uppercase tracking-tight text-white">2026 Year-in-Review</h3>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+           <div className="p-6 bg-surface-2/50 border border-border/50 rounded-3xl flex flex-col items-center justify-center text-center space-y-2">
+              <div className="w-12 h-12 bg-primary/20 text-primary rounded-full flex items-center justify-center mb-2">
+                 <Film className="w-6 h-6" />
+              </div>
+              <h4 className="text-sm font-bold text-muted uppercase tracking-widest">Movies Watched</h4>
+              <p className="text-3xl font-display font-bold text-white">{stats.total_tracked_movies || 0}</p>
+           </div>
+           <div className="p-6 bg-surface-2/50 border border-border/50 rounded-3xl flex flex-col items-center justify-center text-center space-y-2">
+              <div className="w-12 h-12 bg-primary-2/20 text-primary-2 rounded-full flex items-center justify-center mb-2">
+                 <Tv className="w-6 h-6" />
+              </div>
+              <h4 className="text-sm font-bold text-muted uppercase tracking-widest">TV Shows Binge</h4>
+              <p className="text-3xl font-display font-bold text-white">{stats.total_tracked_tv || 0}</p>
+           </div>
+           <div className="p-6 bg-surface-2/50 border border-border/50 rounded-3xl flex flex-col items-center justify-center text-center space-y-2">
+              <div className="w-12 h-12 bg-success/20 text-success rounded-full flex items-center justify-center mb-2">
+                 <Gamepad2 className="w-6 h-6" />
+              </div>
+              <h4 className="text-sm font-bold text-muted uppercase tracking-widest">Games Played</h4>
+              <p className="text-3xl font-display font-bold text-white">{stats.total_tracked_games || 0}</p>
+           </div>
+        </div>
+      </section>
+
     </div>
   );
 }

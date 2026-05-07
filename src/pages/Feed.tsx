@@ -190,7 +190,7 @@ export default function Feed() {
               <div className="flex gap-5">
                 <div className="w-14 h-14 rounded-3xl bg-surface-2 border-2 border-border flex items-center justify-center overflow-hidden flex-shrink-0 shadow-lg group-hover:border-primary/30 transition-all">
                   {user.avatar_url ? (
-                    <img src={user.avatar_url} alt="You" className="w-full h-full object-cover" loading="lazy" />
+                    <img loading="lazy"  src={user.avatar_url} alt="You" className="w-full h-full object-cover"  onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=300&q=80'; }} />
                   ) : (
                     <User className="w-6 h-6 text-primary" />
                   )}
@@ -269,7 +269,7 @@ export default function Feed() {
                     <Link to={`/profile/${item.users?.username || ''}`} className="relative group/avatar">
                       <div className="w-14 h-14 rounded-3xl bg-surface-2 border-2 border-border overflow-hidden shadow-2xl transition-all group-hover/avatar:border-primary/80 group-hover/avatar:shadow-[0_0_20px_rgba(0,183,255,0.3)]">
                         {item.users?.avatar_url ? (
-                          <img src={item.users.avatar_url} alt={item.users?.username} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" loading="lazy" />
+                          <img loading="lazy"  src={item.users.avatar_url} alt={item.users?.username} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"  onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=300&q=80'; }} />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center bg-primary/5">
                             <span className="text-primary font-display font-bold text-2xl">{item.users?.username?.[0]?.toUpperCase() || '?'}</span>

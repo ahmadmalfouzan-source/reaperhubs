@@ -10,6 +10,7 @@ export interface RAWGGame {
   rating: number;
   rating_top: number;
   genres: { name: string }[];
+  tags?: { slug: string; name: string }[];
   description_raw?: string;
   platforms?: { platform: { name: string } }[];
   developers?: { id: number, name: string, image_background: string }[];
@@ -57,23 +58,13 @@ export async function getGameSuggested(id: string | number): Promise<RAWGGame[]>
       results = seriesData.results || [];
     }
 
-    // 2. If series is empty, attempt to fetch additions/DLCs
-    if (results.length === 0) {
-      const additionsUrl = `${BASE_URL}/games/${numericId}/additions?key=${API_KEY}`;
-      const additionsResponse = await fetch(additionsUrl);
-      if (additionsResponse.ok) {
-        const additionsData = await additionsResponse.json();
-        results = additionsData.results || [];
-      }
-    }
-
-    // 3. Task 1.1: Final Fallback - Search by tags if still empty
+    // 2. Final Fallback - Search by tags if still empty
     if (results.length === 0) {
       // Get game details first to find tags
       const gameDetails = await getGameDetails(numericId);
-      if (gameDetails && gameDetails.genres && gameDetails.genres.length > 0) {
-        const genreIds = gameDetails.genres.map(g => g.name.toLowerCase()).join(',');
-        const fallbackUrl = `${BASE_URL}/games?genres=${genreIds}&page_size=10&key=${API_KEY}&exclude_additions=true`;
+      if (gameDetails && gameDetails.tags && gameDetails.tags.length > 0) {
+        const tagSlugs = gameDetails.tags.map(t => t.slug).join(',');
+        const fallbackUrl = `${BASE_URL}/games?tags=${tagSlugs}&page_size=10&key=${API_KEY}`;
         const fallbackResponse = await fetch(fallbackUrl);
         if (fallbackResponse.ok) {
           const fallbackData = await fallbackResponse.json();

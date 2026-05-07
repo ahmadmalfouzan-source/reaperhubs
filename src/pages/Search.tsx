@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { addToLibrary as addToLibraryQuery } from '../lib/reaperhub/queries';
 import { searchTMDB, discoverTMDB, getTMDBGenres, getTMDBImageUrl, getTMDBItemByTitle, getTrendingTMDB } from '../services/tmdbService';
 import { searchGames as searchRAWG, mapRAWGToMedia } from '../services/rawgService';
-import { TrendingUp, Plus, Check, Search as SearchIcon, Filter, X } from 'lucide-react';
+import { TrendingUp, Plus, Check, Search as SearchIcon, Filter, X, Clock, Trash2, ArrowUpRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -35,11 +35,13 @@ function DiscoverImage({ title, type }: { title: string; type: string }) {
     </div>
   );
 
-  return <img src={url} alt={title} className="w-full h-full object-cover transition-transform group-hover:scale-110" onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=300&q=80'; }} />;
+  return <img loading="lazy" src={url} alt={title} className="w-full h-full object-cover transition-transform group-hover:scale-110" onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=300&q=80'; }} />;
 }
 
 type MediaType = 'movie' | 'tv' | 'game' | 'all';
-type SortOption = 'popularity.desc' | 'vote_average.desc' | 'release_date.desc';
+type SortOption = 'relevance' | 'popularity.desc' | 'vote_average.desc' | 'release_date.desc';
+const RECENT_SEARCHES_KEY = 'reaperhub_recent_searches';
+const MAX_RECENT_SEARCHES = 10;
 
 export default function Search() {
   const [query, setQuery] = useState('');
@@ -51,13 +53,75 @@ export default function Search() {
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const navigate = useNavigate();
 
+
+
+  // Filters
+  const [showFilters, setShowFilters] = useState(false);
+  const [mediaType, setMediaType] = useState<MediaType>('all');
+  const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
+  const [minYear, setMinYear] = useState<number>(1900);
+  const [maxYear, setMaxYear] = useState<number>(new Date().getFullYear());
+  const [minRating, setMinRating] = useState<number>(0);
+  const [maxRating, setMaxRating] = useState<number>(10);
+
+  // Search history & suggestions
+  const [recentSearches, setRecentSearches] = useState<string[]>(() => {
+    try {
+      const stored = localStorage.getItem(RECENT_SEARCHES_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+  const [sortBy, setSortBy] = useState<SortOption>('popularity.desc');
+  const [genres, setGenres] = useState<any[]>([]);
+
   // Debounced search effect
   useEffect(() => {
     if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
     
     if (query.trim()) {
-      searchTimeoutRef.current = setTimeout(() => {
+      searchTimeoutRef.current = setTimeout(async () => {
+        // Fetch suggestions
+        try {
+          const type = mediaType === 'all' ? 'multi' : mediaType as 'movie' | 'tv';
+          let tmdbSuggestions: any[] = [];
+          if (mediaType !== 'game') {
+            tmdbSuggestions = await searchTMDB(query, type);
+          }
+
+          let gameSuggestions: any[] = [];
+          if (mediaType === 'game' || mediaType === 'all') {
+             const rawgRes = await searchRAWG(query);
+             gameSuggestions = rawgRes.map(mapRAWGToMedia);
+          }
+
+          const combined = [...tmdbSuggestions.map(i => ({
+             ...i,
+             type: i.media_type || (i.title ? 'movie' : 'tv'),
+             title: i.title || i.name
+          })), ...gameSuggestions];
+
+          // Sort by popularity roughly for suggestions
+          combined.sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
+
+          setSuggestions(combined.slice(0, 5));
+          setShowSuggestions(true);
+        } catch (e) {
+           console.error(e);
+        }
         handleSearch(query);
+      }, 300);
+    } else {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+      // Wait to handle search for empty query to avoid multiple API calls during rapid deletion
+      searchTimeoutRef.current = setTimeout(() => {
+         handleSearch('');
       }, 300);
     }
     
@@ -66,12 +130,23 @@ export default function Search() {
     };
   }, [query]);
 
-  // Filters
-  const [showFilters, setShowFilters] = useState(false);
-  const [mediaType, setMediaType] = useState<MediaType>('all');
-  const [selectedGenre, setSelectedGenre] = useState('all');
-  const [sortBy, setSortBy] = useState<SortOption>('popularity.desc');
-  const [genres, setGenres] = useState<any[]>([]);
+  useEffect(() => {
+    try {
+      localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(recentSearches));
+    } catch (e) {
+      console.error('Failed to save recent searches', e);
+    }
+  }, [recentSearches]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     // Initial load
@@ -119,8 +194,12 @@ export default function Search() {
         const tmdbType = mediaType === 'all' ? 'movie' : mediaType;
         const tmdbData = await discoverTMDB({
           type: tmdbType as 'movie' | 'tv',
-          genreId: selectedGenre,
-          sortBy: sortBy
+          genreIds: selectedGenres.length > 0 ? selectedGenres : undefined,
+          sortBy: sortBy === 'relevance' ? 'popularity.desc' : sortBy,
+          minYear,
+          maxYear,
+          minRating,
+          maxRating
         });
         
         const formatted = tmdbData.map((item: any) => ({
@@ -159,14 +238,50 @@ export default function Search() {
       }
     }
     
-    setResults(data);
+    // Apply local filtering to results since TMDB search doesn't support advanced filters
+    let filteredData = data;
+
+    if (searchQuery) {
+       filteredData = filteredData.filter(item => {
+          // Check year
+          if (item.release_year) {
+             const year = parseInt(item.release_year);
+             if (year < minYear || year > maxYear) return false;
+          }
+
+          // Check rating
+          if (item.rating !== undefined) {
+             if (item.rating > 0 && (item.rating < minRating || item.rating > maxRating)) return false;
+          }
+
+          // Genre filtering is hard for multi-search as it doesn't return detailed genres consistently
+          // and we only have genre_ids which requires mapping.
+          // For simplicity, we skip strict genre filtering on local text search unless we map ids.
+          return true;
+       });
+
+       // Local sort
+       if (sortBy === 'vote_average.desc') {
+         filteredData.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+       } else if (sortBy === 'release_date.desc') {
+         filteredData.sort((a, b) => {
+            const dateA = a.release_date || `${a.release_year}-01-01` || '';
+            const dateB = b.release_date || `${b.release_year}-01-01` || '';
+            return dateB.localeCompare(dateA);
+         });
+       } else if (sortBy === 'popularity.desc') {
+         filteredData.sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
+       }
+    }
+
+    setResults(filteredData);
     setLoading(false);
-  }, [mediaType, selectedGenre, sortBy]);
+  }, [mediaType, selectedGenres, sortBy, minYear, maxYear, minRating, maxRating]);
 
   // Re-run search when filters change
   useEffect(() => {
     handleSearch(query);
-  }, [mediaType, selectedGenre, sortBy, handleSearch]);
+  }, [mediaType, selectedGenres, sortBy, minYear, maxYear, minRating, maxRating, handleSearch]);
 
   const handleAdd = async (item: any) => {
     const res = await addToLibraryQuery(item.title, item.type, 'plan_to_watch', {
@@ -187,129 +302,288 @@ export default function Search() {
     }
   };
 
+  const saveSearchToHistory = (term: string) => {
+    if (!term.trim()) return;
+    setRecentSearches(prev => {
+      const filtered = prev.filter(s => s.toLowerCase() !== term.toLowerCase());
+      return [term, ...filtered].slice(0, MAX_RECENT_SEARCHES);
+    });
+  };
+
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setShowSuggestions(false);
+    saveSearchToHistory(query);
     handleSearch(query);
+  };
+
+  const handleSuggestionClick = (title: string) => {
+     setQuery(title);
+     setShowSuggestions(false);
+     saveSearchToHistory(title);
+     handleSearch(title);
+  };
+
+  const handleRecentSearchClick = (term: string) => {
+     setQuery(term);
+     setShowSuggestions(false);
+     saveSearchToHistory(term);
+     handleSearch(term);
   };
 
   const clearFilters = () => {
     setMediaType('all');
-    setSelectedGenre('all');
-    setSortBy('popularity.desc');
+    setSelectedGenres([]);
+    setSortBy('relevance');
+    setMinYear(1900);
+    setMaxYear(new Date().getFullYear());
+    setMinRating(0);
+    setMaxRating(10);
   };
 
   return (
     <div className="space-y-12">
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="font-display font-bold text-3xl">Search Media</h1>
-          <button 
-            onClick={() => setShowFilters(!showFilters)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-colors ${showFilters ? 'bg-primary border-primary text-white' : 'bg-surface border-border text-muted hover:text-text'}`}
-          >
-            <Filter size={18} />
-            <span className="text-sm font-bold">Filters</span>
-          </button>
+      <div className="flex flex-col md:flex-row gap-8 relative">
+        {/* Mobile Filter Toggle */}
+        <div className="md:hidden flex items-center justify-between mb-4">
+           <h1 className="font-display font-bold text-3xl">Search</h1>
+           <button
+             onClick={() => setShowFilters(!showFilters)}
+             className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-colors ${showFilters ? 'bg-primary border-primary text-white' : 'bg-surface border-border text-muted hover:text-text'}`}
+           >
+             <Filter size={18} />
+             <span className="text-sm font-bold">Filters</span>
+           </button>
         </div>
-        
-        {showFilters && (
-          <div className="bg-surface border border-border rounded-2xl p-6 shadow-xl space-y-6 animate-in fade-in slide-in-from-top-4 duration-300">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-widest text-muted">Media Type</label>
-                <div className="flex flex-wrap gap-2">
-                  {(['all', 'movie', 'tv', 'game'] as MediaType[]).map((t) => (
-                    <button
-                      key={t}
-                      onClick={() => setMediaType(t)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${mediaType === t ? 'bg-primary/20 border-primary text-primary' : 'bg-surface-2 border-border text-muted hover:border-text/30'}`}
-                    >
-                      {t.charAt(0).toUpperCase() + t.slice(1)}
-                    </button>
-                  ))}
-                </div>
-              </div>
 
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-widest text-muted">Genre</label>
-                <select 
-                  value={selectedGenre}
-                  onChange={(e) => setSelectedGenre(e.target.value)}
-                  className="w-full bg-surface-2 border border-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-primary transition-colors cursor-pointer"
-                >
-                  <option value="all">All Genres</option>
-                  {genres.map(g => (
-                    <option key={g.id} value={g.id}>{g.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-widest text-muted">Sort By</label>
-                <select 
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as SortOption)}
-                  className="w-full bg-surface-2 border border-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-primary transition-colors cursor-pointer"
-                >
-                  <option value="popularity.desc">Popularity</option>
-                  <option value="vote_average.desc">Rating</option>
-                  <option value="release_date.desc">Release Date</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="flex justify-end pt-2">
-              <button 
+        {/* Sidebar Filters */}
+        <div className={`${showFilters ? 'block' : 'hidden'} md:block w-full md:w-64 space-y-6 flex-shrink-0 bg-surface md:bg-transparent border md:border-0 border-border p-4 md:p-0 rounded-2xl md:rounded-none`}>
+            <div className="hidden md:flex items-center justify-between mb-6">
+              <h1 className="font-display font-bold text-2xl">Filters</h1>
+              <button
                 onClick={clearFilters}
-                className="flex items-center gap-2 text-xs font-bold text-muted hover:text-danger transition-colors"
+                className="text-xs font-bold text-muted hover:text-danger transition-colors flex items-center gap-1"
               >
-                <X size={14} />
-                Clear All
+                <Trash2 size={12} /> Clear
               </button>
             </div>
-          </div>
-        )}
 
-        <div className="flex flex-wrap gap-2">
+            {/* Media Type */}
+            <div className="space-y-3">
+              <label className="text-xs font-bold uppercase tracking-widest text-muted">Media Type</label>
+              <div className="flex flex-wrap gap-2">
+                {(['all', 'movie', 'tv', 'game'] as MediaType[]).map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => setMediaType(t)}
+                    className={`flex-1 px-3 py-2 rounded-lg text-xs font-bold border transition-all ${mediaType === t ? 'bg-primary/20 border-primary text-primary' : 'bg-surface-2 border-border text-muted hover:border-text/30'}`}
+                  >
+                    {t.charAt(0).toUpperCase() + t.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Sort */}
+            <div className="space-y-3">
+              <label className="text-xs font-bold uppercase tracking-widest text-muted">Sort By</label>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as SortOption)}
+                className="w-full bg-surface-2 border border-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-primary transition-colors cursor-pointer"
+              >
+                <option value="relevance">Relevance</option>
+                <option value="popularity.desc">Popularity</option>
+                <option value="vote_average.desc">Rating</option>
+                <option value="release_date.desc">Release Date</option>
+              </select>
+            </div>
+
+            {/* Year Range */}
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <label className="text-xs font-bold uppercase tracking-widest text-muted">Year</label>
+                <span className="text-xs text-primary font-mono">{minYear} - {maxYear}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  value={minYear}
+                  onChange={(e) => setMinYear(Math.max(1900, Math.min(maxYear, parseInt(e.target.value) || 1900)))}
+                  className="w-full bg-surface-2 border border-border rounded-lg px-2 py-1.5 text-xs text-center"
+                />
+                <span className="text-muted">-</span>
+                <input
+                  type="number"
+                  value={maxYear}
+                  onChange={(e) => setMaxYear(Math.min(new Date().getFullYear(), Math.max(minYear, parseInt(e.target.value) || new Date().getFullYear())))}
+                  className="w-full bg-surface-2 border border-border rounded-lg px-2 py-1.5 text-xs text-center"
+                />
+              </div>
+            </div>
+
+            {/* Rating Range */}
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <label className="text-xs font-bold uppercase tracking-widest text-muted">Rating</label>
+                <span className="text-xs text-yellow-500 font-mono">★ {minRating} - {maxRating}</span>
+              </div>
+              <div className="px-2">
+                <input
+                  type="range"
+                  min="0" max="10" step="0.5"
+                  value={minRating}
+                  onChange={(e) => setMinRating(Math.min(maxRating, parseFloat(e.target.value)))}
+                  className="w-full accent-yellow-500 h-1 bg-surface-2 rounded-lg appearance-none cursor-pointer mb-2"
+                />
+                <input
+                  type="range"
+                  min="0" max="10" step="0.5"
+                  value={maxRating}
+                  onChange={(e) => setMaxRating(Math.max(minRating, parseFloat(e.target.value)))}
+                  className="w-full accent-yellow-500 h-1 bg-surface-2 rounded-lg appearance-none cursor-pointer"
+                />
+              </div>
+            </div>
+
+            {/* Genre Multi-select */}
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <label className="text-xs font-bold uppercase tracking-widest text-muted">Genres</label>
+                {selectedGenres.length > 0 && (
+                  <button onClick={() => setSelectedGenres([])} className="text-[10px] text-muted hover:text-danger">Clear</button>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-1.5 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
+                {genres.map(g => {
+                   const isSelected = selectedGenres.includes(String(g.id));
+                   return (
+                     <button
+                       key={g.id}
+                       onClick={() => {
+                          setSelectedGenres(prev =>
+                            isSelected ? prev.filter(id => id !== String(g.id)) : [...prev, String(g.id)]
+                          );
+                       }}
+                       className={`px-2 py-1 rounded-md text-[10px] font-bold border transition-all ${isSelected ? 'bg-primary-2/20 border-primary-2 text-primary-2' : 'bg-surface-2 border-border/50 text-muted hover:border-text/30'}`}
+                     >
+                       {g.name}
+                     </button>
+                   )
+                })}
+              </div>
+            </div>
+
+            <div className="md:hidden flex justify-end pt-4 border-t border-border mt-6">
+               <button
+                 onClick={clearFilters}
+                 className="flex items-center gap-2 text-xs font-bold text-muted hover:text-danger transition-colors mr-4"
+               >
+                 <X size={14} /> Clear All
+               </button>
+               <button
+                 onClick={() => setShowFilters(false)}
+                 className="px-4 py-2 bg-primary text-white rounded-lg text-xs font-bold"
+               >
+                 Apply Filters
+               </button>
+            </div>
+        </div>
+
+        {/* Main Search Area */}
+        <div className="flex-1 space-y-6">
+
+        <div className="flex flex-wrap gap-2 mb-2">
           {mediaType !== 'all' && (
             <span className="flex items-center gap-1.5 px-3 py-1 bg-primary/10 border border-primary/30 text-primary rounded-full text-[10px] font-bold uppercase tracking-tighter">
               Type: {mediaType}
               <X size={10} className="ml-1 cursor-pointer" onClick={() => setMediaType('all')} />
             </span>
           )}
-          {selectedGenre !== 'all' && (
+          {selectedGenres.length > 0 && (
             <span className="flex items-center gap-1.5 px-3 py-1 bg-primary-2/10 border border-primary-2/30 text-primary-2 rounded-full text-[10px] font-bold uppercase tracking-tighter">
-              Genre: {genres.find(g => String(g.id) === String(selectedGenre))?.name}
-              <X size={10} className="ml-1 cursor-pointer" onClick={() => setSelectedGenre('all')} />
+              Genres: {selectedGenres.length} selected
+              <X size={10} className="ml-1 cursor-pointer" onClick={() => setSelectedGenres([])} />
             </span>
           )}
-          {sortBy !== 'popularity.desc' && (
+          {sortBy !== 'relevance' && sortBy !== 'popularity.desc' && (
             <span className="flex items-center gap-1.5 px-3 py-1 bg-success/10 border border-success/30 text-success rounded-full text-[10px] font-bold uppercase tracking-tighter">
               Sort: {sortBy.split('.')[0]}
-              <X size={10} className="ml-1 cursor-pointer" onClick={() => setSortBy('popularity.desc')} />
+              <X size={10} className="ml-1 cursor-pointer" onClick={() => setSortBy('relevance')} />
             </span>
           )}
         </div>
         
-        <form onSubmit={onSubmit} className="flex gap-2">
-          <div className="relative flex-1">
-            <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search movies, series, games..."
-              className="w-full bg-surface border border-border rounded-xl p-[14px] pl-12 text-text focus:outline-none focus:border-primary transition-colors"
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="bg-primary hover:bg-primary/90 text-white font-bold rounded-xl px-8 transition-colors disabled:opacity-50"
-          >
-            {loading ? '...' : 'Search'}
-          </button>
-        </form>
+        <div className="relative" ref={searchContainerRef}>
+          <form onSubmit={onSubmit} className="flex gap-2 relative z-10">
+            <div className="relative flex-1">
+              <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  setShowSuggestions(true);
+                }}
+                onFocus={() => setShowSuggestions(true)}
+                placeholder="Search movies, series, games..."
+                className="w-full bg-surface border border-border rounded-xl p-[14px] pl-12 text-text focus:outline-none focus:border-primary transition-colors shadow-sm"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="bg-primary hover:bg-primary/90 text-white font-bold rounded-xl px-8 transition-colors disabled:opacity-50"
+            >
+              {loading ? '...' : 'Search'}
+            </button>
+          </form>
+
+          {/* Suggestions Dropdown */}
+          {showSuggestions && query.trim().length > 0 && suggestions.length > 0 && (
+            <div className="absolute top-full left-0 right-[104px] mt-2 bg-surface border border-border rounded-xl shadow-2xl overflow-hidden z-50">
+              {suggestions.map((item, idx) => (
+                <div
+                  key={idx}
+                  onClick={() => handleSuggestionClick(item.title)}
+                  className="flex items-center gap-3 p-3 hover:bg-surface-2 cursor-pointer transition-colors border-b border-border/50 last:border-0"
+                >
+                  <SearchIcon size={14} className="text-muted flex-shrink-0" />
+                  <div className="flex-1 truncate">
+                    <span className="text-sm text-text font-medium">{item.title}</span>
+                    {item.release_year && <span className="text-xs text-muted ml-2">({item.release_year})</span>}
+                  </div>
+                  <span className="text-[9px] uppercase font-bold px-2 py-0.5 rounded-md bg-surface-2 text-muted border border-border/50">
+                    {item.type}
+                  </span>
+                  <ArrowUpRight size={14} className="text-muted opacity-50" />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Recent Searches (when input is empty) */}
+          {!query.trim() && recentSearches.length > 0 && (
+             <div className="mt-4 flex flex-wrap items-center gap-2">
+                <span className="text-xs font-bold text-muted flex items-center gap-1 mr-2"><Clock size={12}/> Recent:</span>
+                {recentSearches.map((term, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => handleRecentSearchClick(term)}
+                    className="px-3 py-1 rounded-full text-xs bg-surface-2 border border-border/50 text-text hover:border-primary/50 hover:text-primary transition-colors"
+                  >
+                    {term}
+                  </button>
+                ))}
+                <button
+                  onClick={() => setRecentSearches([])}
+                  className="ml-auto text-[10px] text-muted hover:text-danger flex items-center gap-1"
+                >
+                  Clear History
+                </button>
+             </div>
+          )}
+        </div>
 
         {loading ? (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -333,7 +607,7 @@ export default function Search() {
                   className="relative group rounded-2xl overflow-hidden bg-surface-2 cursor-pointer touch-manipulation aspect-[2/3] shadow-lg border border-border/50"
                 >
                 {item.cover_url ? (
-                  <img src={item.cover_url} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=300&q=80'; }} />
+                  <img loading="lazy" src={item.cover_url} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=300&q=80'; }} />
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center text-xs text-muted bg-surface">
                     <span className="text-4xl mb-2 opacity-50">🎬</span>
@@ -389,7 +663,9 @@ export default function Search() {
             ))}
           </div>
         ) : null}
-      </div>
+      </div>{/* End Main Search Area */}
+      </div>{/* End Flex Row */}
+
 
       {/* Discover Section */}
       <section className="space-y-6 pt-6">

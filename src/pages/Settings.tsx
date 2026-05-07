@@ -159,7 +159,7 @@ export default function Settings() {
               disabled={uploading}
             />
             {avatarUrl ? (
-              <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover transition-transform group-hover:scale-110" />
+              <img loading="lazy" src={avatarUrl} alt="Avatar" className="w-full h-full object-cover transition-transform group-hover:scale-110"  onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=300&q=80'; }} />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-primary/30">
                 <User size={50} />

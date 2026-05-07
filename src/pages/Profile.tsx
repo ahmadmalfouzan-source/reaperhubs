@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { Link,  useParams, useNavigate  } from 'react-router-dom';
 import { 
     getProfileWithPosts,
   getUserAchievements, 
@@ -13,11 +13,11 @@ import {
   getIsFollowing,
   getUserStreak,
   getUserStats
-} from '../lib/reaperhub/queries';
+} from "../lib/reaperhub/queries";
 import { 
   Award, Lock, Camera, ExternalLink, 
   Loader2, Sparkles, Ghost, Library, UserPlus, UserMinus, Users, MessageSquare, Play, Flame, Star, Clock, Activity, List
-} from 'lucide-react';
+} from "lucide-react";
 import { supabase } from '../lib/supabase';
 import { cn } from '../lib/utils';
 import { toast } from '../lib/toastUtils';
@@ -260,7 +260,7 @@ export default function Profile() {
         <div className="relative group z-10">
           <div className="w-32 h-32 md:w-48 md:h-48 rounded-[32px] md:rounded-[40px] bg-surface-2 border-4 border-primary-2/20 flex items-center justify-center overflow-hidden flex-shrink-0 relative z-10 shadow-2xl transition-all duration-700 group-hover:scale-105 group-hover:rotate-2">
             {user?.avatar_url ? (
-              <img src={user.avatar_url} alt={user?.username || 'Profile'} className="w-full h-full object-cover" loading="lazy" />
+              <img loading="lazy"  src={user.avatar_url} alt={user?.username || 'Profile'} className="w-full h-full object-cover"  onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=300&q=80'; }} />
             ) : (
               <span className="text-primary-2 font-display font-bold text-5xl md:text-6xl drop-shadow-lg">{user?.username?.[0]?.toUpperCase() || '?'}</span>
             )}
@@ -427,7 +427,7 @@ export default function Profile() {
       </div>
 
       {/* Currently Watching / Playing Widget */}
-      {library.filter(item => item.status === 'watching' || item.status === 'in_progress').length > 0 && (
+      {library.filter(item => item.status === "watching" || item.status === "in_progress").length > 0 && (
         <div className="bg-surface border border-border/50 rounded-[32px] p-6 mb-8 shadow-xl">
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-display font-bold text-lg text-white uppercase tracking-tighter flex items-center gap-2">
@@ -437,11 +437,11 @@ export default function Profile() {
             <span className="text-[10px] text-muted uppercase font-bold tracking-widest">In Progress</span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {library.filter(item => item.status === 'watching' || item.status === 'in_progress').slice(0, 3).map(item => (
+            {library.filter(item => item.status === "watching" || item.status === "in_progress").slice(0, 3).map(item => (
               <div
                 key={item.id}
                 onClick={() => {
-                   const mediaType = item.media_type || item.media_items?.type || 'movie';
+                   const mediaType = item.media_type || item.media_items?.type || "movie";
                    const mediaId = item.media_id || item.media_items?.tmdb_id || item.media_items?.rawg_id || item.id;
                    navigate(`/media/${mediaType}/${mediaId}`);
                 }}
@@ -463,10 +463,10 @@ export default function Profile() {
       {/* Tabs Navigation */}
       <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide border-b border-border/50">
         {[
-          { id: 'library', label: 'Library', icon: <Library size={16} /> },
-          { id: 'reviews', label: 'Reviews', icon: <Star size={16} /> },
-          { id: 'activity', label: 'Activity Feed', icon: <Activity size={16} /> },
-          { id: 'achievements', label: 'Achievements', icon: <Award size={16} /> }
+          { id: "library", label: "Library", icon: <Library size={16} /> },
+          { id: "reviews", label: "Reviews", icon: <Star size={16} /> },
+          { id: "activity", label: "Activity Feed", icon: <Activity size={16} /> },
+          { id: "achievements", label: "Achievements", icon: <Award size={16} /> }
         ].map(tab => (
           <button
             key={tab.id}

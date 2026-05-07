@@ -58,7 +58,7 @@ export default function CommentSection({ postId, onCommentAdded }: CommentSectio
             <div key={comment.id} className="flex gap-4 group/comment animate-in fade-in duration-300">
               <div className="w-10 h-10 rounded-2xl bg-surface-2 border border-border overflow-hidden flex-shrink-0">
                 {comment.users?.avatar_url ? (
-                  <img src={comment.users.avatar_url} alt={comment.users?.username} className="w-full h-full object-cover" />
+                  <img loading="lazy" src={comment.users.avatar_url} alt={comment.users?.username} className="w-full h-full object-cover"  onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=300&q=80'; }} />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-primary/5">
                     <User className="w-4 h-4 text-primary" />

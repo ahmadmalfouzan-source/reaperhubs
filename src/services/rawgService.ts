@@ -29,10 +29,12 @@ export async function searchGames(query: string): Promise<RAWGGame[]> {
 }
 
 export async function getGameDetails(id: string | number): Promise<RAWGGame | null> {
+  const numericId = id.toString().replace('rawg-', '');
+  console.log('Fetching RAWG details for ID:', numericId);
   try {
-    const url = `${BASE_URL}/games/${id}?key=${API_KEY}`;
+    const url = `${BASE_URL}/games/${numericId}?key=${API_KEY}`;
     const response = await fetch(url);
-    if (!response.ok) throw new Error('RAWG API error');
+    if (!response.ok) throw new Error(`RAWG API error: ${response.status}`);
     return await response.json();
   } catch (error) {
     console.error('Error fetching game details from RAWG:', error);
@@ -41,12 +43,13 @@ export async function getGameDetails(id: string | number): Promise<RAWGGame | nu
 }
 
 export async function getGameSuggested(id: string | number): Promise<RAWGGame[]> {
-  console.log('Fetching RAWG suggested games for ID:', id);
+  const numericId = id.toString().replace('rawg-', '');
+  console.log('Fetching RAWG suggested games for ID:', numericId);
   try {
-    const url = `${BASE_URL}/games/${id}/suggested?key=${API_KEY}`;
+    const url = `${BASE_URL}/games/${numericId}/suggested?key=${API_KEY}`;
     const response = await fetch(url);
     console.log('RAWG Suggested Response Status:', response.status);
-    if (!response.ok) throw new Error('RAWG API error');
+    if (!response.ok) throw new Error(`RAWG API error: ${response.status}`);
     const data = await response.json();
     console.log('RAWG Suggested Games Count:', data.results?.length || 0);
     return data.results || [];

@@ -13,12 +13,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const results = await hltbService.search(q);
-    console.log(`HLTB Results for "${q}":`, results?.length || 0);
+    console.log(`HLTB Results for "${q}":`, results ? results.length : 'null');
     
     if (results && results.length > 0) {
       // Find the closest match
       const bestMatch = results[0];
-      console.log('HLTB Best Match:', bestMatch.name);
+      console.log('HLTB Best Match:', bestMatch.name, 'Values:', {
+        main: bestMatch.gameplayMain,
+        extra: bestMatch.gameplayMainExtra,
+        comp: bestMatch.gameplayCompletionist
+      });
       return res.status(200).json({
         main: bestMatch.gameplayMain ? `${bestMatch.gameplayMain}h` : '--',
         extra: bestMatch.gameplayMainExtra ? `${bestMatch.gameplayMainExtra}h` : '--',
@@ -31,8 +35,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       extra: '--',
       completionist: '--'
     });
-  } catch (error) {
-    console.error('HLTB API Error:', error);
-    return res.status(500).json({ error: 'Internal Server Error' });
+  } catch (error: any) {
+    console.error('HLTB API Error Stack:', error.stack || error);
+    return res.status(500).json({ error: 'Internal Server Error', details: error.message });
   }
 }

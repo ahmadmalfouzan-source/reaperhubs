@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { Link,  useParams, useNavigate  } from 'react-router-dom';
 import { 
     getProfileWithPosts,
   getUserAchievements, 
@@ -12,10 +12,10 @@ import {
   getFollowStats,
   getIsFollowing
 } from '../lib/reaperhub/queries';
-import { 
+import { Activity,
   Award, Lock, Camera, ExternalLink, 
   Loader2, Sparkles, Ghost, Library, UserPlus, UserMinus, Users, MessageSquare
-} from 'lucide-react';
+ } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { cn } from '../lib/utils';
 import { toast } from '../lib/toastUtils';
@@ -304,8 +304,17 @@ export default function Profile() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-12">
-        {/* Achievements & Stats */}
+                {/* Achievements & Stats */}
         <div className="lg:col-span-1 space-y-8 md:space-y-12">
+          <div className="bg-surface-2/30 border border-border/50 rounded-3xl p-6 flex flex-col items-center text-center">
+            <Activity className="w-8 h-8 text-primary mb-3" />
+            <h3 className="font-display font-bold text-lg uppercase text-white mb-2">Tactical Analytics</h3>
+            <p className="text-xs text-muted mb-4">View your complete performance history, heatmaps, and genre breakdowns.</p>
+            <Link to="/stats" className="w-full py-2.5 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 rounded-xl text-sm font-bold uppercase tracking-widest transition-colors">
+              View Stats
+            </Link>
+          </div>
+
           <section className="space-y-6">
             <div className="flex items-center gap-3 border-b border-border/50 pb-4">
               <Award className="w-5 h-5 md:w-6 md:h-6 text-primary" />

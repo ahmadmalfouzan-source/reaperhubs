@@ -37,3 +37,9 @@
     background-color: #0e1430 !important;
   }
 }
+
+
+/* Heatmap Overrides */
+.react-calendar-heatmap .color-empty { fill: var(--color-surface-2); }
+.react-calendar-heatmap text { font-size: 10px; fill: var(--color-muted); }
+.react-calendar-heatmap rect { rx: 2; ry: 2; }

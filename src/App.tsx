@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
-import { Home, Compass, Search, Library, Bell, Settings, User, LogOut, ChevronDown, Trophy, Award } from 'lucide-react';
+import { Home, Compass, Search, Library, Bell, Settings, User, LogOut, ChevronDown, Trophy, Award, Activity } from 'lucide-react';
 import { cn } from './lib/utils';
 import { useEffect, useState, useRef } from 'react';
 import type { ReactNode } from 'react';
@@ -17,6 +17,7 @@ import SettingsPage from './pages/Settings';
 import ProfilePage from './pages/Profile';
 import LeaderboardPage from './pages/Leaderboard';
 import AchievementsPage from './pages/Achievements';
+import StatsPage from './pages/Stats';
 import SignUpPage from './pages/SignUp';
 import MediaDetailPage from './pages/MediaDetail';
 import { Toaster } from 'sonner';
@@ -130,6 +131,13 @@ function Layout({ children }: { children: ReactNode }) {
             
             {user ? (
               <>
+                <Link 
+                  to="/stats" 
+                  className={cn("p-2 rounded-lg transition-colors flex items-center gap-2", isActive('/stats') ? "text-primary bg-primary/10" : "text-muted hover:text-text hover:bg-surface-2")}
+                >
+                  <Activity className="w-5 h-5" />
+                  <span>Performance</span>
+                </Link>
                 <Link 
                   to="/dashboard" 
                   className={cn("p-2 rounded-lg transition-colors", isActive('/dashboard') ? "text-primary bg-primary/10" : "text-muted hover:text-text hover:bg-surface-2")}
@@ -314,6 +322,7 @@ export default function App() {
           <Route path="/profile/:username" element={<ProfilePage />} />
           <Route path="/leaderboard" element={<LeaderboardPage />} />
           <Route path="/achievements" element={<AchievementsPage />} />
+          <Route path="/stats" element={<StatsPage />} />
           <Route path="/signup" element={<SignUpPage />} />
           <Route path="/media/:type/:id" element={<MediaDetailPage />} />
           <Route path="/media/:id" element={<MediaDetailPage />} />

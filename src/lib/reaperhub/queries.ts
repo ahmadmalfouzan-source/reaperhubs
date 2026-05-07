@@ -929,6 +929,23 @@ export async function getUnreadNotificationCount() {
   }
 }
 
+export async function getTacticalStats() {
+  try {
+    const user = await getCurrentUser();
+    if (!user) return null;
+
+    const { data, error } = await supabase.rpc('get_user_tactical_stats', {
+      user_id_param: user.id
+    });
+
+    if (error) throw error;
+    return data;
+  } catch (err) {
+    console.error('Error fetching tactical stats:', err);
+    return null;
+  }
+}
+
 
 // Alias for backwards compatibility
 export const getLibrary = getLibraryItems;

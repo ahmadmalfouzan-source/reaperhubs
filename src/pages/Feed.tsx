@@ -2,7 +2,8 @@ import { useEffect, useState, useCallback } from 'react';
 import { getFeedItems, getCurrentUser, createPost, toggleLike, getUserLikes, deletePost, updatePost } from '../lib/reaperhub/queries';
 import { supabase } from '../lib/supabase';
 import { Link } from 'react-router-dom';
-import { MessageSquare, Heart, Share2, Film, Gamepad2, Send, MoreHorizontal, User, TrendingUp, Sparkles, Hash, Users, Zap as ZapIcon, Loader2, Calendar, Edit3, Trash2, X } from 'lucide-react';
+import { MessageSquare, Heart, Share2, Film, Gamepad2, Send, MoreHorizontal, User, TrendingUp, Sparkles, Hash, Users, Zap as ZapIcon, Loader2, Calendar, Edit3, Trash2, X, Radio } from 'lucide-react';
+import { PostSkeleton } from '../components/Skeleton';
 import { cn } from '../lib/utils';
 import { toast } from '../lib/toastUtils';
 import CommentSection from '../components/CommentSection';
@@ -246,19 +247,17 @@ export default function Feed() {
         {loading && items.length === 0 ? (
           <div className="space-y-6">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-64 bg-surface border border-border rounded-[40px] animate-pulse relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full animate-[shimmer_2s_infinite]"></div>
-              </div>
+              <PostSkeleton key={i} />
             ))}
           </div>
         ) : items.length === 0 ? (
           <div className="text-center py-32 bg-surface/30 rounded-[48px] border-2 border-dashed border-border/50 flex flex-col items-center justify-center space-y-6">
             <div className="w-24 h-24 bg-surface-2 rounded-full flex items-center justify-center border border-border">
-              <MessageSquare className="w-12 h-12 text-muted opacity-10" />
+              <Radio className="w-12 h-12 text-muted opacity-10" />
             </div>
             <div className="space-y-2">
               <p className="text-2xl font-display font-bold text-white uppercase tracking-tight opacity-50">Radio Silence</p>
-              <p className="text-sm text-muted italic max-w-xs mx-auto">No signals detected in this cluster. Initiate a broadcast to start the chain.</p>
+              <p className="text-sm text-muted italic max-w-xs mx-auto">Radio silence. Follow operatives to see transmissions.</p>
             </div>
           </div>
         ) : (

@@ -2,7 +2,8 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { addToLibrary as addToLibraryQuery } from '../lib/reaperhub/queries';
 import { searchTMDB, discoverTMDB, getTMDBGenres, getTMDBImageUrl, getTMDBItemByTitle, getTrendingTMDB } from '../services/tmdbService';
 import { searchGames as searchRAWG, mapRAWGToMedia } from '../services/rawgService';
-import { TrendingUp, Plus, Check, Search as SearchIcon, Filter, X } from 'lucide-react';
+import { TrendingUp, Plus, Check, Search as SearchIcon, Filter, X, Loader2 } from 'lucide-react';
+import Skeleton from '../components/Skeleton';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -28,7 +29,7 @@ function DiscoverImage({ title, type }: { title: string; type: string }) {
     }
   }, [title, type]);
 
-  if (loading) return <div className="w-full h-full bg-surface-2 animate-pulse" />;
+  if (loading) return <Skeleton className="w-full h-full" />;
   if (!url) return (
     <div className="w-full h-full bg-surface-2 flex items-center justify-center text-[10px] text-muted text-center p-2 uppercase font-bold">
       {type}
@@ -307,19 +308,20 @@ export default function Search() {
             disabled={loading}
             className="bg-primary hover:bg-primary/90 text-white font-bold rounded-xl px-8 transition-colors disabled:opacity-50"
           >
-            {loading ? '...' : 'Search'}
+            {loading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : 'Search'}
           </button>
         </form>
 
         {loading ? (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[...Array(8)].map((_, i) => (
-              <div key={i} className="aspect-[2/3] bg-surface-2 rounded-2xl animate-pulse border border-border/50"></div>
+              <Skeleton key={i} className="aspect-[2/3] rounded-2xl" />
             ))}
           </div>
         ) : results.length === 0 && query ? (
-          <div className="text-center py-20 text-muted bg-surface rounded-[18px] border border-border">
-            Nothing found for "{query}".
+          <div className="text-center py-20 text-muted bg-surface rounded-[18px] border border-border flex flex-col items-center justify-center space-y-4">
+            <SearchIcon className="w-12 h-12 opacity-20" />
+            <p>No signals detected. Try different keywords.</p>
           </div>
         ) : results.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -411,7 +413,7 @@ export default function Search() {
         {discoverLoading ? (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="aspect-[4/3] bg-surface-2 rounded-2xl animate-pulse border border-border/50"></div>
+              <Skeleton key={i} className="aspect-[4/3] rounded-2xl" />
             ))}
           </div>
         ) : (

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { getNotifications, getCurrentUser, markNotificationAsRead, markAllNotificationsAsRead } from '../lib/reaperhub/queries';
 import { Bell, Heart, UserPlus, Zap, Award, CheckCheck, Clock } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import Skeleton from '../components/Skeleton';
 
 export default function Notifications() {
   const [items, setItems] = useState<any[]>([]);
@@ -69,7 +70,23 @@ export default function Notifications() {
     }
   };
 
-  if (loading) return <div className="text-center py-20 text-muted italic">Initializing interceptors...</div>;
+  if (loading) {
+    return (
+      <div className="max-w-2xl mx-auto space-y-8">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Skeleton className="w-12 h-12 rounded-2xl" />
+            <Skeleton className="h-8 w-48" />
+          </div>
+        </div>
+        <div className="space-y-4">
+          {[...Array(5)].map((_, i) => (
+            <Skeleton key={i} className="h-24 w-full rounded-2xl" />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   const unreadCount = items.filter(i => !i.is_read).length;
 
@@ -96,8 +113,7 @@ export default function Notifications() {
       {items.length === 0 ? (
         <div className="text-center py-24 text-muted bg-surface/50 rounded-[32px] border border-dashed border-border flex flex-col items-center justify-center">
           <Bell className="w-16 h-16 mb-6 opacity-10" />
-          <p className="text-lg font-medium opacity-50">Static frequency detected.</p>
-          <p className="text-sm opacity-30 mt-2">No new intel at this time.</p>
+          <p className="text-lg font-medium opacity-50">All clear. No new transmissions.</p>
         </div>
       ) : (
         <div className="space-y-4">

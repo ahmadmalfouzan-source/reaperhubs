@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 import { User, Camera, LogOut, ShieldCheck, Mail, MapPin, Zap, Save, Loader2, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import Skeleton from '../components/Skeleton';
+import ImageCropper from '../components/ImageCropper';
 
 export default function Settings() {
   const [user, setUser] = useState<any>(null);
@@ -18,6 +19,7 @@ export default function Settings() {
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [coverToCrop, setCoverToCrop] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -75,6 +77,47 @@ export default function Settings() {
       toast.error(`Protocol Failure: ${err.message || 'Unknown storage error'}`);
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleCoverSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const reader = new FileReader();
+      reader.addEventListener('load', () => setCoverToCrop(reader.result?.toString() || null));
+      reader.readAsDataURL(e.target.files[0]);
+      e.target.value = ''; // Reset input so same file can be selected again
+    }
+  };
+
+  const handleCoverUpload = async (croppedImageBlob: Blob) => {
+    try {
+      setUploadingCover(true);
+      setCoverToCrop(null); // Close cropper modal
+      
+      const fileName = `${Math.random().toString(36).substring(2)}.webp`;
+      const filePath = `${user.id}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('covers')
+        .upload(filePath, croppedImageBlob, {
+          upsert: true,
+          contentType: 'image/webp',
+          cacheControl: '3600'
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('covers')
+        .getPublicUrl(filePath);
+
+      setCoverUrl(publicUrl);
+      toast.success("Cover field updated. Finalize config to save.");
+    } catch (err: any) {
+      console.error('CRITICAL COVER UPLOAD ERROR:', JSON.stringify(err, null, 2));
+      toast.error(`Protocol Failure: ${err.message || 'Unknown storage error'}`);
+    } finally {
+      setUploadingCover(false);
     }
   };
 
@@ -148,8 +191,40 @@ export default function Settings() {
         <p className="text-muted text-sm font-medium">Configure your operative parameters and field identifiers.</p>
       </div>
 
-      <div className="bg-surface border-2 border-border/50 rounded-[48px] p-10 shadow-2xl relative overflow-hidden">
+      <div className="bg-surface border-2 border-border/50 rounded-[48px] p-6 md:p-10 shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[100px] pointer-events-none"></div>
+        
+        {/* Cover Image Upload Area */}
+        <div className="mb-10 w-full">
+          <label className="relative w-full h-32 md:h-48 rounded-[32px] bg-surface-2 border-2 border-border/50 cursor-pointer group overflow-hidden shadow-lg transition-all hover:border-primary block">
+            <input 
+              type="file" 
+              className="hidden" 
+              accept="image/jpeg,image/png,image/webp" 
+              onChange={handleCoverSelect}
+              disabled={uploadingCover}
+            />
+            {coverUrl ? (
+              <img src={coverUrl} alt="Cover" className="w-full h-full object-cover transition-transform group-hover:scale-105" onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=1000&q=80'; }} />
+            ) : (
+              <div className="w-full h-full flex flex-col items-center justify-center text-muted/50 gap-2">
+                <Camera size={32} />
+                <span className="text-sm font-bold uppercase tracking-widest">Select Cover</span>
+              </div>
+            )}
+            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">
+              <span className="px-4 py-2 bg-black/60 text-white rounded-full text-sm font-bold uppercase tracking-widest flex items-center gap-2 border border-white/10">
+                <Camera size={14} /> Update Cover
+              </span>
+            </div>
+            {uploadingCover && (
+              <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center z-20 gap-3">
+                <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                <span className="text-primary font-bold uppercase tracking-widest text-xs">Uploading...</span>
+              </div>
+            )}
+          </label>
+        </div>
         
         <div className="flex flex-col items-center mb-12">
           <label 
@@ -279,6 +354,15 @@ export default function Settings() {
           Terminal Exit
         </button>
       </div>
+
+      {coverToCrop && (
+        <ImageCropper
+          imageSrc={coverToCrop}
+          onCropComplete={handleCoverUpload}
+          onCancel={() => setCoverToCrop(null)}
+          aspectRatio={3 / 1}
+        />
+      )}
     </div>
   );
 }

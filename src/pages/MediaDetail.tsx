@@ -100,10 +100,11 @@ export default function MediaDetail() {
           getHLTBData(data.title).then(setHltb);
           
           // Fetch user specific game data (only manually tracked bosses)
-          getGameBossesProgress(id).then(res => {
+          getGameBossesProgress(id).then(async res => {
             setDefeatedBosses(res.filter((b: any) => b.is_defeated).map((b: any) => b.boss_name));
             const manual = res.map((b: any) => b.boss_name);
-            setBosses([...new Set(manual)]);
+            const wikiBosses = await getGameBosses(data.title);
+            setBosses([...new Set([...wikiBosses, ...manual])]);
           });
           getGameSessions(id).then(res => {
             if (res.length > 0) setLastSession(res[0]);
@@ -256,7 +257,8 @@ export default function MediaDetail() {
 
     setBosses(prev => [...prev, name]);
     setNewBossName('');
-    handleToggleBoss(name); // Auto mark as defeated if adding manually? No, just add to list
+    // Save to DB as not defeated
+    toggleBossDefeated(id, name, false);
   };
 
   const handleLogSession = async (activityId: string) => {

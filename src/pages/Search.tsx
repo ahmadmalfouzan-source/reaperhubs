@@ -242,7 +242,7 @@ export default function Search() {
     // Apply local filtering to results since TMDB search doesn't support advanced filters
     let filteredData = data;
 
-    if (searchQuery) {
+    // Always apply filtering
        filteredData = filteredData.filter(item => {
           // Check year
           if (item.release_year) {
@@ -273,7 +273,6 @@ export default function Search() {
        } else if (sortBy === 'popularity.desc') {
          filteredData.sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
        }
-    }
 
     setResults(filteredData);
     setLoading(false);
@@ -410,14 +409,14 @@ export default function Search() {
                 <input
                   type="number"
                   value={minYear}
-                  onChange={(e) => setMinYear(Math.max(1900, Math.min(maxYear, parseInt(e.target.value) || 1900)))}
+                  onChange={(e) => setMinYear(e.target.value === '' ? '' as any : parseInt(e.target.value))}
                   className="w-full bg-surface-2 border border-border rounded-lg px-2 py-1.5 text-sm text-center"
                 />
                 <span className="text-muted">-</span>
                 <input
                   type="number"
                   value={maxYear}
-                  onChange={(e) => setMaxYear(Math.min(new Date().getFullYear(), Math.max(minYear, parseInt(e.target.value) || new Date().getFullYear())))}
+                  onChange={(e) => setMaxYear(e.target.value === '' ? '' as any : parseInt(e.target.value))}
                   className="w-full bg-surface-2 border border-border rounded-lg px-2 py-1.5 text-sm text-center"
                 />
               </div>

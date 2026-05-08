@@ -60,8 +60,8 @@ export default function Search() {
   const [showFilters, setShowFilters] = useState(false);
   const [mediaType, setMediaType] = useState<MediaType>('all');
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
-  const [minYear, setMinYear] = useState<number>(1900);
-  const [maxYear, setMaxYear] = useState<number>(new Date().getFullYear());
+  const [minYear, setMinYear] = useState<number | string>(1900);
+  const [maxYear, setMaxYear] = useState<number | string>(new Date().getFullYear());
   const [minRating, setMinRating] = useState<number>(0);
   const [maxRating, setMaxRating] = useState<number>(10);
 
@@ -187,7 +187,14 @@ export default function Search() {
       // If no query, use discover API for movies/tv
       if (mediaType === 'game' || mediaType === 'all') {
         const gameData = await searchRAWG(''); // Get trending games
-        const formatted = gameData.map(mapRAWGToMedia);
+        const formatted = gameData.map((game: any) => {
+          const mapped = mapRAWGToMedia(game);
+          return {
+            ...mapped,
+            release_year: mapped.release_date ? mapped.release_date.split('-')[0] : '',
+            rating: mapped.vote_average || 0
+          };
+        });
         data = [...formatted];
       }
       
@@ -209,8 +216,11 @@ export default function Search() {
           type: mediaType === 'all' ? (item.title ? 'movie' : 'tv') : mediaType,
           cover_url: getTMDBImageUrl(item.poster_path),
           release_year: (item.release_date || item.first_air_date || '').split('-')[0],
-          rating: item.vote_average,
-          overview: item.overview
+          release_date: item.release_date || item.first_air_date || '',
+          rating: item.vote_average || 0,
+          overview: item.overview,
+          popularity: item.popularity || 0,
+          genre_ids: item.genre_ids || []
         }));
         data = [...data, ...formatted];
       }
@@ -218,7 +228,14 @@ export default function Search() {
       // Search with query
       if (mediaType === 'game' || mediaType === 'all') {
         const gameData = await searchRAWG(searchQuery);
-        const formatted = gameData.map(mapRAWGToMedia);
+        const formatted = gameData.map((game: any) => {
+          const mapped = mapRAWGToMedia(game);
+          return {
+            ...mapped,
+            release_year: mapped.release_date ? mapped.release_date.split('-')[0] : '',
+            rating: mapped.vote_average || 0
+          };
+        });
         data = [...formatted];
       }
 
@@ -232,8 +249,11 @@ export default function Search() {
           type: item.media_type || (item.title ? 'movie' : 'tv'),
           cover_url: getTMDBImageUrl(item.poster_path),
           release_year: (item.release_date || item.first_air_date || '').split('-')[0],
-          rating: item.vote_average,
-          overview: item.overview
+          release_date: item.release_date || item.first_air_date || '',
+          rating: item.vote_average || 0,
+          overview: item.overview,
+          popularity: item.popularity || 0,
+          genre_ids: item.genre_ids || []
         }));
         data = [...data, ...formatted];
       }
@@ -247,7 +267,8 @@ export default function Search() {
           // Check year
           if (item.release_year) {
              const year = parseInt(item.release_year);
-             if (year < minYear || year > maxYear) return false;
+             if (minYear !== '' && !isNaN(Number(minYear)) && year < Number(minYear)) return false;
+             if (maxYear !== '' && !isNaN(Number(maxYear)) && year > Number(maxYear)) return false;
           }
 
           // Check rating
@@ -255,9 +276,12 @@ export default function Search() {
              if (item.rating > 0 && (item.rating < minRating || item.rating > maxRating)) return false;
           }
 
-          // Genre filtering is hard for multi-search as it doesn't return detailed genres consistently
-          // and we only have genre_ids which requires mapping.
-          // For simplicity, we skip strict genre filtering on local text search unless we map ids.
+          // Check genres
+          if (selectedGenres.length > 0 && item.type !== 'game' && item.genre_ids) {
+             const hasGenre = item.genre_ids.some((id: number) => selectedGenres.includes(String(id)));
+             if (!hasGenre) return false;
+          }
+
           return true;
        });
 
@@ -409,14 +433,14 @@ export default function Search() {
                 <input
                   type="number"
                   value={minYear}
-                  onChange={(e) => setMinYear(e.target.value === '' ? '' as any : parseInt(e.target.value))}
+                  onChange={(e) => setMinYear(e.target.value)}
                   className="w-full bg-surface-2 border border-border rounded-lg px-2 py-1.5 text-sm text-center"
                 />
                 <span className="text-muted">-</span>
                 <input
                   type="number"
                   value={maxYear}
-                  onChange={(e) => setMaxYear(e.target.value === '' ? '' as any : parseInt(e.target.value))}
+                  onChange={(e) => setMaxYear(e.target.value)}
                   className="w-full bg-surface-2 border border-border rounded-lg px-2 py-1.5 text-sm text-center"
                 />
               </div>

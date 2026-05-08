@@ -187,7 +187,7 @@ export default function Settings() {
               onChange={handleFileChange}
               disabled={uploading}
             />
-            <span className="text-[10px] font-bold text-muted group-hover:text-primary transition-colors uppercase tracking-[0.3em]">
+            <span className="text-sm font-bold text-muted group-hover:text-primary transition-colors uppercase tracking-[0.3em]">
               Update Visual Feed
             </span>
             <Sparkles size={12} className="text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -197,7 +197,7 @@ export default function Settings() {
         <form onSubmit={handleUpdate} className="space-y-8">
           <div className="grid grid-cols-1 gap-8">
             <div className="space-y-2">
-              <label className="flex items-center gap-2 text-[10px] text-muted font-bold uppercase tracking-[0.2em] ml-2">
+              <label className="flex items-center gap-2 text-sm text-muted font-bold uppercase tracking-[0.2em] ml-2">
                 <Mail size={12} /> Communication Node
               </label>
               <div className="w-full bg-surface-2/50 border border-border/50 rounded-2xl p-4 text-muted/50 cursor-not-allowed flex items-center gap-3 italic">
@@ -207,33 +207,35 @@ export default function Settings() {
             </div>
 
             <div className="space-y-2">
-              <label className="flex items-center gap-2 text-[10px] text-muted font-bold uppercase tracking-[0.2em] ml-2">
+              <label className="flex items-center gap-2 text-sm text-muted font-bold uppercase tracking-[0.2em] ml-2">
                 <User size={12} /> System Identifier
               </label>
               <input
                 type="text"
+                inputMode="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full bg-surface-2/30 border border-border/50 rounded-2xl p-4 text-white focus:outline-none focus:border-primary transition-all font-medium italic"
+                className="w-full bg-surface-2/30 border border-border/50 rounded-2xl p-4 text-base min-h-[44px] text-white focus:outline-none focus:border-primary transition-all font-medium italic"
                 placeholder="Agent code name"
               />
             </div>
 
             <div className="space-y-2">
-              <label className="flex items-center gap-2 text-[10px] text-muted font-bold uppercase tracking-[0.2em] ml-2">
+              <label className="flex items-center gap-2 text-sm text-muted font-bold uppercase tracking-[0.2em] ml-2">
                 <Zap size={12} /> Public Designation
               </label>
               <input
                 type="text"
+                inputMode="text"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
-                className="w-full bg-surface-2/30 border border-border/50 rounded-2xl p-4 text-white focus:outline-none focus:border-primary transition-all font-medium italic"
+                className="w-full bg-surface-2/30 border border-border/50 rounded-2xl p-4 text-base min-h-[44px] text-white focus:outline-none focus:border-primary transition-all font-medium italic"
                 placeholder="Tactical display name"
               />
             </div>
 
             <div className="space-y-2">
-              <label className="flex items-center gap-2 text-[10px] text-muted font-bold uppercase tracking-[0.2em] ml-2">
+              <label className="flex items-center gap-2 text-sm text-muted font-bold uppercase tracking-[0.2em] ml-2">
                 <MapPin size={12} /> Tactical Intelligence (Bio)
               </label>
               <textarea
@@ -271,7 +273,7 @@ export default function Settings() {
         </div>
         <button
           onClick={handleSignOut}
-          className="flex items-center gap-3 px-8 py-3 bg-danger/10 hover:bg-danger text-danger hover:text-white border border-danger/20 rounded-2xl font-bold text-xs uppercase tracking-widest transition-all shadow-lg active:scale-95"
+          className="flex items-center gap-3 px-8 py-3 bg-danger/10 hover:bg-danger text-danger hover:text-white border border-danger/20 rounded-2xl font-bold text-sm uppercase tracking-widest transition-all shadow-lg active:scale-95"
         >
           <LogOut size={16} />
           Terminal Exit

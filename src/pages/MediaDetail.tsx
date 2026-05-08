@@ -384,10 +384,10 @@ export default function MediaDetail() {
         <div className="absolute bottom-6 left-6 right-6 md:bottom-8 md:left-8 md:right-8 flex items-end justify-between gap-6 z-10">
           <div className="space-y-2 md:space-y-4">
             <div className="flex items-center gap-2">
-              <span className="px-2 md:px-3 py-0.5 md:py-1 bg-primary rounded-full text-[8px] md:text-xs font-bold uppercase tracking-widest text-black shadow-lg">
+              <span className="px-2 md:px-3 py-0.5 md:py-1 bg-primary rounded-full text-sm md:text-sm font-bold uppercase tracking-widest text-black shadow-lg">
                 {type.toUpperCase()}
               </span>
-              <div className="flex items-center gap-1.5 px-2 md:px-3 py-0.5 md:py-1 bg-black/40 backdrop-blur-md rounded-full text-[8px] md:text-xs font-bold text-primary-2 border border-white/5">
+              <div className="flex items-center gap-1.5 px-2 md:px-3 py-0.5 md:py-1 bg-black/40 backdrop-blur-md rounded-full text-sm md:text-sm font-bold text-primary-2 border border-white/5">
                 <Star size={10} className="fill-current" />
                 {media.vote_average?.toFixed(1)} / 5
               </div>
@@ -397,7 +397,7 @@ export default function MediaDetail() {
             </h1>
             
             {type === 'game' && lastSession && (
-              <div className="flex items-center gap-2 text-[10px] font-bold text-primary uppercase tracking-[0.2em] bg-primary/10 px-3 py-1.5 rounded-xl border border-primary/20 animate-pulse">
+              <div className="flex items-center gap-2 text-sm font-bold text-primary uppercase tracking-[0.2em] bg-primary/10 px-3 py-1.5 rounded-xl border border-primary/20 animate-pulse">
                  <History size={12} />
                  Last Op: {lastSession.summary} • {new Date(lastSession.created_at).toLocaleDateString()}
               </div>
@@ -420,11 +420,11 @@ export default function MediaDetail() {
             <div className="bg-surface-2 border border-border rounded-2xl p-4 md:p-6 space-y-4 relative group">
               <div className="flex items-center justify-between gap-4">
                 <div className="flex-1 space-y-1">
-                   <label className="text-[9px] font-bold uppercase tracking-widest text-muted">Deploy Status</label>
+                   <label className="text-sm font-bold uppercase tracking-widest text-muted">Deploy Status</label>
                    <select
                      value={status}
                      onChange={(e) => setStatus(e.target.value)}
-                     className="w-full bg-surface border border-border rounded-xl px-3 py-2 text-xs font-bold text-white focus:outline-none focus:border-primary cursor-pointer transition-all"
+                     className="w-full bg-surface border border-border rounded-xl px-3 py-2 text-sm font-bold text-white focus:outline-none focus:border-primary cursor-pointer transition-all"
                    >
                      {STATUS_OPTIONS.map(opt => (
                        <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -443,7 +443,7 @@ export default function MediaDetail() {
                       <button 
                         onClick={handleToggleLibrary}
                         disabled={actionLoading}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold uppercase tracking-widest text-danger hover:bg-danger/5 transition-all"
+                        className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold uppercase tracking-widest text-danger hover:bg-danger/5 transition-all"
                       >
                         {actionLoading ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
                         Purge Entry
@@ -456,7 +456,7 @@ export default function MediaDetail() {
                 <button
                   onClick={handleToggleLibrary}
                   disabled={actionLoading}
-                  className="w-full py-4 bg-primary text-black rounded-xl font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2"
+                  className="w-full py-4 bg-primary text-black rounded-xl font-bold text-sm uppercase tracking-widest flex items-center justify-center gap-2"
                 >
                   {actionLoading ? <Loader2 className="animate-spin" /> : <Plus size={16} />}
                   Add to Archive
@@ -466,7 +466,7 @@ export default function MediaDetail() {
           </div>
           
           <div className="bg-surface border border-border rounded-3xl p-6 space-y-6 shadow-lg">
-            <h3 className="text-xs font-bold uppercase tracking-widest text-muted">Intelligence Report</h3>
+            <h3 className="text-sm font-bold uppercase tracking-widest text-muted">Intelligence Report</h3>
             <div className="space-y-4">
               <div className="flex items-center justify-between text-sm">
                 <div className="flex items-center gap-2 text-muted">Launched</div>
@@ -484,20 +484,20 @@ export default function MediaDetail() {
                     <span className="text-success font-bold font-mono">{totalPlaytime.toFixed(1)}h</span>
                   </div>
                   <div className="space-y-3 pt-2">
-                    <div className="flex items-center justify-between text-[10px]">
+                    <div className="flex items-center justify-between text-sm">
                       <span className="text-muted uppercase font-bold tracking-widest">Main Story</span>
                       <span className="text-white font-mono">{hltb?.main || '--'}</span>
                     </div>
-                    <div className="flex items-center justify-between text-[10px]">
+                    <div className="flex items-center justify-between text-sm">
                       <span className="text-muted uppercase font-bold tracking-widest">Main + Extras</span>
                       <span className="text-white font-mono">{hltb?.extra || '--'}</span>
                     </div>
-                    <div className="flex items-center justify-between text-[10px]">
+                    <div className="flex items-center justify-between text-sm">
                       <span className="text-muted uppercase font-bold tracking-widest">Completionist</span>
                       <span className="text-white font-mono">{hltb?.completionist || '--'}</span>
                     </div>
                     {!hltb && !loading && (
-                      <div className="text-[8px] text-danger font-bold uppercase tracking-widest text-center pt-1 opacity-60">Intercepting HLTB intel...</div>
+                      <div className="text-sm text-danger font-bold uppercase tracking-widest text-center pt-1 opacity-60">Intercepting HLTB intel...</div>
                     )}
                   </div>
                 </>
@@ -505,7 +505,7 @@ export default function MediaDetail() {
             </div>
             <div className="flex flex-wrap gap-2">
               {media.genres?.map((g: any) => (
-                <span key={g.id || g.name} className="px-2 py-1 bg-surface-2 border border-border rounded-lg text-[9px] font-bold text-muted uppercase">
+                <span key={g.id || g.name} className="px-2 py-1 bg-surface-2 border border-border rounded-lg text-sm font-bold text-muted uppercase">
                   {g.name}
                 </span>
               ))}
@@ -515,7 +515,7 @@ export default function MediaDetail() {
 
         <div className="md:col-span-2 space-y-12">
           <section className="space-y-6">
-            <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Synopsis</h2>
+            <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-primary">Synopsis</h2>
             <div className="relative">
               <p className={cn("text-lg md:text-xl leading-relaxed text-text/80 transition-all", !showFullOverview && "line-clamp-4 overflow-hidden")}>
                 {media.overview || 'No intelligence provided.'}
@@ -525,7 +525,7 @@ export default function MediaDetail() {
               )}
             </div>
             {media.overview?.length > 200 && (
-              <button onClick={() => setShowFullOverview(!showFullOverview)} className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-widest">
+              <button onClick={() => setShowFullOverview(!showFullOverview)} className="flex items-center gap-2 text-primary font-bold text-sm uppercase tracking-widest">
                 {showFullOverview ? 'Collapse' : 'Expand'} Dossier
               </button>
             )}
@@ -543,14 +543,14 @@ export default function MediaDetail() {
               
               {bosses.length === 0 ? (
                 <div className="bg-surface-2 border-2 border-dashed border-border/50 rounded-3xl p-8 text-center space-y-4">
-                   <p className="text-xs text-muted font-bold uppercase tracking-widest">No intelligence found in Wikipedia archives.</p>
+                   <p className="text-sm text-muted font-bold uppercase tracking-widest">No intelligence found in Wikipedia archives.</p>
                    <form onSubmit={handleAddManualBoss} className="flex gap-2 max-w-sm mx-auto">
                       <input 
                         type="text" 
                         value={newBossName}
                         onChange={(e) => setNewBossName(e.target.value)}
                         placeholder="Identify new target..."
-                        className="flex-1 bg-surface border border-border rounded-xl px-4 py-2 text-xs text-white focus:border-danger transition-all"
+                        className="flex-1 bg-surface border border-border rounded-xl px-4 py-2 text-sm text-white focus:border-danger transition-all"
                       />
                       <button type="submit" className="p-2 bg-danger text-black rounded-xl hover:bg-danger/80 transition-all">
                          <Plus size={20} />
@@ -571,7 +571,7 @@ export default function MediaDetail() {
                             : "bg-surface-2 border-border/50 text-muted hover:border-danger/30"
                         )}
                       >
-                        <span className={cn("text-xs font-bold uppercase tracking-widest", defeatedBosses.includes(boss) && "line-through opacity-50")}>
+                        <span className={cn("text-sm font-bold uppercase tracking-widest", defeatedBosses.includes(boss) && "line-through opacity-50")}>
                           {boss}
                         </span>
                         <div className={cn(
@@ -591,7 +591,7 @@ export default function MediaDetail() {
                         value={newBossName}
                         onChange={(e) => setNewBossName(e.target.value)}
                         placeholder="Add manual target..."
-                        className="flex-1 bg-surface-2 border border-border/50 rounded-xl px-4 py-2 text-xs text-white focus:border-danger transition-all"
+                        className="flex-1 bg-surface-2 border border-border/50 rounded-xl px-4 py-2 text-sm text-white focus:border-danger transition-all"
                       />
                       <button type="submit" className="p-2 bg-surface border border-border text-muted hover:text-danger rounded-xl transition-all">
                          <Plus size={20} />
@@ -635,7 +635,7 @@ export default function MediaDetail() {
                     className="w-full sm:w-auto flex items-center justify-center gap-3 px-8 py-3 bg-primary text-black font-bold rounded-xl"
                   >
                     {isUpdating ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
-                    <span className="uppercase tracking-widest text-xs">Sync Intel</span>
+                    <span className="uppercase tracking-widest text-sm">Sync Intel</span>
                   </button>
                 </div>
               </div>
@@ -679,7 +679,7 @@ export default function MediaDetail() {
                         </button>
                         
                         <div className="flex items-center justify-between pt-2 border-t border-border/10">
-                           <span className="text-[10px] font-bold text-muted uppercase tracking-widest">Season Appraisal</span>
+                           <span className="text-sm font-bold text-muted uppercase tracking-widest">Season Appraisal</span>
                            <div className="flex items-center gap-1">
                               {[...Array(5)].map((_, i) => (
                                 <button key={i} onClick={(e) => { e.stopPropagation(); handleUpdateSeasonRating(season.season_number, i + 1); }} className={`p-1 transition-all ${i + 1 <= sRating ? 'text-primary-2 scale-110' : 'text-muted/20'}`}>
@@ -698,7 +698,7 @@ export default function MediaDetail() {
                                 {isEpisodeWatched(season.season_number, ep.episode_number) ? <CheckCircle2 size={18} /> : <Circle size={18} />}
                               </button>
                               <div className="flex-1 min-w-0">
-                                <h4 className={cn("text-xs font-bold truncate", isEpisodeWatched(season.season_number, ep.episode_number) && "text-white/40 line-through")}>E{ep.episode_number}: {ep.name}</h4>
+                                <h4 className={cn("text-sm font-bold truncate", isEpisodeWatched(season.season_number, ep.episode_number) && "text-white/40 line-through")}>E{ep.episode_number}: {ep.name}</h4>
                               </div>
                             </div>
                           ))}
@@ -714,7 +714,7 @@ export default function MediaDetail() {
           {/* Developers / Cast Section */}
           {(type === 'game' ? media.developers?.length > 0 : media.credits?.cast?.length > 0) && (
             <section className="space-y-6">
-              <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-primary">
+              <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-primary">
                 {type === 'game' ? 'Development Team' : 'Field Operatives'}
               </h2>
               <div className="flex overflow-x-auto gap-4 pb-4 scrollbar-none snap-x -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-4 md:overflow-visible">
@@ -728,8 +728,8 @@ export default function MediaDetail() {
                            <Zap size={24} className="text-muted/30" />
                          )}
                       </div>
-                      <p className="font-bold text-xs truncate text-white">{dev.name}</p>
-                      <p className="text-[8px] md:text-xs text-muted truncate uppercase tracking-widest">Lead Unit</p>
+                      <p className="font-bold text-sm truncate text-white">{dev.name}</p>
+                      <p className="text-sm md:text-sm text-muted truncate uppercase tracking-widest">Lead Unit</p>
                     </div>
                    ))
                 ) : (
@@ -743,8 +743,8 @@ export default function MediaDetail() {
                           onError={(e) => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(person.name)}&background=random`; }}
                         />
                       </div>
-                      <p className="font-bold text-xs truncate text-white">{person.name}</p>
-                      <p className="text-[8px] md:text-xs text-muted truncate uppercase tracking-widest">{person.character}</p>
+                      <p className="font-bold text-sm truncate text-white">{person.name}</p>
+                      <p className="text-sm md:text-sm text-muted truncate uppercase tracking-widest">{person.character}</p>
                     </div>
                   ))
                 )}
@@ -754,7 +754,7 @@ export default function MediaDetail() {
 
           {/* Related Intel Section */}
           <section className="space-y-6">
-            <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-primary flex items-center gap-2">
+            <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-primary flex items-center gap-2">
                <Sparkles size={14} />
                Related Intel
             </h2>
@@ -762,7 +762,7 @@ export default function MediaDetail() {
             {similarMedia.length === 0 ? (
               <div className="bg-surface/30 border border-dashed border-border/30 rounded-3xl p-8 flex flex-col items-center justify-center space-y-4 opacity-50">
                  <Search size={32} className="text-muted" />
-                 <p className="text-xs font-bold uppercase tracking-widest">No related signals detected in this sector.</p>
+                 <p className="text-sm font-bold uppercase tracking-widest">No related signals detected in this sector.</p>
               </div>
             ) : (
               <div className="flex overflow-x-auto gap-4 pb-4 scrollbar-none snap-x -mx-4 px-4 md:mx-0 md:px-0">
@@ -784,8 +784,8 @@ export default function MediaDetail() {
                       </div>
                     </div>
                     <div className="space-y-1">
-                      <p className="text-xs font-bold text-white truncate uppercase tracking-tight">{item.title || item.name}</p>
-                      <div className="flex items-center gap-1.5 text-[9px] font-bold text-muted uppercase tracking-widest">
+                      <p className="text-sm font-bold text-white truncate uppercase tracking-tight">{item.title || item.name}</p>
+                      <div className="flex items-center gap-1.5 text-sm font-bold text-muted uppercase tracking-widest">
                          <Star size={10} className="text-primary-2 fill-current" />
                          {(item.vote_average > 5 ? item.vote_average / 2 : item.vote_average).toFixed(1)}
                       </div>
@@ -806,7 +806,7 @@ export default function MediaDetail() {
             className="fixed bottom-24 right-6 w-16 h-16 bg-primary text-black rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-40 group"
           >
             <History size={24} className="group-hover:rotate-12 transition-transform" />
-            <div className="absolute -top-1 -right-1 w-5 h-5 bg-danger text-white text-[8px] font-bold rounded-full flex items-center justify-center border-2 border-background">OP</div>
+            <div className="absolute -top-1 -right-1 w-5 h-5 bg-danger text-white text-sm font-bold rounded-full flex items-center justify-center border-2 border-background">OP</div>
           </button>
 
           {showSessionLog && (
@@ -816,7 +816,7 @@ export default function MediaDetail() {
                 <div className="flex items-center justify-between">
                    <div className="space-y-1">
                      <h3 className="text-2xl font-display font-bold text-white uppercase tracking-tight">Session Debrief</h3>
-                     <p className="text-xs text-muted font-bold uppercase tracking-widest">Log tactical progress for this unit</p>
+                     <p className="text-sm text-muted font-bold uppercase tracking-widest">Log tactical progress for this unit</p>
                    </div>
                    <button onClick={() => setShowSessionLog(false)} className="p-2 text-muted hover:text-white">
                       <ChevronDown size={24} />
@@ -824,7 +824,7 @@ export default function MediaDetail() {
                 </div>
 
                 <div className="space-y-4">
-                   <label className="text-[10px] font-bold uppercase tracking-widest text-muted px-2">Duration (Hours)</label>
+                   <label className="text-sm font-bold uppercase tracking-widest text-muted px-2">Duration (Hours)</label>
                    <div className="flex items-center gap-4 bg-surface-2 p-4 rounded-2xl border border-border">
                       <Clock size={20} className="text-primary" />
                       <input 

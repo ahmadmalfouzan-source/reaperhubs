@@ -96,22 +96,14 @@ export default function MediaDetail() {
           data = mapRAWGToMedia(game);
           setSimilarMedia(suggested.map(mapRAWGToMedia) || []);
 
-          // Fetch HLTB and Bosses
+          // Fetch HLTB
           getHLTBData(data.title).then(setHltb);
-          getGameBosses(data.title).then(res => {
-            console.log('Wikipedia Bosses found:', res.length);
-            setBosses(res);
-          });
           
-          // Fetch user specific game data
+          // Fetch user specific game data (only manually tracked bosses)
           getGameBossesProgress(id).then(res => {
             setDefeatedBosses(res.filter((b: any) => b.is_defeated).map((b: any) => b.boss_name));
-            // Add manually tracked bosses that might not be in Wikipedia list
             const manual = res.map((b: any) => b.boss_name);
-            setBosses(prev => {
-              const combined = [...new Set([...prev, ...manual])];
-              return combined;
-            });
+            setBosses([...new Set(manual)]);
           });
           getGameSessions(id).then(res => {
             if (res.length > 0) setLastSession(res[0]);

@@ -265,15 +265,55 @@ export async function createPost(content: string, postType: string = 'status') {
     const user = await getCurrentUser();
     if (!user) throw new Error('Not logged in');
 
-    const { data, error } = await supabase
+    let result = await supabase
       .from('posts')
       .insert({
         user_id: user.id,
-        body: content,
+        content: content,
         post_type: postType,
         is_private: false,
         is_deleted: false
-      })
+      });
+
+    if (result.error) {
+      // Fallback to body column if content column fails
+      result = await supabase
+        .from('posts')
+        .insert({
+          user_id: user.id,
+          body: content,
+          post_type: postType,
+          is_private: false,
+          is_deleted: false
+        });
+
+      if (result.error) {
+         // Fallback for post_type constraint
+         result = await supabase
+            .from('posts')
+            .insert({
+              user_id: user.id,
+              content: content,
+              post_type: 'status',
+              is_private: false,
+              is_deleted: false
+            });
+
+         if (result.error) {
+             result = await supabase
+                .from('posts')
+                .insert({
+                  user_id: user.id,
+                  body: content,
+                  post_type: 'status',
+                  is_private: false,
+                  is_deleted: false
+                });
+         }
+      }
+    }
+
+    const { data, error } = result;
 
     if (error) throw error;
 
@@ -1010,8 +1050,13 @@ export async function getTacticalStats() {
     // Heatmap
     const heatmapCounts: Record<string, number> = {};
     activities.forEach((act: any) => {
-        const date = new Date(act.created_at).toISOString().split('T')[0];
-        heatmapCounts[date] = (heatmapCounts[date] || 0) + 1;
+        if (!act.created_at) return;
+        try {
+            const date = new Date(act.created_at).toISOString().split('T')[0];
+            heatmapCounts[date] = (heatmapCounts[date] || 0) + 1;
+        } catch (e) {
+            // ignore invalid dates
+        }
     });
     const activityHeatmap = Object.keys(heatmapCounts).map(date => ({
         date,

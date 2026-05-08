@@ -949,12 +949,86 @@ export async function getTacticalStats() {
     const user = await getCurrentUser();
     if (!user) return null;
 
-    const { data, error } = await supabase.rpc('get_user_tactical_stats', {
-      user_id_param: user.id
+    // Fetch data manually instead of relying on the broken RPC
+    const [libRes, sessionRes, activityRes] = await Promise.all([
+      supabase.from('library_items').select('*').eq('user_id', user.id),
+      supabase.from('game_sessions').select('playtime_hours').eq('user_id', user.id),
+      supabase.from('activity_logs').select('created_at').eq('user_id', user.id)
+    ]);
+
+    const libraryItems = libRes.data || [];
+    const gameSessions = sessionRes.data || [];
+    const activities = activityRes.data || [];
+
+    const totalTracked = libraryItems.length;
+    let totalHoursPlayed = 0;
+
+    // Sum hours from game sessions
+    gameSessions.forEach((session: any) => {
+      totalHoursPlayed += (parseFloat(session.playtime_hours) || 0);
     });
 
-    if (error) throw error;
-    return data;
+    // Add 0.5h for each completed TV/Movie item as an approximation if we wanted,
+    // but the DB only stores playtime in game_sessions and maybe some default tracking.
+
+    let sumRating = 0;
+    let ratingCount = 0;
+
+    let totalTrackedMovies = 0;
+    let totalTrackedTv = 0;
+    let totalTrackedGames = 0;
+
+    const genreBreakdown: Record<string, number> = {};
+    const topRatedMap = new Map();
+
+    libraryItems.forEach((item: any) => {
+       if (item.rating && item.rating > 0) {
+           sumRating += item.rating;
+           ratingCount++;
+
+           topRatedMap.set(item.id, {
+               title: item.title,
+               rating: item.rating,
+               media_type: item.media_type
+           });
+       }
+
+       if (item.media_type === 'movie') totalTrackedMovies++;
+       else if (item.media_type === 'tv') totalTrackedTv++;
+       else if (item.media_type === 'game') totalTrackedGames++;
+
+       // Just use media_type as pseudo-genres for the chart since true genres aren't stored in library_items here
+       const type = item.media_type || 'unknown';
+       genreBreakdown[type] = (genreBreakdown[type] || 0) + 1;
+    });
+
+    const averageRating = ratingCount > 0 ? (sumRating / ratingCount) : 0;
+
+    // Sort top rated
+    const topRated = Array.from(topRatedMap.values()).sort((a, b) => b.rating - a.rating);
+
+    // Heatmap
+    const heatmapCounts: Record<string, number> = {};
+    activities.forEach((act: any) => {
+        const date = new Date(act.created_at).toISOString().split('T')[0];
+        heatmapCounts[date] = (heatmapCounts[date] || 0) + 1;
+    });
+    const activityHeatmap = Object.keys(heatmapCounts).map(date => ({
+        date,
+        count: heatmapCounts[date]
+    }));
+
+    return {
+      total_tracked: totalTracked,
+      total_hours_played: totalHoursPlayed,
+      average_rating: averageRating,
+      genre_breakdown: genreBreakdown,
+      top_rated: topRated,
+      activity_heatmap: activityHeatmap,
+      total_tracked_movies: totalTrackedMovies,
+      total_tracked_tv: totalTrackedTv,
+      total_tracked_games: totalTrackedGames
+    };
   } catch (err) {
     console.error('Error fetching tactical stats:', err);
     return null;
@@ -985,12 +1059,12 @@ export async function getProfileWithPosts(username: string) {
       .from('user_xp')
       .select('xp_total, xp_current_level')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
     const { data: coinsData } = await supabase
       .from('user_coins')
       .select('coins')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
     return {
       user: {
         ...user,
@@ -1021,16 +1095,16 @@ export async function getUserStreak(userId: string) {
 
     let streak = 0;
 
-    // Convert to unique local dates (YYYY-MM-DD)
-    const dates = [...new Set(data.map((log: any) => new Date(log.created_at).toLocaleDateString()))];
+    // Convert to unique UTC dates (YYYY-MM-DD)
+    const dates = [...new Set(data.map((log: any) => new Date(log.created_at).toISOString().split('T')[0]))];
 
     if (dates.length === 0) return 0;
 
-    const todayStr = new Date().toLocaleDateString();
+    const todayStr = new Date().toISOString().split('T')[0];
 
     // Check if the first date is today or yesterday
-    let currentDateObj = new Date(dates[0]);
-    let todayObj = new Date(todayStr);
+    let currentDateObj = new Date(dates[0] + 'T00:00:00Z');
+    let todayObj = new Date(todayStr + 'T00:00:00Z');
 
     // Calculate difference in days between today and the most recent activity
     const diffTime = Math.abs(todayObj.getTime() - currentDateObj.getTime());
@@ -1044,8 +1118,8 @@ export async function getUserStreak(userId: string) {
 
     // Count consecutive days
     for (let i = 1; i < dates.length; i++) {
-        const prevDate = new Date(dates[i - 1]);
-        const currDate = new Date(dates[i]);
+        const prevDate = new Date(dates[i - 1] + 'T00:00:00Z');
+        const currDate = new Date(dates[i] + 'T00:00:00Z');
 
         // Difference should be exactly 1 day
         const diffT = Math.abs(prevDate.getTime() - currDate.getTime());

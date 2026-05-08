@@ -265,60 +265,19 @@ export async function createPost(content: string, postType: string = 'status') {
     const user = await getCurrentUser();
     if (!user) throw new Error('Not logged in');
 
-    let result = await supabase
+    const result = await supabase
       .from('posts')
       .insert({
         user_id: user.id,
-        content: content,
+        body: content,
         post_type: postType,
         is_private: false,
         is_deleted: false
       });
 
-    if (result.error) {
-      // Fallback to body column if content column fails
-      result = await supabase
-        .from('posts')
-        .insert({
-          user_id: user.id,
-          body: content,
-          post_type: postType,
-          is_private: false,
-          is_deleted: false
-        });
-
-      if (result.error) {
-         // Fallback for post_type constraint
-         result = await supabase
-            .from('posts')
-            .insert({
-              user_id: user.id,
-              content: content,
-              post_type: 'status',
-              is_private: false,
-              is_deleted: false
-            });
-
-         if (result.error) {
-             result = await supabase
-                .from('posts')
-                .insert({
-                  user_id: user.id,
-                  body: content,
-                  post_type: 'status',
-                  is_private: false,
-                  is_deleted: false
-                });
-         }
-      }
-    }
-
     const { data, error } = result;
 
     if (error) throw error;
-
-    // Optional rewards
-    try { await awardXPAndCoins(5, 2, 'Posted a transmission', 'post_created'); } catch(e) {}
     
     return { data, error: null, success: true };
   } catch (error: any) {

@@ -265,7 +265,7 @@ export async function createPost(content: string, postType: string = 'status') {
     const user = await getCurrentUser();
     if (!user) throw new Error('Not logged in');
 
-    const result = await supabase
+    const { data, error } = await supabase
       .from('posts')
       .insert({
         user_id: user.id,
@@ -273,11 +273,14 @@ export async function createPost(content: string, postType: string = 'status') {
         post_type: postType,
         is_private: false,
         is_deleted: false
-      });
+      })
+      .select()
+      .single();
 
-    const { data, error } = result;
-
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase post insert error:', { code: error.code, message: error.message, details: error.details, hint: error.hint });
+      throw error;
+    }
     
     return { data, error: null, success: true };
   } catch (error: any) {

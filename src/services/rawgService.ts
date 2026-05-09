@@ -16,9 +16,33 @@ export interface RAWGGame {
   developers?: { id: number, name: string, image_background: string }[];
 }
 
-export async function searchGames(query: string): Promise<RAWGGame[]> {
+export interface RAWGSearchFilters {
+  genres?: string;       // comma-separated genre slugs or IDs
+  dates?: string;        // e.g. "2000-01-01,2024-12-31"
+  metacritic?: string;   // e.g. "70,100"
+  ordering?: string;     // e.g. "-rating", "-released", "-added"
+}
+
+export async function searchGames(query: string, filters?: RAWGSearchFilters): Promise<RAWGGame[]> {
   try {
-    const url = `${BASE_URL}/games?search=${encodeURIComponent(query)}&page_size=20&key=${API_KEY}`;
+    let url = `${BASE_URL}/games?page_size=20&key=${API_KEY}`;
+
+    if (query) {
+      url += `&search=${encodeURIComponent(query)}`;
+    }
+    if (filters?.genres) {
+      url += `&genres=${filters.genres}`;
+    }
+    if (filters?.dates) {
+      url += `&dates=${filters.dates}`;
+    }
+    if (filters?.metacritic) {
+      url += `&metacritic=${filters.metacritic}`;
+    }
+    if (filters?.ordering) {
+      url += `&ordering=${filters.ordering}`;
+    }
+
     const response = await fetch(url);
     if (!response.ok) throw new Error('RAWG API error');
     const data = await response.json();

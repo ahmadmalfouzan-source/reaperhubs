@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { addToLibrary as addToLibraryQuery } from '../lib/reaperhub/queries';
 import { searchTMDB, discoverTMDB, getTMDBGenres, getTMDBImageUrl, getTMDBItemByTitle, getTrendingTMDB } from '../services/tmdbService';
-import { searchGames as searchRAWG, mapRAWGToMedia } from '../services/rawgService';
+import { searchGames as searchRAWG, mapRAWGToMedia, type RAWGSearchFilters } from '../services/rawgService';
 import { TrendingUp, Plus, Check, Search as SearchIcon, Filter, X, Clock, Trash2, ArrowUpRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -60,8 +60,11 @@ export default function Search() {
   const [showFilters, setShowFilters] = useState(false);
   const [mediaType, setMediaType] = useState<MediaType>('all');
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
-  const [minYear, setMinYear] = useState<number | string>(1900);
-  const [maxYear, setMaxYear] = useState<number | string>(new Date().getFullYear());
+  const [minYearInput, setMinYearInput] = useState('1900');
+  const [maxYearInput, setMaxYearInput] = useState(String(new Date().getFullYear()));
+  const [minYear, setMinYear] = useState(1900);
+  const [maxYear, setMaxYear] = useState(new Date().getFullYear());
+  const [yearError, setYearError] = useState('');
   const [minRating, setMinRating] = useState<number>(0);
   const [maxRating, setMaxRating] = useState<number>(10);
 
@@ -79,6 +82,18 @@ export default function Search() {
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const [sortBy, setSortBy] = useState<SortOption>('popularity.desc');
   const [genres, setGenres] = useState<any[]>([]);
+  const filterDebounceRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Count active filters for badge
+  const activeFilterCount = [
+    mediaType !== 'all',
+    selectedGenres.length > 0,
+    sortBy !== 'relevance' && sortBy !== 'popularity.desc',
+    minYear !== 1900,
+    maxYear !== new Date().getFullYear(),
+    minRating !== 0,
+    maxRating !== 10,
+  ].filter(Boolean).length;
 
   // Debounced search effect
   useEffect(() => {
@@ -183,10 +198,27 @@ export default function Search() {
     setLoading(true);
     let data: any[] = [];
 
+    // Build RAWG filters
+    const rawgFilters: RAWGSearchFilters = {};
+    if (minYear !== 1900 || maxYear !== new Date().getFullYear()) {
+      rawgFilters.dates = `${minYear}-01-01,${maxYear}-12-31`;
+    }
+    if (minRating !== 0 || maxRating !== 10) {
+      // RAWG metacritic is 0-100, our rating is 0-10
+      rawgFilters.metacritic = `${Math.round(minRating * 10)},${Math.round(maxRating * 10)}`;
+    }
+    if (sortBy === 'vote_average.desc') {
+      rawgFilters.ordering = '-rating';
+    } else if (sortBy === 'release_date.desc') {
+      rawgFilters.ordering = '-released';
+    } else if (sortBy === 'popularity.desc' || sortBy === 'relevance') {
+      rawgFilters.ordering = '-added';
+    }
+
     if (!searchQuery) {
       // If no query, use discover API for movies/tv
       if (mediaType === 'game' || mediaType === 'all') {
-        const gameData = await searchRAWG(''); // Get trending games
+        const gameData = await searchRAWG('', rawgFilters);
         const formatted = gameData.map((game: any) => {
           const mapped = mapRAWGToMedia(game);
           return {
@@ -227,7 +259,7 @@ export default function Search() {
     } else {
       // Search with query
       if (mediaType === 'game' || mediaType === 'all') {
-        const gameData = await searchRAWG(searchQuery);
+        const gameData = await searchRAWG(searchQuery, rawgFilters);
         const formatted = gameData.map((game: any) => {
           const mapped = mapRAWGToMedia(game);
           return {
@@ -259,53 +291,59 @@ export default function Search() {
       }
     }
     
-    // Apply local filtering to results since TMDB search doesn't support advanced filters
+    // Apply local filtering (needed for TMDB search results which don't support filter params)
     let filteredData = data;
 
-    // Always apply filtering
-       filteredData = filteredData.filter(item => {
-          // Check year
-          if (item.release_year) {
-             const year = parseInt(item.release_year);
-             if (minYear !== '' && !isNaN(Number(minYear)) && year < Number(minYear)) return false;
-             if (maxYear !== '' && !isNaN(Number(maxYear)) && year > Number(maxYear)) return false;
-          }
+    filteredData = filteredData.filter(item => {
+      // Check year
+      if (item.release_year) {
+        const year = parseInt(item.release_year);
+        if (!isNaN(year) && year < minYear) return false;
+        if (!isNaN(year) && year > maxYear) return false;
+      }
 
-          // Check rating
-          if (item.rating !== undefined) {
-             if (item.rating > 0 && (item.rating < minRating || item.rating > maxRating)) return false;
-          }
+      // Check rating
+      if (item.rating !== undefined) {
+        if (item.rating > 0 && (item.rating < minRating || item.rating > maxRating)) return false;
+      }
 
-          // Check genres
-          if (selectedGenres.length > 0 && item.type !== 'game' && item.genre_ids) {
-             const hasGenre = item.genre_ids.some((id: number) => selectedGenres.includes(String(id)));
-             if (!hasGenre) return false;
-          }
+      // Check genres
+      if (selectedGenres.length > 0 && item.type !== 'game' && item.genre_ids) {
+        const hasGenre = item.genre_ids.some((id: number) => selectedGenres.includes(String(id)));
+        if (!hasGenre) return false;
+      }
 
-          return true;
-       });
+      return true;
+    });
 
-       // Local sort
-       if (sortBy === 'vote_average.desc') {
-         filteredData.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-       } else if (sortBy === 'release_date.desc') {
-         filteredData.sort((a, b) => {
-            const dateA = a.release_date || `${a.release_year}-01-01` || '';
-            const dateB = b.release_date || `${b.release_year}-01-01` || '';
-            return dateB.localeCompare(dateA);
-         });
-       } else if (sortBy === 'popularity.desc') {
-         filteredData.sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
-       }
+    // Local sort
+    if (sortBy === 'vote_average.desc') {
+      filteredData.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+    } else if (sortBy === 'release_date.desc') {
+      filteredData.sort((a, b) => {
+        const dateA = a.release_date || `${a.release_year}-01-01` || '';
+        const dateB = b.release_date || `${b.release_year}-01-01` || '';
+        return dateB.localeCompare(dateA);
+      });
+    } else if (sortBy === 'popularity.desc') {
+      filteredData.sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
+    }
 
     setResults(filteredData);
     setLoading(false);
   }, [mediaType, selectedGenres, sortBy, minYear, maxYear, minRating, maxRating]);
 
-  // Re-run search when filters change
+  // Re-run search when filters change (debounced)
   useEffect(() => {
-    handleSearch(query);
-  }, [mediaType, selectedGenres, sortBy, minYear, maxYear, minRating, maxRating, handleSearch]);
+    if (filterDebounceRef.current) clearTimeout(filterDebounceRef.current);
+    filterDebounceRef.current = setTimeout(() => {
+      handleSearch(query);
+    }, 300);
+    return () => {
+      if (filterDebounceRef.current) clearTimeout(filterDebounceRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mediaType, selectedGenres, sortBy, minYear, maxYear, minRating, maxRating]);
 
   const handleAdd = async (item: any) => {
     const res = await addToLibraryQuery(item.title, item.type, 'plan_to_watch', {
@@ -359,10 +397,29 @@ export default function Search() {
     setMediaType('all');
     setSelectedGenres([]);
     setSortBy('relevance');
+    setMinYearInput('1900');
+    setMaxYearInput(String(new Date().getFullYear()));
     setMinYear(1900);
     setMaxYear(new Date().getFullYear());
+    setYearError('');
     setMinRating(0);
     setMaxRating(10);
+  };
+
+  const handleYearBlur = (field: 'min' | 'max') => {
+    const minVal = parseInt(minYearInput) || 1900;
+    const maxVal = parseInt(maxYearInput) || new Date().getFullYear();
+
+    if (minVal > maxVal) {
+      setYearError('Min year must be ≤ max year');
+      return;
+    }
+    setYearError('');
+    if (field === 'min') {
+      setMinYear(minVal);
+    } else {
+      setMaxYear(maxVal);
+    }
   };
 
   return (
@@ -373,10 +430,15 @@ export default function Search() {
            <h1 className="font-display font-bold text-3xl">Search</h1>
            <button
              onClick={() => setShowFilters(!showFilters)}
-             className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-colors ${showFilters ? 'bg-primary border-primary text-white' : 'bg-surface border-border text-muted hover:text-text'}`}
+             className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-colors relative ${showFilters ? 'bg-primary border-primary text-white' : 'bg-surface border-border text-muted hover:text-text'}`}
            >
              <Filter size={18} />
              <span className="text-sm font-bold">Filters</span>
+             {activeFilterCount > 0 && (
+               <span className="absolute -top-2 -right-2 w-5 h-5 flex items-center justify-center rounded-full bg-primary-2 text-white text-xs font-bold">
+                 {activeFilterCount}
+               </span>
+             )}
            </button>
         </div>
 
@@ -427,30 +489,49 @@ export default function Search() {
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <label className="text-sm font-bold uppercase tracking-widest text-muted">Year</label>
-                <span className="text-sm text-primary font-mono">{minYear} - {maxYear}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-primary font-mono">{minYear} - {maxYear}</span>
+                  {(minYear !== 1900 || maxYear !== new Date().getFullYear()) && (
+                    <button onClick={() => { setMinYearInput('1900'); setMaxYearInput(String(new Date().getFullYear())); setMinYear(1900); setMaxYear(new Date().getFullYear()); setYearError(''); }} className="text-muted hover:text-danger"><X size={12} /></button>
+                  )}
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 <input
-                  type="number"
-                  value={minYear}
-                  onChange={(e) => setMinYear(e.target.value)}
-                  className="w-full bg-surface-2 border border-border rounded-lg px-2 py-1.5 text-sm text-center"
+                  type="text"
+                  inputMode="numeric"
+                  value={minYearInput}
+                  onChange={(e) => setMinYearInput(e.target.value.replace(/[^0-9]/g, ''))}
+                  onBlur={() => handleYearBlur('min')}
+                  onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+                  maxLength={4}
+                  className={`w-full bg-surface-2 border rounded-lg px-2 py-1.5 text-sm text-center focus:outline-none focus:border-primary transition-colors ${yearError ? 'border-danger' : 'border-border'}`}
                 />
                 <span className="text-muted">-</span>
                 <input
-                  type="number"
-                  value={maxYear}
-                  onChange={(e) => setMaxYear(e.target.value)}
-                  className="w-full bg-surface-2 border border-border rounded-lg px-2 py-1.5 text-sm text-center"
+                  type="text"
+                  inputMode="numeric"
+                  value={maxYearInput}
+                  onChange={(e) => setMaxYearInput(e.target.value.replace(/[^0-9]/g, ''))}
+                  onBlur={() => handleYearBlur('max')}
+                  onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+                  maxLength={4}
+                  className={`w-full bg-surface-2 border rounded-lg px-2 py-1.5 text-sm text-center focus:outline-none focus:border-primary transition-colors ${yearError ? 'border-danger' : 'border-border'}`}
                 />
               </div>
+              {yearError && <p className="text-xs text-danger">{yearError}</p>}
             </div>
 
             {/* Rating Range */}
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <label className="text-sm font-bold uppercase tracking-widest text-muted">Rating</label>
-                <span className="text-sm text-yellow-500 font-mono">★ {minRating} - {maxRating}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-yellow-500 font-mono">★ {minRating} - {maxRating}</span>
+                  {(minRating !== 0 || maxRating !== 10) && (
+                    <button onClick={() => { setMinRating(0); setMaxRating(10); }} className="text-muted hover:text-danger"><X size={12} /></button>
+                  )}
+                </div>
               </div>
               <div className="px-2">
                 <input
@@ -498,6 +579,16 @@ export default function Search() {
               </div>
             </div>
 
+            {/* Desktop Reset All */}
+            {activeFilterCount > 0 && (
+              <button
+                onClick={clearFilters}
+                className="hidden md:flex w-full items-center justify-center gap-2 py-2.5 mt-4 bg-danger/10 hover:bg-danger/20 text-danger border border-danger/20 rounded-xl text-sm font-bold transition-all"
+              >
+                <Trash2 size={14} /> Reset All Filters ({activeFilterCount})
+              </button>
+            )}
+
             <div className="md:hidden flex justify-end pt-4 border-t border-border mt-6">
                <button
                  onClick={clearFilters}
@@ -534,6 +625,18 @@ export default function Search() {
             <span className="flex items-center gap-1.5 px-3 py-1 bg-success/10 border border-success/30 text-success rounded-full text-sm font-bold uppercase tracking-tighter">
               Sort: {sortBy.split('.')[0]}
               <X size={10} className="ml-1 cursor-pointer" onClick={() => setSortBy('relevance')} />
+            </span>
+          )}
+          {(minYear !== 1900 || maxYear !== new Date().getFullYear()) && (
+            <span className="flex items-center gap-1.5 px-3 py-1 bg-blue-500/10 border border-blue-500/30 text-blue-400 rounded-full text-sm font-bold uppercase tracking-tighter">
+              Year: {minYear}-{maxYear}
+              <X size={10} className="ml-1 cursor-pointer" onClick={() => { setMinYearInput('1900'); setMaxYearInput(String(new Date().getFullYear())); setMinYear(1900); setMaxYear(new Date().getFullYear()); setYearError(''); }} />
+            </span>
+          )}
+          {(minRating !== 0 || maxRating !== 10) && (
+            <span className="flex items-center gap-1.5 px-3 py-1 bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 rounded-full text-sm font-bold uppercase tracking-tighter">
+              Rating: ★{minRating}-{maxRating}
+              <X size={10} className="ml-1 cursor-pointer" onClick={() => { setMinRating(0); setMaxRating(10); }} />
             </span>
           )}
         </div>

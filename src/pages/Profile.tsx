@@ -14,7 +14,8 @@ import {
 } from '../lib/reaperhub/queries';
 import { Activity,
   Award, Lock, Camera, ExternalLink, 
-  Loader2, Sparkles, Ghost, Library, UserPlus, UserMinus, Users, MessageSquare
+  Loader2, Sparkles, Ghost, Library, UserPlus, UserMinus, Users, MessageSquare,
+  Home, Trophy, Settings as SettingsIcon, Bell, LogOut, ChevronRight
  } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { cn } from '../lib/utils';
@@ -140,6 +141,11 @@ export default function Profile() {
     } finally {
       setFollowLoading(false);
     }
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate('/login');
   };
 
   const ProfileSkeleton = () => (
@@ -327,6 +333,80 @@ export default function Profile() {
         </div>
       </div>
 
+      {/* Mobile Navigation Menu */}
+      {isCurrentUser && (
+        <div className="md:hidden space-y-2 mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <Link to="/dashboard" className="flex items-center justify-between p-4 bg-surface-2/50 border border-border/50 rounded-[20px] hover:bg-surface-2 transition-colors active:scale-[0.98]">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Home className="w-5 h-5 text-primary" />
+              </div>
+              <span className="font-bold text-sm uppercase tracking-widest text-white">Dashboard</span>
+            </div>
+            <ChevronRight className="w-5 h-5 text-muted" />
+          </Link>
+          
+          <Link to="/leaderboard" className="flex items-center justify-between p-4 bg-surface-2/50 border border-border/50 rounded-[20px] hover:bg-surface-2 transition-colors active:scale-[0.98]">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-primary-2/10 flex items-center justify-center">
+                <Trophy className="w-5 h-5 text-primary-2" />
+              </div>
+              <span className="font-bold text-sm uppercase tracking-widest text-white">Hall of Fame</span>
+            </div>
+            <ChevronRight className="w-5 h-5 text-muted" />
+          </Link>
+          
+          <Link to="/achievements" className="flex items-center justify-between p-4 bg-surface-2/50 border border-border/50 rounded-[20px] hover:bg-surface-2 transition-colors active:scale-[0.98]">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-yellow-500/10 flex items-center justify-center">
+                <Award className="w-5 h-5 text-yellow-500" />
+              </div>
+              <span className="font-bold text-sm uppercase tracking-widest text-white">Milestones</span>
+            </div>
+            <ChevronRight className="w-5 h-5 text-muted" />
+          </Link>
+
+          <Link to="/stats" className="flex items-center justify-between p-4 bg-surface-2/50 border border-border/50 rounded-[20px] hover:bg-surface-2 transition-colors active:scale-[0.98]">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center">
+                <Activity className="w-5 h-5 text-green-500" />
+              </div>
+              <span className="font-bold text-sm uppercase tracking-widest text-white">Performance Stats</span>
+            </div>
+            <ChevronRight className="w-5 h-5 text-muted" />
+          </Link>
+
+          <Link to="/notifications" className="flex items-center justify-between p-4 bg-surface-2/50 border border-border/50 rounded-[20px] hover:bg-surface-2 transition-colors active:scale-[0.98]">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                <Bell className="w-5 h-5 text-blue-500" />
+              </div>
+              <span className="font-bold text-sm uppercase tracking-widest text-white">Notifications</span>
+            </div>
+            <ChevronRight className="w-5 h-5 text-muted" />
+          </Link>
+
+          <Link to="/settings" className="flex items-center justify-between p-4 bg-surface-2/50 border border-border/50 rounded-[20px] hover:bg-surface-2 transition-colors active:scale-[0.98]">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center">
+                <SettingsIcon className="w-5 h-5 text-purple-500" />
+              </div>
+              <span className="font-bold text-sm uppercase tracking-widest text-white">Settings</span>
+            </div>
+            <ChevronRight className="w-5 h-5 text-muted" />
+          </Link>
+
+          <button onClick={handleLogout} className="w-full flex items-center justify-between p-4 bg-danger/5 border border-danger/20 rounded-[20px] hover:bg-danger/10 transition-colors active:scale-[0.98]">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-danger/10 flex items-center justify-center">
+                <LogOut className="w-5 h-5 text-danger" />
+              </div>
+              <span className="font-bold text-sm uppercase tracking-widest text-danger">Sign Out</span>
+            </div>
+            <ChevronRight className="w-5 h-5 text-danger/50" />
+          </button>
+        </div>
+      )}
 
       {/* Tab Navigation */}
       <div className="flex justify-center border-b border-border/50 mb-8">

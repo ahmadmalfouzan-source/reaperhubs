@@ -77,6 +77,7 @@ export default function MediaDetail() {
   const [lastSession, setLastSession] = useState<any>(null);
   const [totalPlaytime, setTotalPlaytime] = useState(0);
   const [isLogging, setIsLogging] = useState(false);
+  const [suggestingBosses, setSuggestingBosses] = useState(false);
 
   const navigate = useNavigate();
 
@@ -100,11 +101,9 @@ export default function MediaDetail() {
           getHLTBData(data.title).then(setHltb);
           
           // Fetch user specific game data (only manually tracked bosses)
-          getGameBossesProgress(id).then(async res => {
+          getGameBossesProgress(id).then(res => {
             setDefeatedBosses(res.filter((b: any) => b.is_defeated).map((b: any) => b.boss_name));
-            const manual = res.map((b: any) => b.boss_name);
-            const wikiBosses = await getGameBosses(data.title);
-            setBosses([...new Set([...wikiBosses, ...manual])]);
+            setBosses(res.map((b: any) => b.boss_name));
           });
           getGameSessions(id).then(res => {
             if (res.length > 0) setLastSession(res[0]);
@@ -259,6 +258,36 @@ export default function MediaDetail() {
     setNewBossName('');
     // Save to DB as not defeated
     toggleBossDefeated(id, name, false);
+  };
+
+  const handleSuggestBosses = async () => {
+    if (!media?.title) return;
+    setSuggestingBosses(true);
+    try {
+      const wikiBosses = await getGameBosses(media.title);
+      if (wikiBosses.length === 0) {
+        toast.error('No targets found in intel archives.');
+        return;
+      }
+      const newTargets = wikiBosses.filter(b => !bosses.includes(b));
+      if (newTargets.length === 0) {
+        toast('All known targets already identified.');
+        return;
+      }
+      setBosses(prev => [...prev, ...newTargets]);
+      // Persist each new target to Supabase
+      if (id) {
+        for (const name of newTargets) {
+          toggleBossDefeated(id, name, false);
+        }
+      }
+      toast.success(`${newTargets.length} target(s) imported from intel archives.`);
+    } catch (err) {
+      console.error('Auto-suggest error:', err);
+      toast.error('Failed to fetch targets from intel archives.');
+    } finally {
+      setSuggestingBosses(false);
+    }
   };
 
   const handleLogSession = async (activityId: string) => {
@@ -533,26 +562,59 @@ export default function MediaDetail() {
                   <Target size={24} className="text-danger" />
                   <h2 className="text-xl font-display font-bold text-white uppercase tracking-tight">Priority Targets</h2>
                 </div>
+                <div className="flex items-center gap-2">
+                  {bosses.length > 0 && (
+                    <span className="text-sm font-mono font-bold text-danger">
+                      {defeatedBosses.length}/{bosses.length}
+                    </span>
+                  )}
+                  <button
+                    onClick={handleSuggestBosses}
+                    disabled={suggestingBosses}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-surface-2 border border-border rounded-xl text-sm font-bold text-muted hover:text-primary hover:border-primary/30 transition-all uppercase tracking-widest disabled:opacity-50"
+                    title="Auto-suggest targets from Wikipedia"
+                  >
+                    {suggestingBosses ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                    <span className="hidden sm:inline">Suggest</span>
+                  </button>
+                </div>
               </div>
               
               {bosses.length === 0 ? (
-                <div className="bg-surface-2 border-2 border-dashed border-border/50 rounded-3xl p-8 text-center space-y-4">
-                   <p className="text-sm text-muted font-bold uppercase tracking-widest">No intelligence found in Wikipedia archives.</p>
+                <div className="bg-surface-2 border-2 border-dashed border-border/50 rounded-3xl p-8 text-center space-y-5">
+                   <div className="flex flex-col items-center gap-3">
+                     <div className="w-14 h-14 rounded-2xl bg-danger/10 border border-danger/20 flex items-center justify-center">
+                       <Target size={28} className="text-danger/60" />
+                     </div>
+                     <p className="text-sm text-muted font-bold uppercase tracking-widest">Add your first priority target</p>
+                     <p className="text-xs text-muted/60 max-w-xs">Track bosses, objectives, or milestones. Use the Suggest button to auto-import from intel archives.</p>
+                   </div>
                    <form onSubmit={handleAddManualBoss} className="flex gap-2 max-w-sm mx-auto">
                       <input 
                         type="text" 
                         value={newBossName}
                         onChange={(e) => setNewBossName(e.target.value)}
                         placeholder="Identify new target..."
-                        className="flex-1 bg-surface border border-border rounded-xl px-4 py-2 text-sm text-white focus:border-danger transition-all"
+                        className="flex-1 bg-surface border border-border rounded-xl px-4 py-2 text-sm text-white placeholder:text-muted/40 focus:border-danger focus:ring-1 focus:ring-danger/20 transition-all"
                       />
-                      <button type="submit" className="p-2 bg-danger text-black rounded-xl hover:bg-danger/80 transition-all">
+                      <button type="submit" className="p-2 bg-danger text-black rounded-xl hover:bg-danger/80 transition-all active:scale-95">
                          <Plus size={20} />
                       </button>
                    </form>
                 </div>
               ) : (
                 <>
+                  {/* Progress bar */}
+                  {bosses.length > 0 && (
+                    <div className="space-y-2">
+                      <div className="h-2 bg-surface rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-danger to-danger/60 rounded-full transition-all duration-700"
+                          style={{ width: `${(defeatedBosses.length / bosses.length) * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {bosses.map((boss) => (
                       <button
@@ -579,15 +641,15 @@ export default function MediaDetail() {
                       </button>
                     ))}
                   </div>
-                  <form onSubmit={handleAddManualBoss} className="flex gap-2 max-w-sm pt-4">
+                  <form onSubmit={handleAddManualBoss} className="flex gap-2 max-w-sm pt-2">
                       <input 
                         type="text" 
                         value={newBossName}
                         onChange={(e) => setNewBossName(e.target.value)}
-                        placeholder="Add manual target..."
-                        className="flex-1 bg-surface-2 border border-border/50 rounded-xl px-4 py-2 text-sm text-white focus:border-danger transition-all"
+                        placeholder="Add target..."
+                        className="flex-1 bg-surface-2 border border-border/50 rounded-xl px-4 py-2 text-sm text-white placeholder:text-muted/40 focus:border-danger focus:ring-1 focus:ring-danger/20 transition-all"
                       />
-                      <button type="submit" className="p-2 bg-surface border border-border text-muted hover:text-danger rounded-xl transition-all">
+                      <button type="submit" className="p-2 bg-surface border border-border text-muted hover:text-danger rounded-xl transition-all active:scale-95">
                          <Plus size={20} />
                       </button>
                    </form>

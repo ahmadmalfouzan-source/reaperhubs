@@ -29,11 +29,11 @@ import Skeleton from '../components/Skeleton';
 import { cn } from '../lib/utils';
 
 const STATUS_OPTIONS = [
-  { value: 'plan_to_watch', label: 'Plan to Watch/Play', color: 'text-blue-400' },
-  { value: 'watching', label: 'Currently Watching/Playing', color: 'text-yellow-400' },
-  { value: 'completed', label: 'Completed', color: 'text-green-400' },
-  { value: 'dropped', label: 'Dropped', color: 'text-red-400' },
-  { value: 'on_hold', label: 'On Hold', color: 'text-gray-400' },
+  { value: 'plan_to_watch', label: 'Plan to Watch/Play', color: 'text-accent-info' },
+  { value: 'watching', label: 'Currently Watching/Playing', color: 'text-accent-warning' },
+  { value: 'completed', label: 'Completed', color: 'text-accent-success' },
+  { value: 'dropped', label: 'Dropped', color: 'text-accent-danger' },
+  { value: 'on_hold', label: 'On Hold', color: 'text-muted' },
 ];
 
 const SESSION_ACTIVITIES = [
@@ -399,7 +399,7 @@ export default function MediaDetail() {
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent"></div>
         <button 
           onClick={() => navigate(-1)}
-          className="absolute top-4 left-4 md:top-6 md:left-6 p-2 md:p-3 bg-black/40 backdrop-blur-md rounded-xl md:rounded-2xl text-white hover:bg-primary transition-all shadow-lg border border-white/10 z-10"
+          className="absolute top-4 left-4 md:top-6 md:left-6 p-2 md:p-3 bg-black/40 backdrop-blur-md rounded-xl md:rounded-2xl text-white hover:bg-accent-primary transition-all shadow-lg border border-white/10 z-10"
         >
           <ChevronLeft size={20} />
         </button>
@@ -407,10 +407,10 @@ export default function MediaDetail() {
         <div className="absolute bottom-6 left-6 right-6 md:bottom-8 md:left-8 md:right-8 flex items-end justify-between gap-6 z-10">
           <div className="space-y-2 md:space-y-4">
             <div className="flex items-center gap-2">
-              <span className="px-2 md:px-3 py-0.5 md:py-1 bg-primary rounded-full text-sm md:text-sm font-bold uppercase tracking-widest text-black shadow-lg">
+              <span className="px-2 md:px-3 py-0.5 md:py-1 bg-accent-primary rounded-full text-sm md:text-sm font-bold uppercase tracking-widest text-black shadow-lg">
                 {type.toUpperCase()}
               </span>
-              <div className="flex items-center gap-1.5 px-2 md:px-3 py-0.5 md:py-1 bg-black/40 backdrop-blur-md rounded-full text-sm md:text-sm font-bold text-primary-2 border border-white/5">
+              <div className="flex items-center gap-1.5 px-2 md:px-3 py-0.5 md:py-1 bg-black/40 backdrop-blur-md rounded-full text-sm md:text-sm font-bold text-accent-warning border border-white/5">
                 <Star size={10} className="fill-current" />
                 {media.vote_average?.toFixed(1)} / 5
               </div>
@@ -420,7 +420,7 @@ export default function MediaDetail() {
             </h1>
             
             {type === 'game' && lastSession && (
-              <div className="flex items-center gap-2 text-sm font-bold text-primary uppercase tracking-[0.2em] bg-primary/10 px-3 py-1.5 rounded-xl border border-primary/20 animate-pulse">
+              <div className="flex items-center gap-2 text-sm font-bold text-accent-primary uppercase tracking-[0.2em] bg-accent-primary/10 px-3 py-1.5 rounded-xl border border-accent-primary/20 animate-pulse">
                  <History size={12} />
                  Last Op: {lastSession.summary} • {new Date(lastSession.created_at).toLocaleDateString()}
               </div>
@@ -431,33 +431,33 @@ export default function MediaDetail() {
 
       <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 px-4 md:px-0">
         <div className="space-y-8">
-          <div className="hidden md:block relative group rounded-3xl overflow-hidden shadow-2xl border border-border/50">
+          <div className="hidden md:block relative group card overflow-hidden shadow-2xl border border-border/50">
             {poster ? (
               <img loading="lazy" src={poster} alt={media.title || media.name} className="w-full object-cover"  onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=300&q=80'; }} />
             ) : (
-              <div className="aspect-[2/3] bg-surface-2 flex items-center justify-center text-muted">No Poster</div>
+              <div className="aspect-[2/3] bg-surface-2 flex items-center justify-center text-muted font-display font-bold uppercase tracking-widest">No Poster</div>
             )}
           </div>
 
           <div className="space-y-4">
-            <div className="bg-surface-2 border border-border rounded-2xl p-4 md:p-6 space-y-4 relative group">
+            <div className="card p-4 md:p-6 space-y-4 relative group">
               <div className="flex items-center justify-between gap-4">
                 <div className="flex-1 space-y-1">
                    <label className="text-sm font-bold uppercase tracking-widest text-muted">Deploy Status</label>
                    <select
                      value={status}
                      onChange={(e) => setStatus(e.target.value)}
-                     className="w-full bg-surface border border-border rounded-xl px-3 py-2 text-sm font-bold text-white focus:outline-none focus:border-primary cursor-pointer transition-all"
+                     className="input py-2 text-sm font-bold cursor-pointer"
                    >
                      {STATUS_OPTIONS.map(opt => (
-                       <option key={opt.value} value={opt.value}>{opt.label}</option>
+                       <option key={opt.value} value={opt.value} className="bg-bg-elevated">{opt.label}</option>
                      ))}
                    </select>
                 </div>
                 <div className="relative">
                   <button 
                     onClick={() => setShowMenu(!showMenu)}
-                    className="p-3 bg-surface border border-border rounded-xl text-muted hover:text-white transition-all active:scale-95"
+                    className="p-3 bg-surface-1 border border-surface-3 rounded-xl text-muted hover:text-white transition-all active:scale-95"
                   >
                     <MoreVertical size={16} />
                   </button>
@@ -479,7 +479,7 @@ export default function MediaDetail() {
                 <button
                   onClick={handleToggleLibrary}
                   disabled={actionLoading}
-                  className="w-full py-4 bg-primary text-black rounded-xl font-bold text-sm uppercase tracking-widest flex items-center justify-center gap-2"
+                  className="btn btn-primary w-full py-4"
                 >
                   {actionLoading ? <Loader2 className="animate-spin" /> : <Plus size={16} />}
                   Add to Archive
@@ -488,23 +488,23 @@ export default function MediaDetail() {
             </div>
           </div>
           
-          <div className="bg-surface border border-border rounded-3xl p-6 space-y-6 shadow-lg">
+          <div className="card p-6 space-y-6 shadow-lg">
             <h3 className="text-sm font-bold uppercase tracking-widest text-muted">Intelligence Report</h3>
             <div className="space-y-4">
               <div className="flex items-center justify-between text-sm">
                 <div className="flex items-center gap-2 text-muted">Launched</div>
-                <span className="text-text font-bold">{year}</span>
+                <span className="text-text-primary font-bold">{year}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
                 <div className="flex items-center gap-2 text-muted">Rating</div>
-                <span className="text-primary-2 font-bold">{media.vote_average?.toFixed(1)} / 5</span>
+                <span className="text-accent-warning font-bold">{media.vote_average?.toFixed(1)} / 5</span>
               </div>
 
               {type === 'game' && (
                 <>
-                  <div className="flex items-center justify-between text-sm border-t border-border/10 pt-4">
+                  <div className="flex items-center justify-between text-sm border-t border-surface-3 pt-4">
                     <div className="flex items-center gap-2 text-muted">Total Time</div>
-                    <span className="text-success font-bold font-mono">{totalPlaytime.toFixed(1)}h</span>
+                    <span className="text-accent-success font-bold font-mono">{totalPlaytime.toFixed(1)}h</span>
                   </div>
                   <div className="space-y-3 pt-2">
                     <div className="flex items-center justify-between text-sm">
@@ -520,7 +520,7 @@ export default function MediaDetail() {
                       <span className="text-white font-mono">{hltb?.completionist || '--'}</span>
                     </div>
                     {!hltb && !loading && (
-                      <div className="text-sm text-danger font-bold uppercase tracking-widest text-center pt-1 opacity-60">Intercepting HLTB intel...</div>
+                      <div className="text-sm text-accent-danger font-bold uppercase tracking-widest text-center pt-1 opacity-60">Intercepting HLTB intel...</div>
                     )}
                   </div>
                 </>
@@ -538,9 +538,9 @@ export default function MediaDetail() {
 
         <div className="md:col-span-2 space-y-12">
           <section className="space-y-6">
-            <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-primary">Synopsis</h2>
+            <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-accent-primary">Synopsis</h2>
             <div className="relative">
-              <p className={cn("text-lg md:text-xl leading-relaxed text-text/80 transition-all", !showFullOverview && "line-clamp-4 overflow-hidden")}>
+              <p className={cn("text-lg md:text-xl leading-relaxed text-text-primary/80 transition-all", !showFullOverview && "line-clamp-4 overflow-hidden")}>
                 {media.overview || 'No intelligence provided.'}
               </p>
               {!showFullOverview && media.overview?.length > 200 && (
@@ -548,7 +548,7 @@ export default function MediaDetail() {
               )}
             </div>
             {media.overview?.length > 200 && (
-              <button onClick={() => setShowFullOverview(!showFullOverview)} className="flex items-center gap-2 text-primary font-bold text-sm uppercase tracking-widest">
+              <button onClick={() => setShowFullOverview(!showFullOverview)} className="flex items-center gap-2 text-accent-primary font-bold text-sm uppercase tracking-widest hover:text-white transition-colors">
                 {showFullOverview ? 'Collapse' : 'Expand'} Dossier
               </button>
             )}
@@ -557,21 +557,21 @@ export default function MediaDetail() {
           {/* Priority Targets (Game Only) */}
           {type === 'game' && (
             <section className="space-y-8 animate-in fade-in duration-700">
-              <div className="flex items-center justify-between border-b border-border/30 pb-6">
+              <div className="flex items-center justify-between border-b border-surface-3 pb-6">
                 <div className="flex items-center gap-3">
-                  <Target size={24} className="text-danger" />
+                  <Target size={24} className="text-accent-danger" />
                   <h2 className="text-xl font-display font-bold text-white uppercase tracking-tight">Priority Targets</h2>
                 </div>
                 <div className="flex items-center gap-2">
                   {bosses.length > 0 && (
-                    <span className="text-sm font-mono font-bold text-danger">
+                    <span className="text-sm font-mono font-bold text-accent-danger">
                       {defeatedBosses.length}/{bosses.length}
                     </span>
                   )}
                   <button
                     onClick={handleSuggestBosses}
                     disabled={suggestingBosses}
-                    className="flex items-center gap-2 px-3 py-1.5 bg-surface-2 border border-border rounded-xl text-sm font-bold text-muted hover:text-primary hover:border-primary/30 transition-all uppercase tracking-widest disabled:opacity-50"
+                    className="btn btn-ghost px-3 py-1.5 text-xs"
                     title="Auto-suggest targets from Wikipedia"
                   >
                     {suggestingBosses ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
@@ -581,10 +581,10 @@ export default function MediaDetail() {
               </div>
               
               {bosses.length === 0 ? (
-                <div className="bg-surface-2 border-2 border-dashed border-border/50 rounded-3xl p-8 text-center space-y-5">
+                <div className="card tactical-grid p-8 text-center space-y-5 border-dashed border-2">
                    <div className="flex flex-col items-center gap-3">
-                     <div className="w-14 h-14 rounded-2xl bg-danger/10 border border-danger/20 flex items-center justify-center">
-                       <Target size={28} className="text-danger/60" />
+                     <div className="w-14 h-14 rounded-2xl bg-accent-danger/10 border border-accent-danger/20 flex items-center justify-center">
+                       <Target size={28} className="text-accent-danger/60" />
                      </div>
                      <p className="text-sm text-muted font-bold uppercase tracking-widest">Add your first priority target</p>
                      <p className="text-xs text-muted/60 max-w-xs">Track bosses, objectives, or milestones. Use the Suggest button to auto-import from intel archives.</p>
@@ -595,9 +595,9 @@ export default function MediaDetail() {
                         value={newBossName}
                         onChange={(e) => setNewBossName(e.target.value)}
                         placeholder="Identify new target..."
-                        className="flex-1 bg-surface border border-border rounded-xl px-4 py-2 text-sm text-white placeholder:text-muted/40 focus:border-danger focus:ring-1 focus:ring-danger/20 transition-all"
+                        className="input flex-1 py-2 text-sm focus:border-accent-danger focus:ring-accent-danger/20"
                       />
-                      <button type="submit" className="p-2 bg-danger text-black rounded-xl hover:bg-danger/80 transition-all active:scale-95">
+                      <button type="submit" className="btn btn-primary p-2 rounded-xl h-10 w-10">
                          <Plus size={20} />
                       </button>
                    </form>
@@ -607,9 +607,9 @@ export default function MediaDetail() {
                   {/* Progress bar */}
                   {bosses.length > 0 && (
                     <div className="space-y-2">
-                      <div className="h-2 bg-surface rounded-full overflow-hidden">
+                      <div className="h-2 bg-surface-1 rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-gradient-to-r from-danger to-danger/60 rounded-full transition-all duration-700"
+                          className="h-full bg-gradient-to-r from-accent-danger to-accent-danger/60 rounded-full transition-all duration-700"
                           style={{ width: `${(defeatedBosses.length / bosses.length) * 100}%` }}
                         />
                       </div>
@@ -621,10 +621,10 @@ export default function MediaDetail() {
                         key={boss}
                         onClick={() => handleToggleBoss(boss)}
                         className={cn(
-                          "flex items-center justify-between p-4 rounded-2xl border transition-all text-left group/boss",
+                          "flex items-center justify-between p-4 card transition-all text-left group/boss",
                           defeatedBosses.includes(boss)
-                            ? "bg-danger/10 border-danger/30 text-white"
-                            : "bg-surface-2 border-border/50 text-muted hover:border-danger/30"
+                            ? "bg-accent-danger/10 border-accent-danger/30 text-white"
+                            : "bg-surface-2 border-surface-3 text-muted hover:border-accent-danger/30"
                         )}
                       >
                         <span className={cn("text-sm font-bold uppercase tracking-widest", defeatedBosses.includes(boss) && "line-through opacity-50")}>
@@ -633,8 +633,8 @@ export default function MediaDetail() {
                         <div className={cn(
                           "w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all",
                           defeatedBosses.includes(boss) 
-                            ? "bg-danger border-danger shadow-lg shadow-danger/20" 
-                            : "border-border group-hover/boss:border-danger/50"
+                            ? "bg-accent-danger border-accent-danger shadow-lg shadow-accent-danger/20" 
+                            : "border-surface-3 group-hover/boss:border-accent-danger/50"
                         )}>
                           {defeatedBosses.includes(boss) && <Swords size={12} className="text-black" />}
                         </div>
@@ -647,9 +647,9 @@ export default function MediaDetail() {
                         value={newBossName}
                         onChange={(e) => setNewBossName(e.target.value)}
                         placeholder="Add target..."
-                        className="flex-1 bg-surface-2 border border-border/50 rounded-xl px-4 py-2 text-sm text-white placeholder:text-muted/40 focus:border-danger focus:ring-1 focus:ring-danger/20 transition-all"
+                        className="input flex-1 py-2 text-sm focus:border-accent-danger focus:ring-accent-danger/20"
                       />
-                      <button type="submit" className="p-2 bg-surface border border-border text-muted hover:text-danger rounded-xl transition-all active:scale-95">
+                      <button type="submit" className="btn btn-ghost p-2 h-10 w-10">
                          <Plus size={20} />
                       </button>
                    </form>
@@ -659,7 +659,7 @@ export default function MediaDetail() {
           )}
 
           {inLibrary && (
-            <section className="bg-surface-2 border-2 border-primary/20 rounded-[32px] p-6 md:p-8 shadow-2xl relative overflow-hidden group pb-48 sm:pb-8">
+            <section className="card border-accent-primary/20 p-6 md:p-8 shadow-2xl relative overflow-hidden group pb-48 sm:pb-8">
               <div className="space-y-8 relative z-10">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <h2 className="text-sm md:text-xl font-display font-bold text-white uppercase tracking-tight flex items-center gap-3">
@@ -670,25 +670,25 @@ export default function MediaDetail() {
                       <button
                         key={i}
                         onClick={() => setRating(i + 1)}
-                        className={`transition-all p-1 sm:p-0 ${i + 1 <= rating ? 'text-yellow-400 scale-110' : 'text-muted/20'}`}
+                        className={`transition-all p-1 sm:p-0 ${i + 1 <= rating ? 'text-accent-warning scale-110' : 'text-text-muted/20'}`}
                       >
                         <Star className="w-8 h-8 sm:w-6 h-6" fill={i + 1 <= rating ? "currentColor" : "none"} />
                       </button>
                     ))}
-                    <span className="ml-2 font-mono font-bold text-yellow-400 text-xl w-6">{rating}</span>
+                    <span className="ml-2 font-mono font-bold text-accent-warning text-xl w-6">{rating}</span>
                   </div>
                 </div>
                 <textarea
                   value={review}
                   onChange={(e) => setReview(e.target.value)}
                   placeholder="Document your findings, operative..."
-                  className="w-full bg-surface border border-border rounded-2xl p-4 text-sm text-white focus:outline-none focus:border-primary min-h-[120px] italic"
+                  className="input min-h-[120px] italic"
                 />
                 <div className="flex justify-end">
                   <button
                     onClick={handleUpdateEntry}
                     disabled={isUpdating}
-                    className="w-full sm:w-auto flex items-center justify-center gap-3 px-8 py-3 bg-primary text-black font-bold rounded-xl"
+                    className="btn btn-primary w-full sm:w-auto px-8"
                   >
                     {isUpdating ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
                     <span className="uppercase tracking-widest text-sm">Sync Intel</span>
@@ -700,12 +700,12 @@ export default function MediaDetail() {
 
           {type === 'tv' && seasons.length > 0 && (
             <section className="space-y-8">
-              <div className="flex items-center justify-between gap-4 border-b border-border/30 pb-6">
+              <div className="flex items-center justify-between gap-4 border-b border-surface-3 pb-6">
                 <h2 className="text-lg md:text-xl font-display font-bold text-white uppercase tracking-tight">Mission Progress</h2>
                 <div className="relative w-20 h-20">
                    <svg className="w-full h-full transform -rotate-90">
                     <circle cx="50%" cy="50%" r="38%" className="stroke-surface-2 fill-none" strokeWidth="8" />
-                    <circle cx="50%" cy="50%" r="38%" className="stroke-primary-2 fill-none transition-all duration-1000" strokeWidth="8" strokeDasharray="238.7" strokeDashoffset={238.7 - (238.7 * calculateOverallProgress()) / 100} strokeLinecap="round" />
+                    <circle cx="50%" cy="50%" r="38%" className="stroke-accent-warning fill-none transition-all duration-1000" strokeWidth="8" strokeDasharray="238.7" strokeDashoffset={238.7 - (238.7 * calculateOverallProgress()) / 100} strokeLinecap="round" />
                   </svg>
                   <div className="absolute inset-0 flex items-center justify-center text-sm font-bold text-white">{calculateOverallProgress()}%</div>
                 </div>
@@ -717,7 +717,7 @@ export default function MediaDetail() {
                   const isExpanded = expandedSeasons.has(season.season_number);
                   const sRating = seasonRatings[season.season_number] || 0;
                   return (
-                    <div key={season.id} className="bg-surface-2/30 border border-border/50 rounded-[24px] overflow-hidden">
+                    <div key={season.id} className="card bg-surface-2/30 border-surface-3">
                       <div className="p-4 md:p-5 flex flex-col gap-4">
                         <button onClick={() => toggleSeasonCollapse(season.season_number)} className="w-full flex items-center justify-between text-left">
                           <div className="flex items-center gap-4">
@@ -726,19 +726,19 @@ export default function MediaDetail() {
                             </div>
                             <div className="flex-1 min-w-0">
                               <h3 className="font-display font-bold text-base text-white uppercase truncate">{season.name}</h3>
-                              <div className="mt-1 w-full h-1 bg-surface rounded-full overflow-hidden">
-                                <div className="h-full bg-primary-2/60" style={{ width: `${progress.percentage}%` }} />
+                              <div className="mt-1 w-full h-1 bg-surface-1 rounded-full overflow-hidden">
+                                <div className="h-full bg-accent-warning/60" style={{ width: `${progress.percentage}%` }} />
                               </div>
                             </div>
                           </div>
                           {isExpanded ? <ChevronUp size={18} className="text-muted" /> : <ChevronDown size={18} className="text-muted" />}
                         </button>
                         
-                        <div className="flex items-center justify-between pt-2 border-t border-border/10">
+                        <div className="flex items-center justify-between pt-2 border-t border-surface-3">
                            <span className="text-sm font-bold text-muted uppercase tracking-widest">Season Appraisal</span>
                            <div className="flex items-center gap-1">
                               {[...Array(5)].map((_, i) => (
-                                <button key={i} onClick={(e) => { e.stopPropagation(); handleUpdateSeasonRating(season.season_number, i + 1); }} className={`p-1 transition-all ${i + 1 <= sRating ? 'text-primary-2 scale-110' : 'text-muted/20'}`}>
+                                <button key={i} onClick={(e) => { e.stopPropagation(); handleUpdateSeasonRating(season.season_number, i + 1); }} className={`p-1 transition-all ${i + 1 <= sRating ? 'text-accent-warning scale-110' : 'text-muted/20'}`}>
                                   <Star size={20} fill={i + 1 <= sRating ? "currentColor" : "none"} />
                                 </button>
                               ))}
@@ -747,10 +747,10 @@ export default function MediaDetail() {
                       </div>
 
                       {isExpanded && (
-                        <div className="border-t border-border/30 p-4 space-y-2 animate-in slide-in-from-top-4 duration-300">
-                          {loadingSeasons && !seasonData[season.season_number] ? <Loader2 className="w-6 h-6 animate-spin mx-auto text-primary-2" /> : seasonData[season.season_number]?.episodes?.map((ep: any) => (
+                        <div className="border-t border-surface-3 p-4 space-y-2 animate-in slide-in-from-top-4 duration-300">
+                          {loadingSeasons && !seasonData[season.season_number] ? <Loader2 className="w-6 h-6 animate-spin mx-auto text-accent-warning" /> : seasonData[season.season_number]?.episodes?.map((ep: any) => (
                             <div key={ep.id} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-surface-2/50 transition-all">
-                              <button onClick={() => handleToggleEpisode(season.season_number, ep.episode_number)} className={cn("p-2 rounded-lg", isEpisodeWatched(season.season_number, ep.episode_number) ? "text-primary-2 bg-primary-2/10" : "text-muted")}>
+                              <button onClick={() => handleToggleEpisode(season.season_number, ep.episode_number)} className={cn("p-2 rounded-lg", isEpisodeWatched(season.season_number, ep.episode_number) ? "text-accent-warning bg-accent-warning/10" : "text-muted")}>
                                 {isEpisodeWatched(season.season_number, ep.episode_number) ? <CheckCircle2 size={18} /> : <Circle size={18} />}
                               </button>
                               <div className="flex-1 min-w-0">

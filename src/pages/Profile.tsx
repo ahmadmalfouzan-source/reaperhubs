@@ -12,11 +12,12 @@ import {
   getIsFollowing,
   getUserStreak
 } from '../lib/reaperhub/queries';
-import { Activity,
-  Award, Lock, Camera, ExternalLink, 
+import { 
+  Activity, Award, Lock, Camera, ExternalLink, 
   Loader2, Sparkles, Ghost, Library, UserPlus, UserMinus, Users, MessageSquare,
-  Home, Trophy, Settings as SettingsIcon, Bell, LogOut, ChevronRight
- } from 'lucide-react';
+  Home, Trophy, Settings as SettingsIcon, Bell, LogOut, ChevronRight, Zap, Target
+} from 'lucide-react';
+import { TacticalGrid, ScanlineOverlay } from '../components/Decorative';
 import { supabase } from '../lib/supabase';
 import { cn } from '../lib/utils';
 import { toast } from '../lib/toastUtils';
@@ -196,17 +197,20 @@ export default function Profile() {
 
   if (!data || !data.user) {
     return (
-      <div className="text-center py-32 space-y-6">
-        <div className="w-20 h-20 bg-surface-2 rounded-full flex items-center justify-center mx-auto border border-border">
-          <Ghost className="w-10 h-10 text-muted opacity-20" />
+      <div className="min-h-[60vh] flex flex-col items-center justify-center text-center p-8 relative overflow-hidden">
+        <TacticalGrid opacity={0.05} />
+        <div className="relative z-10 space-y-6 max-w-md">
+          <div className="w-20 h-20 bg-accent-primary/10 rounded-full flex items-center justify-center mx-auto border border-accent-primary/20">
+            <Ghost className="w-10 h-10 text-accent-primary/40" />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-2xl font-display font-bold text-text uppercase tracking-tight">Agent not found</h2>
+            <p className="text-muted text-sm italic font-medium">The requested operative does not exist in the collective database or encryption level is insufficient.</p>
+          </div>
+          <button onClick={() => navigate('/dashboard')} className="btn btn-primary px-8 py-3 text-xs">
+            Return to HQ Terminal
+          </button>
         </div>
-        <div className="space-y-2">
-          <h2 className="text-2xl font-display font-bold text-white uppercase tracking-tight">Agent not found</h2>
-          <p className="text-muted text-sm italic">The requested operative does not exist in the collective database.</p>
-        </div>
-        <button onClick={() => navigate('/dashboard')} className="px-8 py-3 bg-primary text-black font-bold rounded-xl uppercase text-sm tracking-widest hover:scale-105 transition-all">
-          Return to HQ
-        </button>
       </div>
     );
   }
@@ -216,21 +220,22 @@ export default function Profile() {
   return (
     <div className="max-w-5xl mx-auto space-y-8 md:space-y-12 animate-in fade-in duration-1000 px-4 sm:px-0 pb-20">
       {/* Redesigned Profile Header with Cover Image */}
-      <div className="bg-surface border-2 border-border/50 rounded-[32px] overflow-hidden shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)]">
+      <div className="card overflow-hidden shadow-5">
         {/* Cover Area */}
-        <div className="h-48 md:h-64 relative bg-surface-2">
+        <div className="h-48 md:h-64 relative bg-surface-2 overflow-hidden">
+          <ScanlineOverlay opacity={0.15} />
           {user?.cover_url ? (
              <img src={user.cover_url} alt="Cover" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=1000&q=80'; }} />
           ) : (
-             <div className="w-full h-full bg-gradient-to-r from-primary/20 via-surface-2 to-primary-2/20"></div>
+             <div className="w-full h-full bg-gradient-to-r from-accent-primary/20 via-surface-2 to-accent-secondary/20"></div>
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-surface via-transparent to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-bg-base via-transparent to-transparent"></div>
           {isCurrentUser && (
             <button 
               onClick={() => navigate('/settings')}
-              className="absolute top-4 right-4 z-20 px-4 py-2 bg-black/50 hover:bg-black/80 backdrop-blur-md text-white rounded-full text-sm font-bold uppercase tracking-widest flex items-center gap-2 border border-white/10 transition-all hover:border-white/30"
+              className="btn btn-ghost absolute top-4 right-4 z-20 px-4 py-2 bg-bg-elevated/40 backdrop-blur-md text-xs border border-white/10"
             >
-              <Camera size={12} /> Edit Cover
+              <Camera size={14} /> Edit Cover
             </button>
           )}
         </div>
@@ -238,93 +243,96 @@ export default function Profile() {
         {/* Profile Info Overlay */}
         <div className="relative px-6 md:px-8 pb-8 pt-4">
           <div className="flex flex-col md:flex-row gap-6 relative">
-             <div className="absolute -top-20 left-0 md:relative md:-top-24 md:left-0">
-               <div className="relative group">
-                 <div className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-surface-2 border-4 border-surface flex items-center justify-center overflow-hidden flex-shrink-0 relative z-10 shadow-2xl transition-all duration-700 group-hover:scale-105">
-                   {user?.avatar_url ? (
-                     <img loading="lazy" src={user.avatar_url} alt={user?.username || 'Profile'} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=300&q=80'; }} />
-                   ) : (
-                     <span className="text-primary-2 font-display font-bold text-5xl drop-shadow-lg">{user?.username?.[0]?.toUpperCase() || '?'}</span>
-                   )}
-                 </div>
-                 {isCurrentUser && (
-                   <button
-                     onClick={() => navigate('/settings')}
-                     className="absolute bottom-2 right-2 z-20 p-2.5 bg-primary text-black rounded-full shadow-xl hover:scale-110 active:scale-95 transition-all border-4 border-surface"
-                   >
-                     <Camera size={14} />
-                   </button>
-                 )}
-               </div>
-             </div>
+              <div className="absolute -top-20 left-0 md:relative md:-top-24 md:left-0">
+                <div className="relative group">
+                  <div className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-surface-2 border-[6px] border-surface-1 flex items-center justify-center overflow-hidden flex-shrink-0 relative z-10 shadow-5 transition-all duration-700 group-hover:scale-105">
+                    {user?.avatar_url ? (
+                      <img loading="lazy" src={user.avatar_url} alt={user?.username || 'Profile'} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=300&q=80'; }} />
+                    ) : (
+                      <span className="text-accent-primary font-display font-bold text-5xl drop-shadow-lg">{user?.username?.[0]?.toUpperCase() || '?'}</span>
+                    )}
+                  </div>
+                  {isCurrentUser && (
+                    <button
+                      onClick={() => navigate('/settings')}
+                      className="absolute bottom-2 right-2 z-20 p-2.5 bg-accent-primary text-white rounded-full shadow-4 hover:scale-110 active:scale-95 transition-all border-4 border-surface-1"
+                    >
+                      <Camera size={14} />
+                    </button>
+                  )}
+                </div>
+              </div>
 
              <div className="flex-1 mt-14 md:mt-0 pt-2 space-y-6 w-full">
                 <div className="flex flex-col md:flex-row md:items-start gap-4 justify-between">
                    <div className="space-y-1">
                      {editing ? (
-                       <input
-                         type="text"
-                         inputMode="text"
-                         value={displayName}
-                         onChange={(e) => setDisplayName(e.target.value)}
-                         className="bg-surface-2 border border-primary/50 rounded-xl px-4 py-2 text-xl md:text-2xl min-h-[44px] font-display font-bold focus:outline-none w-full text-white"
-                       />
-                     ) : (
-                       <h1 className="font-display font-bold text-3xl md:text-4xl text-white tracking-tighter break-words">{user.display_name || user.username}</h1>
-                     )}
-                     <p className="text-muted font-mono text-sm">@{user.username}</p>
-                   </div>
+                        <input
+                          type="text"
+                          value={displayName}
+                          onChange={(e) => setDisplayName(e.target.value)}
+                          className="input text-xl md:text-2xl font-display font-bold"
+                          autoFocus
+                        />
+                      ) : (
+                        <h1 className="font-display font-bold text-3xl md:text-4xl text-text tracking-tighter break-words italic uppercase">{user.display_name || user.username}</h1>
+                      )}
+                      <p className="text-muted font-mono text-xs font-bold uppercase tracking-widest flex items-center gap-2">
+                        <span className="w-2 h-2 bg-accent-primary rounded-full animate-pulse"></span>
+                        ID: {user.username}
+                      </p>
+                    </div>
 
-                   {!isCurrentUser && (
-                     <button
-                       onClick={handleToggleFollow}
-                       disabled={followLoading}
-                       className={cn(
-                         "px-8 py-2.5 rounded-full font-bold flex items-center justify-center gap-2 transition-all active:scale-95 text-sm shadow-xl border",
-                         isFollowing
-                           ? "bg-surface-2 border-border text-white hover:bg-danger/10 hover:border-danger hover:text-danger"
-                           : "bg-white border-white text-black hover:bg-gray-200"
-                       )}
-                     >
-                       {followLoading ? <Loader2 className="animate-spin" /> : isFollowing ? <UserMinus size={14} /> : <UserPlus size={14} />}
-                       {isFollowing ? 'Following' : 'Follow'}
-                     </button>
-                   )}
+                    {!isCurrentUser && (
+                      <button
+                        onClick={handleToggleFollow}
+                        disabled={followLoading}
+                        className={cn(
+                          "btn px-8 py-2.5 text-xs",
+                          isFollowing
+                            ? "btn-ghost border-accent-danger/30 text-accent-danger hover:bg-accent-danger/10 hover:border-accent-danger"
+                            : "btn-primary"
+                        )}
+                      >
+                        {followLoading ? <Loader2 className="animate-spin" /> : isFollowing ? <UserMinus size={14} /> : <UserPlus size={14} />}
+                        {isFollowing ? 'Sever Link' : 'Establish Link'}
+                      </button>
+                    )}
                 </div>
 
                 {/* Inline Stats Row */}
-                <div className="flex flex-wrap items-center gap-2 md:gap-4 border-t border-border/50 pt-4 mt-2">
-                   {/* Rank */}
-                   <span className="px-3 py-1.5 bg-primary/10 text-primary text-sm font-bold uppercase tracking-widest rounded-full border border-primary/20 flex items-center gap-1.5">
-                     <Sparkles size={12} /> Rank {user.level || 1}
-                   </span>
-                   {/* XP */}
-                   <span className="px-3 py-1.5 bg-surface-2 text-white text-sm font-bold uppercase tracking-widest rounded-full border border-border flex items-center gap-1.5">
-                     <Activity size={12} className="text-primary-2" /> {user.xp?.toLocaleString() || 0} XP
-                   </span>
-                   {/* Credits */}
-                   <span className="px-3 py-1.5 bg-surface-2 text-white text-sm font-bold uppercase tracking-widest rounded-full border border-border flex items-center gap-1.5">
-                     <Award size={12} className="text-success" /> {user.coin_balance?.toLocaleString() || 0} CR
-                   </span>
-                   {/* Streak */}
-                   <span className="px-3 py-1.5 bg-surface-2 text-white text-sm font-bold uppercase tracking-widest rounded-full border border-border flex items-center gap-1.5">
-                     <Activity size={12} className="text-orange-500" /> {streak} Day Streak
-                   </span>
-                   {/* Achievements */}
-                   <span className="px-3 py-1.5 bg-surface-2 text-white text-sm font-bold uppercase tracking-widest rounded-full border border-border flex items-center gap-1.5">
-                     <Award size={12} className="text-yellow-500" /> {achievements.filter(a => a.unlocked).length} Unlocked
-                   </span>
+                 <div className="flex flex-wrap items-center gap-2 md:gap-3 border-t border-surface-3 pt-6 mt-2">
+                    {/* Rank */}
+                    <span className="px-3 py-1.5 bg-accent-primary/10 text-accent-primary text-[10px] font-bold uppercase tracking-widest rounded-lg border border-accent-primary/20 flex items-center gap-1.5">
+                      <Zap size={10} className="fill-current" /> Rank {user.level || 1}
+                    </span>
+                    {/* XP */}
+                    <span className="px-3 py-1.5 bg-surface-2 text-text text-[10px] font-bold uppercase tracking-widest rounded-lg border border-border flex items-center gap-1.5">
+                      <Target size={10} className="text-accent-secondary" /> {user.xp?.toLocaleString() || 0} XP
+                    </span>
+                    {/* Credits */}
+                    <span className="px-3 py-1.5 bg-surface-2 text-text text-[10px] font-bold uppercase tracking-widest rounded-lg border border-border flex items-center gap-1.5">
+                      <Award size={10} className="text-accent-success" /> {user.coin_balance?.toLocaleString() || 0} CR
+                    </span>
+                    {/* Streak */}
+                    <span className="px-3 py-1.5 bg-surface-2 text-text text-[10px] font-bold uppercase tracking-widest rounded-lg border border-border flex items-center gap-1.5">
+                      <Activity size={10} className="text-accent-danger" /> {streak} Day Streak
+                    </span>
+                    {/* Achievements */}
+                    <span className="px-3 py-1.5 bg-surface-2 text-text-primary text-[10px] font-bold uppercase tracking-widest rounded-lg border border-surface-3 flex items-center gap-1.5">
+                      <Award size={10} className="text-accent-tertiary" /> {achievements.filter(a => a.unlocked).length} Unlocked
+                    </span>
 
                    <div className="flex-1"></div>
 
                    <div className="flex items-center gap-4 text-sm">
                      <div className="flex gap-1 items-baseline">
-                       <span className="font-bold text-white">{followStats.followersCount}</span>
-                       <span className="text-muted">Followers</span>
+                       <span className="font-bold text-text-primary">{followStats.followersCount}</span>
+                       <span className="text-text-muted">Followers</span>
                      </div>
                      <div className="flex gap-1 items-baseline">
-                       <span className="font-bold text-white">{followStats.followingCount}</span>
-                       <span className="text-muted">Following</span>
+                       <span className="font-bold text-text-primary">{followStats.followingCount}</span>
+                       <span className="text-text-muted">Following</span>
                      </div>
                    </div>
                 </div>
@@ -336,74 +344,74 @@ export default function Profile() {
       {/* Mobile Navigation Menu */}
       {isCurrentUser && (
         <div className="md:hidden space-y-2 mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <Link to="/dashboard" className="flex items-center justify-between p-4 bg-surface-2/50 border border-border/50 rounded-[20px] hover:bg-surface-2 transition-colors active:scale-[0.98]">
+          <Link to="/dashboard" className="flex items-center justify-between p-4 bg-surface-2/50 border border-surface-3/50 rounded-[20px] hover:bg-surface-2 transition-colors active:scale-[0.98]">
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Home className="w-5 h-5 text-primary" />
+              <div className="w-10 h-10 rounded-xl bg-accent-primary/10 flex items-center justify-center">
+                <Home className="w-5 h-5 text-accent-primary" />
               </div>
-              <span className="font-bold text-sm uppercase tracking-widest text-white">Dashboard</span>
+              <span className="font-bold text-sm uppercase tracking-widest text-text-primary">Dashboard</span>
             </div>
-            <ChevronRight className="w-5 h-5 text-muted" />
+            <ChevronRight className="w-5 h-5 text-text-muted" />
           </Link>
           
           <Link to="/leaderboard" className="flex items-center justify-between p-4 bg-surface-2/50 border border-border/50 rounded-[20px] hover:bg-surface-2 transition-colors active:scale-[0.98]">
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-primary-2/10 flex items-center justify-center">
-                <Trophy className="w-5 h-5 text-primary-2" />
+              <div className="w-10 h-10 rounded-xl bg-accent-secondary/10 flex items-center justify-center">
+                <Trophy className="w-5 h-5 text-accent-secondary" />
               </div>
-              <span className="font-bold text-sm uppercase tracking-widest text-white">Hall of Fame</span>
+              <span className="font-bold text-sm uppercase tracking-widest text-text-primary">Hall of Fame</span>
             </div>
-            <ChevronRight className="w-5 h-5 text-muted" />
+            <ChevronRight className="w-5 h-5 text-text-muted" />
           </Link>
           
           <Link to="/achievements" className="flex items-center justify-between p-4 bg-surface-2/50 border border-border/50 rounded-[20px] hover:bg-surface-2 transition-colors active:scale-[0.98]">
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-yellow-500/10 flex items-center justify-center">
-                <Award className="w-5 h-5 text-yellow-500" />
+              <div className="w-10 h-10 rounded-xl bg-accent-warning/10 flex items-center justify-center">
+                <Award className="w-5 h-5 text-accent-warning" />
               </div>
-              <span className="font-bold text-sm uppercase tracking-widest text-white">Milestones</span>
+              <span className="font-bold text-sm uppercase tracking-widest text-text-primary">Milestones</span>
             </div>
-            <ChevronRight className="w-5 h-5 text-muted" />
+            <ChevronRight className="w-5 h-5 text-text-muted" />
           </Link>
 
           <Link to="/stats" className="flex items-center justify-between p-4 bg-surface-2/50 border border-border/50 rounded-[20px] hover:bg-surface-2 transition-colors active:scale-[0.98]">
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center">
-                <Activity className="w-5 h-5 text-green-500" />
+              <div className="w-10 h-10 rounded-xl bg-accent-success/10 flex items-center justify-center">
+                <Activity className="w-5 h-5 text-accent-success" />
               </div>
-              <span className="font-bold text-sm uppercase tracking-widest text-white">Performance Stats</span>
+              <span className="font-bold text-sm uppercase tracking-widest text-text-primary">Performance Stats</span>
             </div>
-            <ChevronRight className="w-5 h-5 text-muted" />
+            <ChevronRight className="w-5 h-5 text-text-muted" />
           </Link>
 
           <Link to="/notifications" className="flex items-center justify-between p-4 bg-surface-2/50 border border-border/50 rounded-[20px] hover:bg-surface-2 transition-colors active:scale-[0.98]">
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
-                <Bell className="w-5 h-5 text-blue-500" />
+              <div className="w-10 h-10 rounded-xl bg-accent-info/10 flex items-center justify-center">
+                <Bell className="w-5 h-5 text-accent-info" />
               </div>
-              <span className="font-bold text-sm uppercase tracking-widest text-white">Notifications</span>
+              <span className="font-bold text-sm uppercase tracking-widest text-text-primary">Notifications</span>
             </div>
-            <ChevronRight className="w-5 h-5 text-muted" />
+            <ChevronRight className="w-5 h-5 text-text-muted" />
           </Link>
 
           <Link to="/settings" className="flex items-center justify-between p-4 bg-surface-2/50 border border-border/50 rounded-[20px] hover:bg-surface-2 transition-colors active:scale-[0.98]">
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center">
-                <SettingsIcon className="w-5 h-5 text-purple-500" />
+              <div className="w-10 h-10 rounded-xl bg-accent-tertiary/10 flex items-center justify-center">
+                <SettingsIcon className="w-5 h-5 text-accent-tertiary" />
               </div>
-              <span className="font-bold text-sm uppercase tracking-widest text-white">Settings</span>
+              <span className="font-bold text-sm uppercase tracking-widest text-text-primary">Settings</span>
             </div>
-            <ChevronRight className="w-5 h-5 text-muted" />
+            <ChevronRight className="w-5 h-5 text-text-muted" />
           </Link>
 
-          <button onClick={handleLogout} className="w-full flex items-center justify-between p-4 bg-danger/5 border border-danger/20 rounded-[20px] hover:bg-danger/10 transition-colors active:scale-[0.98]">
+          <button onClick={handleLogout} className="w-full flex items-center justify-between p-4 bg-accent-danger/5 border border-accent-danger/20 rounded-[20px] hover:bg-accent-danger/10 transition-all active:scale-[0.98]">
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-danger/10 flex items-center justify-center">
-                <LogOut className="w-5 h-5 text-danger" />
+              <div className="w-10 h-10 rounded-xl bg-accent-danger/10 flex items-center justify-center">
+                <LogOut className="w-5 h-5 text-accent-danger" />
               </div>
-              <span className="font-bold text-sm uppercase tracking-widest text-danger">Sign Out</span>
+              <span className="font-bold text-sm uppercase tracking-widest text-accent-danger">Sign Out</span>
             </div>
-            <ChevronRight className="w-5 h-5 text-danger/50" />
+            <ChevronRight className="w-5 h-5 text-accent-danger/50" />
           </button>
         </div>
       )}
@@ -412,23 +420,26 @@ export default function Profile() {
       <div className="flex justify-center border-b border-border/50 mb-8">
          <div className="flex gap-8">
              <button
-                onClick={() => setActiveTab('overview')}
-                className={cn("pb-4 text-sm font-bold uppercase tracking-widest transition-all", activeTab === 'overview' ? "text-primary border-b-2 border-primary" : "text-muted hover:text-white")}
-             >
-                Overview
-             </button>
-             <button
-                onClick={() => setActiveTab('archive')}
-                className={cn("pb-4 text-sm font-bold uppercase tracking-widest transition-all", activeTab === 'archive' ? "text-primary border-b-2 border-primary" : "text-muted hover:text-white")}
-             >
-                Archive
-             </button>
-             <button
-                onClick={() => setActiveTab('transmissions')}
-                className={cn("pb-4 text-sm font-bold uppercase tracking-widest transition-all", activeTab === 'transmissions' ? "text-primary border-b-2 border-primary" : "text-muted hover:text-white")}
-             >
-                Transmissions
-             </button>
+                 onClick={() => setActiveTab('overview')}
+                 className={cn("pb-4 text-[10px] font-bold uppercase tracking-[0.2em] transition-all relative", activeTab === 'overview' ? "text-accent-primary" : "text-muted hover:text-text")}
+              >
+                 Overview
+                 {activeTab === 'overview' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent-primary shadow-[0_0_10px_rgba(139,92,246,0.5)]" />}
+              </button>
+              <button
+                 onClick={() => setActiveTab('archive')}
+                 className={cn("pb-4 text-[10px] font-bold uppercase tracking-[0.2em] transition-all relative", activeTab === 'archive' ? "text-accent-primary" : "text-text-muted hover:text-text-primary")}
+              >
+                 Archive
+                 {activeTab === 'archive' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent-primary shadow-glow-primary" />}
+              </button>
+              <button
+                 onClick={() => setActiveTab('transmissions')}
+                 className={cn("pb-4 text-[10px] font-bold uppercase tracking-[0.2em] transition-all relative", activeTab === 'transmissions' ? "text-accent-primary" : "text-muted hover:text-text")}
+              >
+                 Transmissions
+                 {activeTab === 'transmissions' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent-primary shadow-[0_0_10px_rgba(139,92,246,0.5)]" />}
+              </button>
          </div>
       </div>
 
@@ -437,75 +448,79 @@ export default function Profile() {
         {activeTab === 'overview' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
             <div className="space-y-8">
-              <div className="bg-surface-2/30 backdrop-blur-xl border border-border/50 rounded-[24px] md:rounded-[32px] p-6 md:p-8 group/bio relative">
-                <h3 className="text-sm md:text-sm font-bold uppercase tracking-[0.3em] text-primary-2 mb-3 flex items-center gap-2">
+              <div className="card p-6 md:p-8 group/bio relative overflow-hidden">
+                <TacticalGrid opacity={0.03} />
+                <h3 className="text-[10px] font-bold uppercase tracking-[0.3em] text-accent-secondary mb-4 flex items-center gap-2">
                    Classified Dossier <Sparkles size={10} className="animate-pulse" />
                 </h3>
                 {editing ? (
                   <textarea
                     value={bio}
                     onChange={(e) => setBio(e.target.value)}
-                    className="w-full bg-surface-2 border border-primary/30 rounded-xl p-4 text-sm focus:outline-none min-h-[100px] text-white"
+                    className="input min-h-[120px] bg-surface-1"
                     placeholder="Update your operative bio..."
                   />
                 ) : (
-                  <p className="text-text/80 leading-relaxed text-sm md:text-base whitespace-pre-wrap font-medium">
+                  <p className="text-text/80 leading-relaxed text-sm md:text-base whitespace-pre-wrap font-medium italic">
                     {user.bio || "This operative has not yet populated their official dossier."}
                   </p>
                 )}
 
                 {editing && (
-                  <div className="flex gap-2 mt-4">
-                    <button onClick={handleUpdate} disabled={updating} className="px-6 py-2 bg-primary text-black font-bold rounded-xl text-sm uppercase tracking-widest disabled:opacity-50">
-                      {updating ? <Loader2 className="animate-spin" /> : "Save Changes"}
+                  <div className="flex gap-2 mt-6">
+                    <button onClick={handleUpdate} disabled={updating} className="btn btn-primary px-6 py-2 text-xs">
+                      {updating ? <Loader2 className="animate-spin" /> : "Commit Changes"}
                     </button>
-                    <button onClick={() => setEditing(false)} className="px-4 py-2 text-muted hover:text-white transition-colors text-sm font-bold uppercase tracking-widest">
+                    <button onClick={() => setEditing(false)} className="btn btn-ghost px-6 py-2 text-xs">
                       Abort
                     </button>
                   </div>
                 )}
                 {isCurrentUser && !editing && (
-                   <button onClick={() => setEditing(true)} className="absolute top-8 right-8 text-sm font-bold uppercase text-muted hover:text-primary transition-all opacity-0 group-hover/bio:opacity-100">
+                   <button onClick={() => setEditing(true)} className="btn btn-ghost absolute top-6 right-6 py-1 px-3 text-[10px] opacity-0 group-hover/bio:opacity-100">
                      Recalibrate
                    </button>
                 )}
               </div>
 
-              <div className="bg-surface-2/30 border border-border/50 rounded-3xl p-6 flex flex-col items-center text-center">
-                <Activity className="w-8 h-8 text-primary mb-3" />
-                <h3 className="font-display font-bold text-lg uppercase text-white mb-2">Tactical Analytics</h3>
-                <p className="text-sm text-muted mb-4">View your complete performance history, heatmaps, and genre breakdowns.</p>
-                <Link to="/stats" className="w-full py-2.5 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 rounded-xl text-sm font-bold uppercase tracking-widest transition-colors">
-                  View Stats
+              <div className="card p-6 flex flex-col items-center text-center relative overflow-hidden group">
+                <div className="absolute inset-0 bg-accent-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <Activity className="w-8 h-8 text-accent-primary mb-3 relative z-10" />
+                <h3 className="font-display font-bold text-lg uppercase text-text mb-2 relative z-10">Tactical Analytics</h3>
+                <p className="text-sm text-muted mb-6 relative z-10 font-medium">View your complete performance history, heatmaps, and genre breakdowns.</p>
+                <Link to="/stats" className="btn btn-secondary w-full py-2.5 text-xs relative z-10">
+                  Access Neural Data
                 </Link>
               </div>
             </div>
 
             <div className="space-y-8">
               <section className="space-y-6">
-                <div className="flex items-center gap-3 border-b border-border/50 pb-4">
-                  <Award className="w-5 h-5 md:w-6 md:h-6 text-primary" />
+                <div className="flex items-center gap-3 border-b border-surface-3 pb-4">
+                  <div className="p-2 bg-accent-tertiary/10 rounded-lg">
+                    <Award className="w-5 h-5 text-accent-tertiary" />
+                  </div>
                   <h2 className="font-display font-bold text-xl md:text-2xl uppercase tracking-tighter">Killstreak Milestones</h2>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   {achievements.length === 0 ? (
                     [...Array(4)].map((_, i) => (
-                      <div key={i} className="bg-surface-2/20 border border-border rounded-3xl h-24 flex items-center justify-center opacity-20"><Lock size={20} /></div>
+                      <div key={i} className="card bg-surface-2/20 h-24 flex items-center justify-center opacity-20"><Lock size={20} /></div>
                     ))
                   ) : (
                     achievements.slice(0, 4).map((badge) => (
                       <div
                         key={badge.id}
-                        className={cn("relative overflow-hidden rounded-[24px] border p-4 text-center transition-all duration-500", badge.unlocked ? 'border-primary/40 bg-primary/5 shadow-lg grayscale-0 scale-100' : 'border-border bg-surface-2/30 grayscale opacity-40')}
+                        className={cn("card-interactive p-4 text-center group", !badge.unlocked && 'grayscale opacity-40')}
                       >
-                        <div className="text-3xl mb-3">{badge.icon}</div>
-                        <h3 className="text-sm font-bold uppercase tracking-widest mb-1 text-white truncate px-1">{badge.title}</h3>
+                        <div className="text-3xl mb-3 transition-transform group-hover:scale-110 duration-500">{badge.icon}</div>
+                        <h3 className="text-[10px] font-bold uppercase tracking-widest mb-1 text-text truncate px-1">{badge.title}</h3>
                         {!badge.unlocked && <div className="absolute top-2 right-2"><Lock size={10} className="text-muted/30" /></div>}
                       </div>
                     ))
                   )}
                 </div>
-                <button className="w-full py-3 text-sm font-bold uppercase tracking-[0.3em] text-muted hover:text-primary transition-all border border-dashed border-border rounded-xl">View All Milestones</button>
+                <button className="btn btn-ghost w-full py-3 text-[10px] border-dashed border-border">View All Milestones</button>
               </section>
             </div>
           </div>
@@ -519,18 +534,19 @@ export default function Profile() {
                 <h2 className="font-display font-bold text-xl md:text-2xl uppercase tracking-tighter">Current Archive</h2>
               </div>
               {isCurrentUser && (
-                <button onClick={() => navigate('/library')} className="text-sm font-bold text-primary uppercase tracking-widest flex items-center gap-2 hover:gap-3 transition-all">
+                <button onClick={() => navigate('/library')} className="text-sm font-bold text-accent-primary uppercase tracking-widest flex items-center gap-2 hover:gap-3 transition-all">
                    Deploy Full View <ExternalLink size={10} />
                 </button>
               )}
             </div>
 
             {library.length === 0 ? (
-              <div className="bg-surface/50 border border-dashed border-border p-12 rounded-[32px] text-center space-y-4">
+              <div className="card p-12 text-center space-y-4 border-dashed relative overflow-hidden">
+                <TacticalGrid opacity={0.05} />
                 <Ghost className="w-12 h-12 mx-auto text-muted opacity-10" />
-                <p className="text-muted italic text-sm">No data points saved in active archive.</p>
+                <p className="text-muted italic text-sm font-medium">No data points saved in active archive.</p>
                 {isCurrentUser && (
-                  <button onClick={() => navigate('/search')} className="text-sm font-bold text-white bg-surface-2 px-6 py-2 rounded-full uppercase tracking-tighter border border-border hover:border-primary transition-all">Search Registry</button>
+                  <button onClick={() => navigate('/search')} className="btn btn-primary px-8 py-2 text-xs">Search Registry</button>
                 )}
               </div>
             ) : (
@@ -543,13 +559,13 @@ export default function Profile() {
                        const mediaId = item.media_id || item.media_items?.tmdb_id || item.media_items?.rawg_id || item.id;
                        navigate(`/media/${mediaType}/${mediaId}`);
                     }}
-                    className="aspect-[2/3] rounded-xl md:rounded-2xl overflow-hidden relative group cursor-pointer shadow-xl border border-border/50"
+                    className="card-interactive aspect-[2/3] group/card"
                   >
-                    <img loading="lazy" src={item.poster_url || item.cover_url} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=300&q=80'; }} />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80"></div>
-                    <div className="absolute bottom-3 md:bottom-4 left-3 md:left-4 right-3 md:right-4">
-                      <p className="text-sm md:text-sm font-bold text-primary uppercase tracking-widest mb-1">{item.media_type}</p>
-                      <p className="text-sm md:text-sm font-bold text-white line-clamp-1 italic">{item.title}</p>
+                    <img loading="lazy" src={item.poster_url || item.cover_url} className="w-full h-full object-cover transition-transform duration-700 group-hover/card:scale-110 grayscale group-hover/card:grayscale-0" onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=300&q=80'; }} />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent z-10"></div>
+                    <div className="absolute bottom-3 md:bottom-4 left-3 md:left-4 right-3 md:right-4 z-20">
+                      <p className="text-[10px] font-bold text-accent-primary uppercase tracking-widest mb-1">{item.media_type}</p>
+                      <p className="text-xs font-bold text-text line-clamp-1 italic">{item.title}</p>
                     </div>
                   </div>
                 ))}
@@ -565,21 +581,27 @@ export default function Profile() {
               <span className="text-sm text-muted font-bold uppercase tracking-widest">{posts.length} Transmissions</span>
             </div>
             {posts.length === 0 ? (
-              <div className="bg-surface/50 border border-border rounded-[32px] p-10 text-center space-y-4">
+              <div className="card p-12 text-center space-y-4 border-dashed relative overflow-hidden">
+                <TacticalGrid opacity={0.05} />
                 <MessageSquare className="w-12 h-12 mx-auto text-muted opacity-10" />
-                <p className="text-muted text-sm italic">Zero radio chatter detected from this origin.</p>
+                <p className="text-muted text-sm italic font-medium">Zero radio chatter detected from this origin.</p>
               </div>
             ) : (
               <div className="space-y-4 md:space-y-6">
                 {posts.map((post: any) => (
-                  <div key={post.id} className="bg-surface border-l-4 border-primary border border-border rounded-2xl p-6 md:p-8 hover:bg-surface-2/50 transition-all duration-300 shadow-lg">
-                    <p className="mb-4 text-text/90 italic leading-relaxed font-medium text-sm md:text-base">"{post.content}"</p>
-                    <div className="flex items-center justify-between pt-4 border-t border-border/50">
-                      <span className="text-sm text-muted font-bold uppercase tracking-[0.2em] flex items-center gap-2">
-                         <span className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></span>
-                         Secure Transmission Locked
-                      </span>
-                      <span className="text-sm text-muted font-bold uppercase">{new Date(post.created_at).toLocaleDateString()}</span>
+                  <div key={post.id} className="card p-6 md:p-8 hover:bg-surface-2 transition-all group/post">
+                    <div className="flex gap-4">
+                      <div className="w-1 bg-accent-primary rounded-full group-hover:h-full transition-all" />
+                      <div className="flex-1">
+                        <p className="mb-6 text-text/90 italic leading-relaxed font-medium text-base md:text-lg">"{post.content}"</p>
+                        <div className="flex items-center justify-between pt-6 border-t border-border/50">
+                          <span className="text-[10px] text-muted font-bold uppercase tracking-[0.2em] flex items-center gap-2">
+                             <span className="w-1.5 h-1.5 bg-accent-primary rounded-full animate-pulse"></span>
+                             Secure Transmission Locked
+                          </span>
+                          <span className="text-[10px] text-muted font-bold uppercase tracking-widest">{new Date(post.created_at).toLocaleDateString()}</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 ))}

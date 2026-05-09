@@ -1,0 +1,409 @@
+@layer base {
+  body {
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+    font-family: 'Outfit', sans-serif;
+    font-size: var(--text-16);
+    line-height: var(--line-height-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Standardize Lucide Icons */
+  .lucide {
+    stroke-width: 1.5px;
+  }
+
+  h1, h2 {
+    font-family: 'Sora', sans-serif;
+    line-height: var(--line-height-heading);
+    letter-spacing: var(--letter-spacing-tight);
+    font-weight: 700;
+  }
+
+  h1 { font-size: var(--text-48); }
+  h2 { font-size: var(--text-32); }
+
+  h3, h4, h5, h6 {
+    font-family: 'Outfit', sans-serif;
+    line-height: var(--line-height-heading);
+    font-weight: 700;
+  }
+
+  h3 { font-size: var(--text-24); }
+  h4 { font-size: var(--text-20); }
+  h5 { font-size: var(--text-18); }
+  h6 { font-size: var(--text-16); }
+
+  .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* Global icon stroke-width standardization */
+  .lucide {
+    stroke-width: 1.5;
+  }
+}
+
+/* ========================================
+   COMPONENT LAYER — Buttons
+   ======================================== */
+@layer components {
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-8);
+    font-weight: 700;
+    font-size: var(--text-14);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wider);
+    border-radius: var(--radius-lg);
+    padding: var(--space-12) var(--space-24);
+    border: 1px solid transparent;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition:
+      transform var(--duration-snappy) var(--easing-standard),
+      box-shadow var(--duration-snappy) var(--easing-standard),
+      background-color var(--duration-snappy) var(--easing-standard),
+      border-color var(--duration-snappy) var(--easing-standard),
+      opacity var(--duration-snappy) var(--easing-standard);
+  }
+
+  .btn:hover {
+    transform: translateY(-1px);
+  }
+
+  .btn:active {
+    transform: scale(0.98) translateY(0);
+  }
+
+  .btn:disabled {
+    opacity: 0.4;
+    pointer-events: none;
+    filter: grayscale(0.3);
+  }
+
+  .btn-primary {
+    background: var(--gradient-primary);
+    color: #fff;
+    box-shadow: var(--shadow-2), 0 4px 12px rgba(139, 92, 246, 0.2);
+  }
+
+  .btn-primary:hover {
+    box-shadow: var(--shadow-4), 0 8px 20px rgba(139, 92, 246, 0.3);
+  }
+
+  .btn-secondary {
+    background: var(--gradient-secondary);
+    color: #fff;
+    box-shadow: var(--shadow-2), 0 4px 12px rgba(230, 57, 70, 0.2);
+  }
+
+  .btn-secondary:hover {
+    box-shadow: var(--shadow-4), 0 8px 20px rgba(230, 57, 70, 0.3);
+  }
+
+  .btn-ghost {
+    background: var(--bg-elevated);
+    color: var(--text-secondary);
+    border-color: var(--surface-3);
+  }
+
+  .btn-ghost:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+    border-color: var(--accent-primary);
+    box-shadow: var(--shadow-2);
+  }
+
+  .btn-danger {
+    background: rgba(230, 57, 70, 0.1);
+    color: var(--accent-danger);
+    border-color: rgba(230, 57, 70, 0.2);
+  }
+
+  .btn-danger:hover {
+    background: var(--accent-danger);
+    color: #fff;
+    box-shadow: var(--shadow-3), 0 4px 12px rgba(230, 57, 70, 0.3);
+  }
+
+  /* ========================================
+     COMPONENT LAYER — Cards
+     ======================================== */
+  .card {
+    background: var(--bg-elevated);
+    border: var(--border-subtle);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-2);
+    position: relative;
+    overflow: hidden;
+    transition:
+      transform var(--duration-default) var(--easing-standard),
+      box-shadow var(--duration-default) var(--easing-standard),
+      border-color var(--duration-default) var(--easing-standard);
+  }
+
+  .card-interactive:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-4);
+    border-color: var(--surface-3);
+  }
+
+  .card-interactive:active {
+    transform: scale(0.995) translateY(0);
+    transition-duration: var(--duration-instant);
+  }
+
+  /* Shadow Utilities */
+  .shadow-1 { box-shadow: var(--shadow-1); }
+  .shadow-2 { box-shadow: var(--shadow-2); }
+  .shadow-3 { box-shadow: var(--shadow-3); }
+  .shadow-4 { box-shadow: var(--shadow-4); }
+  .shadow-5 { box-shadow: var(--shadow-5); }
+  .shadow-glow-primary { box-shadow: var(--shadow-glow-primary); }
+  .shadow-glow-secondary { box-shadow: var(--shadow-glow-secondary); }
+  .shadow-focus-ring { box-shadow: var(--shadow-focus-ring); }
+
+  /* ========================================
+     COMPONENT LAYER — Inputs
+     ======================================== */
+  .input {
+    width: 100%;
+    background: var(--surface-1);
+    border: 1px solid var(--surface-3);
+    border-radius: var(--radius-lg);
+    padding: var(--space-16);
+    color: var(--text-primary);
+    font-size: var(--text-16);
+    font-weight: 500;
+    transition:
+      border-color var(--duration-snappy) var(--easing-standard),
+      box-shadow var(--duration-snappy) var(--easing-standard);
+  }
+
+  .input::placeholder {
+    color: var(--text-muted);
+    opacity: 0.5;
+  }
+
+  .input:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: var(--shadow-focus-ring);
+  }
+
+  .input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .input-error {
+    border-color: var(--accent-danger) !important;
+    box-shadow: 0 0 0 2px rgba(230, 57, 70, 0.2) !important;
+  }
+
+  /* ========================================
+     COMPONENT LAYER — Modals
+     ======================================== */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    /* Radial vignette */
+    background-image: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.4) 100%);
+    animation: modal-backdrop-in var(--duration-default) var(--easing-standard) forwards;
+  }
+
+  @keyframes modal-backdrop-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .modal-content {
+    background: var(--bg-elevated);
+    border: var(--border-subtle);
+    border-radius: var(--radius-2xl);
+    box-shadow: var(--shadow-5);
+    animation: modal-content-in var(--duration-default) var(--easing-bounce) forwards;
+  }
+
+  @keyframes modal-content-in {
+    from {
+      opacity: 0;
+      transform: scale(0.95) translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  /* ========================================
+     COMPONENT LAYER — Toast Overrides (Sonner)
+     ======================================== */
+  [data-sonner-toaster] {
+    --normal-bg: var(--bg-elevated) !important;
+    --normal-border: var(--surface-3) !important;
+    --normal-text: var(--text-primary) !important;
+  }
+
+  [data-sonner-toast] {
+    border-radius: var(--radius-lg) !important;
+    border: 1px solid var(--surface-3) !important;
+    box-shadow: var(--shadow-4) !important;
+    animation: toast-slide-in var(--duration-default) var(--easing-bounce) forwards !important;
+    position: relative;
+    overflow: hidden;
+  }
+
+  @keyframes toast-slide-in {
+    from {
+      opacity: 0;
+      transform: translateX(100%) translateY(-8px);
+    }
+    60% {
+      opacity: 1;
+      transform: translateX(-4px) translateY(0);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0) translateY(0);
+    }
+  }
+
+  /* Toast progress bar */
+  [data-sonner-toast]::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 2px;
+    background: var(--accent-primary);
+    animation: toast-progress linear forwards;
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  }
+
+  [data-sonner-toast][data-type="success"]::after {
+    background: var(--accent-success);
+  }
+
+  [data-sonner-toast][data-type="error"]::after {
+    background: var(--accent-danger);
+    animation-duration: 5s;
+  }
+
+  [data-sonner-toast][data-type="info"]::after {
+    background: var(--accent-info);
+    animation-duration: 4s;
+  }
+
+  @keyframes toast-progress {
+    from { width: 100%; }
+    to { width: 0%; }
+  }
+
+  /* Default 3s for success toasts */
+  [data-sonner-toast][data-type="success"]::after {
+    animation-duration: 3s;
+  }
+
+  /* Stagger animation for multiple toasts */
+  [data-sonner-toast]:nth-child(2) {
+    animation-delay: 50ms;
+  }
+  [data-sonner-toast]:nth-child(3) {
+    animation-delay: 100ms;
+  }
+
+  /* ========================================
+     DECORATIVE — Patterns & Overlays
+     ======================================== */
+  .pattern-grid {
+    background-image:
+      linear-gradient(var(--surface-2) 1px, transparent 1px),
+      linear-gradient(90deg, var(--surface-2) 1px, transparent 1px);
+    background-size: 24px 24px;
+    opacity: 0.3;
+  }
+
+  .tactical-grid {
+    position: relative;
+  }
+
+  .tactical-grid::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--surface-2) 1px, transparent 1px),
+      linear-gradient(90deg, var(--surface-2) 1px, transparent 1px);
+    background-size: 32px 32px;
+    opacity: 0.15;
+    pointer-events: none;
+    border-radius: inherit;
+    mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%);
+    -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%);
+  }
+
+  .pattern-scanline {
+    position: relative;
+  }
+
+  .pattern-scanline::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(255, 255, 255, 0.015) 2px,
+      rgba(255, 255, 255, 0.015) 4px
+    );
+    pointer-events: none;
+    border-radius: inherit;
+  }
+  /* --- Toasts --- */
+  [data-sonner-toast] {
+    @apply border border-surface-3 bg-surface-2/90 backdrop-blur-md rounded-xl;
+    box-shadow: var(--shadow-5);
+    position: relative !important;
+    overflow: hidden !important;
+  }
+
+  [data-sonner-toast]::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 2px;
+    background: var(--accent-primary);
+    width: 100%;
+    transform-origin: left;
+    animation: toast-progress var(--duration) linear forwards;
+  }
+
+  @keyframes toast-progress {
+    from { transform: scaleX(1); }
+    to { transform: scaleX(0); }
+  }
+
+  [data-sonner-toast][data-type="error"]::after {
+    background: var(--accent-danger);
+  }
+
+  [data-sonner-toast][data-type="success"]::after {
+    background: var(--accent-success);
+  }
+}
+

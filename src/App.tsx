@@ -94,42 +94,42 @@ function Layout({ children }: { children: ReactNode }) {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <div className="min-h-screen flex flex-col font-sans">
-      <header className="border-b border-border bg-surface sticky top-0 z-50">
+    <div className="min-h-screen flex flex-col font-sans bg-bg-base text-text-primary">
+      <header className="border-b border-surface-2 bg-bg-elevated/80 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-[1180px] mx-auto px-4 h-16 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 font-display font-bold text-xl text-primary-2">
-            <div className="w-8 h-8 rounded bg-primary flex items-center justify-center text-white">RH</div>
+          <Link to="/" className="flex items-center gap-2 font-display font-bold text-xl text-accent-primary tracking-tighter uppercase">
+            <div className="w-8 h-8 rounded bg-gradient-primary flex items-center justify-center text-white text-xs shadow-glow-primary">RH</div>
             ReaperHub
           </Link>
           
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-2">
+          <nav className="hidden md:flex items-center gap-1">
             <Link 
               to="/feed" 
-              className={cn("p-2 rounded-lg transition-colors flex items-center gap-2", isActive('/feed') ? "text-primary bg-primary/10" : "text-muted hover:text-text hover:bg-surface-2")}
+              className={cn("px-3 py-2 rounded-lg transition-all flex items-center gap-2 text-xs font-bold uppercase tracking-widest", isActive('/feed') ? "text-accent-primary bg-accent-primary/10" : "text-text-muted hover:text-text-primary hover:bg-surface-2")}
             >
-              <Compass className="w-5 h-5" />
+              <Compass size={18} />
               <span>Feed</span>
             </Link>
             <Link 
               to="/search" 
-              className={cn("p-2 rounded-lg transition-colors flex items-center gap-2", isActive('/search') ? "text-primary bg-primary/10" : "text-muted hover:text-text hover:bg-surface-2")}
+              className={cn("px-3 py-2 rounded-lg transition-all flex items-center gap-2 text-xs font-bold uppercase tracking-widest", isActive('/search') ? "text-accent-primary bg-accent-primary/10" : "text-text-muted hover:text-text-primary hover:bg-surface-2")}
             >
-              <Search className="w-5 h-5" />
+              <Search size={18} />
               <span>Search</span>
             </Link>
             <Link 
               to="/leaderboard" 
-              className={cn("p-2 rounded-lg transition-colors flex items-center gap-2", isActive('/leaderboard') ? "text-primary bg-primary/10" : "text-muted hover:text-text hover:bg-surface-2")}
+              className={cn("px-3 py-2 rounded-lg transition-all flex items-center gap-2 text-xs font-bold uppercase tracking-widest", isActive('/leaderboard') ? "text-accent-primary bg-accent-primary/10" : "text-text-muted hover:text-text-primary hover:bg-surface-2")}
             >
-              <Trophy className="w-5 h-5" />
+              <Trophy size={18} />
               <span>Hall of Fame</span>
             </Link>
             <Link 
               to="/achievements" 
-              className={cn("p-2 rounded-lg transition-colors flex items-center gap-2", isActive('/achievements') ? "text-primary bg-primary/10" : "text-muted hover:text-text hover:bg-surface-2")}
+              className={cn("px-3 py-2 rounded-lg transition-all flex items-center gap-2 text-xs font-bold uppercase tracking-widest", isActive('/achievements') ? "text-accent-primary bg-accent-primary/10" : "text-text-muted hover:text-text-primary hover:bg-surface-2")}
             >
-              <Award className="w-5 h-5" />
+              <Award size={18} />
               <span>Milestones</span>
             </Link>
             
@@ -137,30 +137,31 @@ function Layout({ children }: { children: ReactNode }) {
               <>
                 <Link 
                   to="/stats" 
-                  className={cn("p-2 rounded-lg transition-colors flex items-center gap-2", isActive('/stats') ? "text-primary bg-primary/10" : "text-muted hover:text-text hover:bg-surface-2")}
+                  className={cn("px-3 py-2 rounded-lg transition-all flex items-center gap-2 text-xs font-bold uppercase tracking-widest", isActive('/stats') ? "text-accent-primary bg-accent-primary/10" : "text-text-muted hover:text-text-primary hover:bg-surface-2")}
                 >
-                  <Activity className="w-5 h-5" />
+                  <Activity size={18} />
                   <span>Performance</span>
                 </Link>
+                <div className="w-px h-6 bg-surface-3 mx-2" />
                 <Link 
                   to="/dashboard" 
-                  className={cn("p-2 rounded-lg transition-colors", isActive('/dashboard') ? "text-primary bg-primary/10" : "text-muted hover:text-text hover:bg-surface-2")}
+                  className={cn("p-2 rounded-lg transition-all", isActive('/dashboard') ? "text-accent-primary bg-accent-primary/10" : "text-text-muted hover:text-text-primary hover:bg-surface-2")}
                 >
-                  <Home className="w-5 h-5" />
+                  <Home size={20} />
                 </Link>
                 <Link 
                   to="/library" 
-                  className={cn("p-2 rounded-lg transition-colors", isActive('/library') ? "text-primary bg-primary/10" : "text-muted hover:text-text hover:bg-surface-2")}
+                  className={cn("p-2 rounded-lg transition-all", isActive('/library') ? "text-accent-primary bg-accent-primary/10" : "text-text-muted hover:text-text-primary hover:bg-surface-2")}
                 >
-                  <Library className="w-5 h-5" />
+                  <Library size={20} />
                 </Link>
                 <Link 
                   to="/notifications" 
-                  className={cn("p-2 rounded-lg transition-colors relative", isActive('/notifications') ? "text-primary bg-primary/10" : "text-muted hover:text-text hover:bg-surface-2")}
+                  className={cn("p-2 rounded-lg transition-all relative", isActive('/notifications') ? "text-accent-primary bg-accent-primary/10" : "text-text-muted hover:text-text-primary hover:bg-surface-2")}
                 >
-                  <Bell className="w-5 h-5" />
+                  <Bell size={20} />
                   {unreadCount > 0 && (
-                    <span className="absolute top-1 right-1 w-4 h-4 bg-primary text-[10px] font-bold text-white flex items-center justify-center rounded-full border-2 border-surface">
+                    <span className="absolute top-1 right-1 w-4 h-4 bg-accent-secondary text-[8px] font-bold text-white flex items-center justify-center rounded-full border-2 border-bg-elevated shadow-glow-secondary">
                       {unreadCount > 9 ? '9+' : unreadCount}
                     </span>
                   )}
@@ -169,48 +170,48 @@ function Layout({ children }: { children: ReactNode }) {
                 <div className="relative ml-2" ref={menuRef}>
                   <button 
                     onClick={() => setMenuOpen(!menuOpen)}
-                    className="flex items-center gap-2 p-1 pl-2 hover:bg-surface-2 rounded-lg transition-colors"
+                    className="flex items-center gap-2 p-1 pl-2 hover:bg-surface-2 rounded-lg transition-colors border border-transparent hover:border-surface-3"
                   >
-                    <div className="w-8 h-8 rounded bg-surface-2 border border-border flex items-center justify-center overflow-hidden">
+                    <div className="w-8 h-8 rounded-md bg-surface-2 border border-surface-3 flex items-center justify-center overflow-hidden">
                       {profile?.avatar_url ? (
                         <img loading="lazy" src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover"  onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=300&q=80'; }} />
                       ) : (
-                        <User className="w-4 h-4 text-primary" />
+                        <User size={16} className="text-accent-primary" />
                       )}
                     </div>
-                    <ChevronDown className="w-4 h-4 text-muted" />
+                    <ChevronDown size={14} className={cn("text-text-muted transition-transform", menuOpen && "rotate-180")} />
                   </button>
                   
                   {menuOpen && (
-                    <div className="absolute right-0 mt-2 w-56 bg-surface border border-border rounded shadow-xl overflow-hidden py-1 z-50">
-                      <div className="px-4 py-3 border-b border-border">
-                        <p className="text-sm font-bold truncate">{profile?.display_name || profile?.username || user.email?.split('@')[0] || 'Agent'}</p>
-                        <p className="text-xs text-muted truncate">{user.email}</p>
+                    <div className="absolute right-0 mt-2 w-56 card p-1 z-50 animate-in fade-in zoom-in-95 duration-200">
+                      <div className="px-4 py-3 border-b border-surface-3 mb-1">
+                        <p className="text-xs font-bold truncate uppercase tracking-widest text-text-primary">{profile?.display_name || profile?.username || 'Operative'}</p>
+                        <p className="text-[10px] text-text-muted truncate font-mono uppercase">{user.email}</p>
                       </div>
                       
                       <Link 
                         to={profile?.username ? `/profile/${profile.username}` : "/profile"} 
-                        className="flex items-center gap-2 px-4 py-2 hover:bg-surface-2 transition-colors text-sm"
+                        className="flex items-center gap-2 px-4 py-2 hover:bg-surface-2 rounded-md transition-colors text-xs font-bold uppercase tracking-wider"
                       >
-                        <User className="w-4 h-4" />
-                        My Profile
+                        <User size={14} />
+                        Identity File
                       </Link>
                       
                       <Link 
                         to="/settings" 
-                        className="flex items-center gap-2 px-4 py-2 hover:bg-surface-2 transition-colors text-sm"
+                        className="flex items-center gap-2 px-4 py-2 hover:bg-surface-2 rounded-md transition-colors text-xs font-bold uppercase tracking-wider"
                       >
-                        <Settings className="w-4 h-4" />
-                        Settings
+                        <Settings size={14} />
+                        Comm Settings
                       </Link>
                       
-                      <div className="border-t border-border mt-1 pt-1">
+                      <div className="border-t border-surface-3 mt-1 pt-1">
                         <button 
                           onClick={handleLogout}
-                          className="flex items-center gap-2 px-4 py-2 hover:bg-danger/10 text-danger transition-colors text-sm w-full text-left"
+                          className="flex items-center gap-2 px-4 py-2 hover:bg-accent-danger/10 text-accent-danger rounded-md transition-colors text-xs font-bold uppercase tracking-wider w-full text-left"
                         >
-                          <LogOut className="w-4 h-4" />
-                          Sign Out
+                          <LogOut size={14} />
+                          Terminate Session
                         </button>
                       </div>
                     </div>
@@ -218,8 +219,8 @@ function Layout({ children }: { children: ReactNode }) {
                 </div>
               </>
             ) : (
-              <Link to="/login" className="ml-4 px-4 py-2 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl transition-colors">
-                Sign In
+              <Link to="/login" className="btn btn-primary ml-4 py-2 px-6 h-auto text-xs">
+                Request Access
               </Link>
             )}
           </nav>
@@ -227,8 +228,8 @@ function Layout({ children }: { children: ReactNode }) {
           {/* Mobile Login Button (if logged out) */}
           {!user && (
             <div className="md:hidden">
-              <Link to="/login" className="px-4 py-2 bg-primary hover:bg-primary/90 text-[10px] text-white font-bold rounded-xl transition-colors">
-                Sign In
+              <Link to="/login" className="btn btn-primary py-1.5 px-4 text-[10px]">
+                Access
               </Link>
             </div>
           )}
@@ -236,10 +237,10 @@ function Layout({ children }: { children: ReactNode }) {
           {/* Mobile Notification Bell (if logged in) */}
           {user && (
             <div className="md:hidden">
-              <Link to="/notifications" className="p-2 text-muted hover:text-text rounded-lg relative">
-                <Bell className="w-5 h-5" />
+              <Link to="/notifications" className="p-2 text-text-muted hover:text-text-primary rounded-lg relative">
+                <Bell size={22} />
                 {unreadCount > 0 && (
-                  <span className="absolute top-1 right-1 w-4 h-4 bg-primary text-[10px] font-bold text-white flex items-center justify-center rounded-full border-2 border-surface">
+                  <span className="absolute top-1 right-1 w-4 h-4 bg-accent-secondary text-[8px] font-bold text-white flex items-center justify-center rounded-full border-2 border-bg-elevated">
                     {unreadCount > 9 ? '9+' : unreadCount}
                   </span>
                 )}
@@ -256,52 +257,52 @@ function Layout({ children }: { children: ReactNode }) {
       </main>
 
       {/* Mobile Bottom Navigation */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-surface border-t border-border flex justify-around items-center h-16 z-50 pb-safe">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-bg-elevated/95 backdrop-blur-lg border-t border-surface-3 flex justify-around items-center h-16 z-50 pb-safe shadow-5">
         <Link 
           to="/" 
-          className={cn("flex flex-col items-center p-2 w-full", isActive('/') || isActive('/dashboard') ? "text-primary" : "text-muted")}
+          className={cn("flex flex-col items-center p-2 w-full transition-colors", isActive('/') || isActive('/dashboard') ? "text-accent-primary" : "text-text-muted")}
         >
-          <Home className="w-6 h-6 mb-1" />
-          <span className="text-[10px] font-bold">Home</span>
+          <Home size={22} className="mb-0.5" />
+          <span className="text-[9px] font-bold uppercase tracking-wider">Home</span>
         </Link>
         <Link 
           to="/search" 
-          className={cn("flex flex-col items-center p-2 w-full", isActive('/search') ? "text-primary" : "text-muted")}
+          className={cn("flex flex-col items-center p-2 w-full transition-colors", isActive('/search') ? "text-accent-primary" : "text-text-muted")}
         >
-          <Search className="w-6 h-6 mb-1" />
-          <span className="text-[10px] font-bold">Search</span>
+          <Search size={22} className="mb-0.5" />
+          <span className="text-[9px] font-bold uppercase tracking-wider">Search</span>
         </Link>
         {user && (
           <Link 
             to="/library" 
-            className={cn("flex flex-col items-center p-2 w-full", isActive('/library') ? "text-primary" : "text-muted")}
+            className={cn("flex flex-col items-center p-2 w-full transition-colors", isActive('/library') ? "text-accent-primary" : "text-text-muted")}
           >
-            <Library className="w-6 h-6 mb-1" />
-            <span className="text-[10px] font-bold">Library</span>
+            <Library size={22} className="mb-0.5" />
+            <span className="text-[9px] font-bold uppercase tracking-wider">Intel</span>
           </Link>
         )}
         <Link 
           to="/feed" 
-          className={cn("flex flex-col items-center p-2 w-full", isActive('/feed') ? "text-primary" : "text-muted")}
+          className={cn("flex flex-col items-center p-2 w-full transition-colors", isActive('/feed') ? "text-accent-primary" : "text-text-muted")}
         >
-          <Compass className="w-6 h-6 mb-1" />
-          <span className="text-[10px] font-bold">Feed</span>
+          <Compass size={22} className="mb-0.5" />
+          <span className="text-[9px] font-bold uppercase tracking-wider">Feed</span>
         </Link>
         {user ? (
           <Link 
             to={profile?.username ? `/profile/${profile.username}` : '/profile'} 
-            className={cn("flex flex-col items-center p-2 w-full", location.pathname.includes('/profile') ? "text-primary" : "text-muted")}
+            className={cn("flex flex-col items-center p-2 w-full transition-colors", location.pathname.includes('/profile') ? "text-accent-primary" : "text-text-muted")}
           >
-            <User className="w-6 h-6 mb-1" />
-            <span className="text-[10px] font-bold">Profile</span>
+            <User size={22} className="mb-0.5" />
+            <span className="text-[9px] font-bold uppercase tracking-wider">Dossier</span>
           </Link>
         ) : (
           <Link 
             to="/login" 
-            className={cn("flex flex-col items-center p-2 w-full", isActive('/login') ? "text-primary" : "text-muted")}
+            className={cn("flex flex-col items-center p-2 w-full transition-colors", isActive('/login') ? "text-accent-primary" : "text-text-muted")}
           >
-            <User className="w-6 h-6 mb-1" />
-            <span className="text-[10px] font-bold">Login</span>
+            <User size={22} className="mb-0.5" />
+            <span className="text-[9px] font-bold uppercase tracking-wider">Login</span>
           </Link>
         )}
       </div>
@@ -314,7 +315,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <Layout>
-        <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><Loader2 className="animate-spin text-accent-primary" size={32} /></div>}>
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />
@@ -335,7 +336,19 @@ export default function App() {
           </Routes>
         </Suspense>
       </Layout>
-      <Toaster position="top-right" theme="dark" closeButton richColors />
+      <Toaster 
+        position="top-right" 
+        theme="dark" 
+        closeButton 
+        richColors 
+        toastOptions={{
+          style: {
+            background: 'var(--bg-elevated)',
+            border: '1px solid var(--surface-3)',
+            color: 'var(--text-primary)',
+          },
+        }}
+      />
       <AchievementListener />
     </BrowserRouter>
   );

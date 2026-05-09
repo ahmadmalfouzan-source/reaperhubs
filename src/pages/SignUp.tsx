@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { signUp } from '../lib/reaperhub/queries';
 import { User, Mail, Lock, ShieldCheck, ArrowRight, AlertCircle, Loader2 } from 'lucide-react';
+import { ScanlineOverlay } from '../components/Decorative';
 
 export default function SignUp() {
   const [username, setUsername] = useState('');
@@ -40,83 +41,83 @@ export default function SignUp() {
   return (
     <div className="max-w-md mx-auto mt-12 py-10">
       <div className="text-center mb-8">
-        <h1 className="font-display font-bold text-4xl uppercase tracking-tighter text-white mb-2">Join the Collective</h1>
-        <p className="text-muted text-sm">Initialize your reaper designation.</p>
+        <h1 className="text-4xl uppercase tracking-tighter text-text-primary mb-2">Join the Collective</h1>
+        <p className="text-text-muted text-sm uppercase tracking-widest">Initialize your reaper designation.</p>
       </div>
 
-      <div className="bg-surface border border-border shadow-2xl rounded-[32px] p-8 relative overflow-hidden">
-        {/* Background glow */}
-        <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/20 blur-[100px] pointer-events-none"></div>
-        <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-primary-2/20 blur-[100px] pointer-events-none"></div>
+      <div className="card p-8 relative overflow-hidden">
+        <ScanlineOverlay className="opacity-50" />
+        
+        {/* Background glows */}
+        <div className="absolute -top-24 -right-24 w-48 h-48 bg-accent-primary/10 blur-[100px] pointer-events-none" />
+        <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-accent-secondary/10 blur-[100px] pointer-events-none" />
 
         {error && (
-          <div className="flex items-center gap-3 bg-danger/10 border border-danger/20 text-danger p-4 rounded-2xl mb-6 text-sm animate-in fade-in slide-in-from-top-2 duration-300">
+          <div className="flex items-center gap-3 bg-accent-danger/10 border border-accent-danger/20 text-accent-danger p-4 rounded-xl mb-6 text-sm animate-in fade-in slide-in-from-top-2">
             <AlertCircle size={18} />
-            {error}
+            <span className="font-medium uppercase tracking-wide">{error}</span>
           </div>
         )}
 
         <form onSubmit={handleSignUp} className="space-y-5 relative z-10">
-          <div className="space-y-1.5">
-            <label className="text-sm font-bold uppercase tracking-widest text-muted ml-1">Username</label>
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-[0.2em] text-text-muted ml-1">Callsign</label>
             <div className="relative">
-              <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
+              <User className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted" size={18} />
               <input
                 type="text"
-                inputMode="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="reaper_01"
-                className="w-full bg-[#0e1430] border border-border rounded-2xl p-4 pl-12 text-base min-h-[44px] text-text focus:outline-none focus:border-primary transition-all shadow-inner"
+                placeholder="REAPER_01"
+                className="input pl-12 uppercase"
                 required
                 disabled={loading}
               />
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-sm font-bold uppercase tracking-widest text-muted ml-1">Email Address</label>
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-[0.2em] text-text-muted ml-1">Uplink Address</label>
             <div className="relative">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted" size={18} />
               <input
                 type="email"
-                inputMode="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="agent@reaperhub.com"
-                className="w-full bg-[#0e1430] border border-border rounded-2xl p-4 pl-12 text-base min-h-[44px] text-text focus:outline-none focus:border-primary transition-all shadow-inner"
+                placeholder="AGENT@REAPERHUB.COM"
+                className="input pl-12 uppercase"
                 required
                 disabled={loading}
               />
             </div>
           </div>
           
-          <div className="space-y-1.5">
-            <label className="text-sm font-bold uppercase tracking-widest text-muted ml-1">Password</label>
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-[0.2em] text-text-muted ml-1">Security Key</label>
             <div className="relative">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted" size={18} />
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full bg-[#0e1430] border border-border rounded-2xl p-4 pl-12 text-base min-h-[44px] text-text focus:outline-none focus:border-primary transition-all shadow-inner"
+                className="input pl-12"
                 required
                 disabled={loading}
               />
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-sm font-bold uppercase tracking-widest text-muted ml-1">Confirm Password</label>
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-[0.2em] text-text-muted ml-1">Verify Key</label>
             <div className="relative">
-              <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
+              <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted" size={18} />
               <input
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full bg-[#0e1430] border border-border rounded-2xl p-4 pl-12 text-base min-h-[44px] text-text focus:outline-none focus:border-primary transition-all shadow-inner"
+                className="input pl-12"
                 required
                 disabled={loading}
               />
@@ -126,23 +127,23 @@ export default function SignUp() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-primary hover:bg-primary/90 text-white font-bold rounded-2xl p-4 transition-all disabled:opacity-50 mt-4 flex items-center justify-center gap-2 group overflow-hidden relative shadow-lg shadow-primary/20"
+            className="btn btn-primary w-full group mt-4"
           >
             {loading ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
+              <Loader2 className="animate-spin" size={20} />
             ) : (
               <>
                 Initialize Profile
-                <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+                <ArrowRight size={18} className="transition-transform group-hover:translate-x-0.5" />
               </>
             )}
           </button>
         </form>
 
-        <div className="mt-8 text-center border-t border-border/50 pt-6">
-          <p className="text-muted text-sm">
+        <div className="mt-8 text-center border-t border-surface-3 pt-6 relative z-10">
+          <p className="text-text-muted text-xs uppercase tracking-widest">
             Already registered?{' '}
-            <Link to="/login" className="text-primary hover:text-primary-2 font-bold transition-colors">
+            <Link to="/login" className="text-accent-primary hover:text-accent-tertiary font-bold transition-colors">
               Access Core
             </Link>
           </p>

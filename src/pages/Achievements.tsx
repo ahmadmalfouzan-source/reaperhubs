@@ -1,32 +1,39 @@
 import { useEffect, useState } from 'react';
 import { getAllAchievements, getUserAchievements, getCurrentUser } from '../lib/reaperhub/queries';
-import { Award, Lock, CheckCircle2, Zap, Trophy, Target, MessageSquare, Archive, Swords, History } from 'lucide-react';
-import Skeleton from '../components/Skeleton';
+import { Award, Lock, CheckCircle2, Zap, Trophy, Target, MessageSquare, History } from 'lucide-react';
+import { MediaCardSkeleton } from '../components/Skeleton';
 import { cn } from '../lib/utils';
 import { motion } from 'framer-motion';
+import { TacticalGrid, ScanlineOverlay } from '../components/Decorative';
 
 export default function Achievements() {
   const [achievements, setAchievements] = useState<any[]>([]);
   const [unlockedIds, setUnlockedIds] = useState<Map<string, string>>(new Map());
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
+  const [activeCategory, setActiveCategory] = useState('all');
 
   useEffect(() => {
     async function loadData() {
       setLoading(true);
-      const [currentUser, allAchs] = await Promise.all([
-        getCurrentUser(),
-        getAllAchievements()
-      ]);
-      
-      setUser(currentUser);
-      setAchievements(allAchs);
-      
-      if (currentUser) {
-        const userAchs = await getUserAchievements(currentUser.id);
-        setUnlockedIds(new Map(userAchs.map((ua: any) => [ua.achievement_id, ua.unlocked_at || ua.created_at])));
+      try {
+        const [currentUser, allAchs] = await Promise.all([
+          getCurrentUser(),
+          getAllAchievements()
+        ]);
+        
+        setUser(currentUser);
+        setAchievements(allAchs);
+        
+        if (currentUser) {
+          const userAchs = await getUserAchievements(currentUser.id);
+          setUnlockedIds(new Map(userAchs.map((ua: any) => [ua.achievement_id, ua.unlocked_at || ua.created_at])));
+        }
+      } catch (error) {
+        console.error('Failed to load achievements:', error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     }
     loadData();
   }, []);
@@ -38,166 +45,205 @@ export default function Achievements() {
     { id: 'special', label: 'Vanguard', icon: <Trophy size={16} /> },
   ];
 
+  const filteredAchievements = activeCategory === 'all' 
+    ? achievements 
+    : achievements.filter(a => a.category === activeCategory);
+
   const unlockedCount = achievements.filter(a => unlockedIds.has(a.id)).length;
   const progressPercentage = achievements.length > 0 ? (unlockedCount / achievements.length) * 100 : 0;
 
   if (loading) {
     return (
-      <div className="space-y-12 max-w-6xl mx-auto px-4 py-12">
-        <div className="space-y-4">
-          <Skeleton className="h-12 w-64" />
-          <Skeleton className="h-4 w-96" />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(9)].map((_, i) => <Skeleton key={i} className="h-48 rounded-[32px]" />)}
+      <div className="min-h-screen pt-24 pb-24 px-4 md:px-8 relative overflow-hidden bg-bg-base">
+        <ScanlineOverlay className="opacity-10" />
+        <TacticalGrid className="opacity-5" />
+
+        <div className="max-w-7xl mx-auto space-y-12 relative z-10">
+          <div className="space-y-4">
+            <div className="h-12 w-64 bg-surface-2 animate-pulse rounded-lg" />
+            <div className="h-4 w-96 bg-surface-2 animate-pulse rounded-lg" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(9)].map((_, i) => <MediaCardSkeleton key={i} />)}
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-12 max-w-6xl mx-auto px-4 py-12 animate-in fade-in duration-700">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 border-b border-border/50 pb-10">
-        <div className="space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full border border-primary/20 text-sm font-bold text-primary uppercase tracking-[0.2em]">
-            Service Record
-          </div>
-          <h1 className="font-display font-bold text-4xl md:text-5xl lg:text-6xl uppercase tracking-tighter text-white italic">
-            Milestones
-          </h1>
-          <p className="text-muted text-sm font-medium max-w-md italic">
-            Monitoring operative progress across all tactical sectors. Secure rewards by completing designated objectives.
-          </p>
-        </div>
+    <div className="min-h-screen pt-24 pb-24 px-4 md:px-8 relative overflow-hidden bg-bg-base">
+      <ScanlineOverlay className="opacity-10" />
+      <TacticalGrid className="opacity-5" />
 
-        <div className="bg-surface border border-border rounded-3xl p-6 min-w-[240px] space-y-4 shadow-2xl relative overflow-hidden group">
-           <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-[60px] pointer-events-none group-hover:bg-primary/10 transition-all"></div>
-           <div className="flex justify-between items-center text-sm font-bold uppercase tracking-widest text-muted">
+      <div className="max-w-7xl mx-auto space-y-12 relative z-10">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 border-b border-border/50 pb-10">
+          <div className="space-y-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-accent-primary/10 rounded-full border border-accent-primary/20 text-[10px] font-bold text-accent-primary uppercase tracking-[0.2em]">
+              <Trophy size={12} /> Service Record
+            </div>
+            <h1 className="font-display font-bold text-4xl md:text-5xl lg:text-6xl uppercase tracking-tighter text-text-primary italic">
+              Milestones
+            </h1>
+            <p className="text-text-muted text-sm font-medium max-w-md italic">
+              Monitoring operative progress across all tactical sectors. Secure rewards by completing designated objectives.
+            </p>
+          </div>
+
+          <div className="card p-6 min-w-[280px] space-y-4 relative overflow-hidden group shadow-5">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-accent-primary/5 blur-[60px] pointer-events-none group-hover:bg-accent-primary/10 transition-all"></div>
+            <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-text-muted">
               <span>Sync Progress</span>
-              <span className="text-primary">{unlockedCount} / {achievements.length}</span>
-           </div>
-           <div className="h-3 bg-surface-2 rounded-full overflow-hidden border border-border/50">
+              <span className="text-accent-primary">{unlockedCount} / {achievements.length}</span>
+            </div>
+            <div className="h-2 bg-surface-2 rounded-full overflow-hidden border border-surface-3">
               <motion.div 
                 initial={{ width: 0 }}
                 animate={{ width: `${progressPercentage}%` }}
                 transition={{ duration: 1, ease: "easeOut" }}
-                className="h-full bg-primary shadow-[0_0_15px_rgba(0,183,255,0.5)]"
+                className="h-full bg-accent-primary shadow-glow-primary"
               />
-           </div>
-           <p className="text-sm text-muted text-center font-bold uppercase tracking-widest pt-1">
+            </div>
+            <p className="text-[10px] text-muted text-center font-bold uppercase tracking-widest pt-1">
               Overall Completion: {Math.round(progressPercentage)}%
-           </p>
+            </p>
+          </div>
         </div>
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">
-        {/* Sidebar Filters */}
-        <div className="lg:col-span-1 space-y-8">
-           <section className="space-y-4">
-              <h3 className="text-sm font-bold uppercase tracking-[0.2em] text-muted px-2">Operational Sectors</h3>
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">
+          {/* Sidebar Filters */}
+          <div className="lg:col-span-1 space-y-8">
+            <section className="space-y-4">
+              <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted px-2">Operational Sectors</h3>
               <div className="flex flex-col gap-2">
-                 <button className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-primary text-black font-bold text-sm uppercase tracking-widest shadow-lg shadow-primary/20 transition-all">
-                    <History size={16} /> All Targets
-                 </button>
-                 {categories.map(cat => (
-                   <button key={cat.id} className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-surface-2 border border-border text-muted hover:text-white hover:border-primary/50 transition-all font-bold text-sm uppercase tracking-widest group">
-                      <span className="group-hover:text-primary transition-colors">{cat.icon}</span>
-                      {cat.label}
-                   </button>
-                 ))}
-              </div>
-           </section>
-
-           <section className="bg-surface border border-border rounded-3xl p-6 space-y-4">
-              <div className="flex items-center gap-2 text-sm font-bold uppercase text-primary">
-                 <Zap size={14} className="fill-current" />
-                 Tactical Advantage
-              </div>
-              <p className="text-sm text-muted leading-relaxed italic">
-                Unlocking milestones awards XP and Credits which can be used to recalibrate your operative profile in the market.
-              </p>
-           </section>
-        </div>
-
-        {/* Achievement Grid */}
-        <div className="lg:col-span-3">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {achievements.map((ach) => {
-              const unlockedAt = unlockedIds.get(ach.id);
-              const unlocked = !!unlockedAt;
-              return (
-                <motion.div 
-                  key={ach.id}
-                  whileHover={{ y: -5 }}
+                <button 
+                  onClick={() => setActiveCategory('all')}
                   className={cn(
-                    "group relative p-6 rounded-[32px] border-2 transition-all duration-500 overflow-hidden",
-                    unlocked 
-                      ? "bg-surface border-primary/30 shadow-[0_20px_40px_-15px_rgba(0,183,255,0.15)]" 
-                      : "bg-surface-2/30 border-border/50 opacity-60 grayscale hover:opacity-100 hover:grayscale-0"
+                    "btn w-full justify-start gap-3",
+                    activeCategory === 'all' ? "btn-primary" : "btn-secondary"
                   )}
                 >
-                  <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                     <Award size={80} className={unlocked ? "text-primary" : "text-muted"} />
-                  </div>
-                  
-                  <div className="flex flex-col h-full space-y-4 relative z-10">
-                    <div className="flex items-start justify-between">
-                       <div className="text-4xl filter drop-shadow-lg group-hover:scale-110 transition-transform duration-500">
-                          {ach.icon_url || '🎯'}
-                       </div>
-                       {unlocked ? (
-                         <div className="p-1.5 bg-success/20 rounded-full">
-                            <CheckCircle2 size={14} className="text-success" />
-                         </div>
-                       ) : (
-                         <div className="p-1.5 bg-surface-2 rounded-full border border-border">
-                            <Lock size={12} className="text-muted/50" />
-                         </div>
-                       )}
-                    </div>
-
-                    <div className="space-y-1 flex-1">
-                       <h3 className="font-display font-bold text-lg text-white uppercase tracking-tight group-hover:text-primary transition-colors">
-                          {ach.name}
-                       </h3>
-                       <p className="text-[11px] text-muted leading-relaxed font-medium italic">
-                          "{ach.description}"
-                       </p>
-
-                       {/* Progress Bar */}
-                       <div className="pt-3">
-                         <div className="flex justify-between items-center text-sm font-bold uppercase tracking-wider mb-1">
-                           <span className={unlocked ? "text-primary" : "text-muted"}>Progress</span>
-                           <span className={unlocked ? "text-primary" : "text-muted"}>{unlocked ? '100%' : 'Locked'}</span>
-                         </div>
-                         <div className="h-1.5 w-full bg-surface-2 rounded-full overflow-hidden border border-border/30">
-                           <motion.div
-                             initial={{ width: 0 }}
-                             animate={{ width: unlocked ? '100%' : '0%' }}
-                             transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
-                             className={cn("h-full shadow-[0_0_10px_rgba(0,183,255,0.5)]", unlocked ? "bg-primary" : "bg-muted/30")}
-                           />
-                         </div>
-                       </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 pt-4 border-t border-border/30">
-                       <div className="flex items-center gap-1.5 px-2.5 py-1 bg-primary/10 rounded-lg border border-primary/20 text-sm font-bold text-primary">
-                          +{ach.xp_reward} XP
-                       </div>
-                       <div className="flex items-center gap-1.5 px-2.5 py-1 bg-success/10 rounded-lg border border-success/20 text-sm font-bold text-success">
-                          +{ach.coin_reward} CR
-                       </div>
-                    </div>
-                    {unlockedAt && (
-                      <div className="text-sm text-muted text-right font-medium">
-                        Unlocked {new Date(unlockedAt).toLocaleDateString()}
-                      </div>
+                  <History size={16} /> All Targets
+                </button>
+                {categories.map(cat => (
+                  <button 
+                    key={cat.id} 
+                    onClick={() => setActiveCategory(cat.id)}
+                    className={cn(
+                      "btn w-full justify-start gap-3",
+                      activeCategory === cat.id ? "btn-primary" : "btn-secondary"
                     )}
-                  </div>
-                </motion.div>
-              );
-            })}
+                  >
+                    {cat.icon}
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
+            </section>
+
+            <section className="card p-6 space-y-4 border-accent-primary/20 bg-accent-primary/5 shadow-5">
+              <div className="flex items-center gap-2 text-[10px] font-bold uppercase text-accent-primary">
+                <Zap size={14} className="fill-current" />
+                Tactical Advantage
+              </div>
+              <p className="text-[11px] text-text-muted leading-relaxed italic">
+                Unlocking milestones awards XP and Credits which can be used to recalibrate your operative profile in the market.
+              </p>
+            </section>
+          </div>
+
+          {/* Achievement Grid */}
+          <div className="lg:col-span-3">
+            {filteredAchievements.length === 0 ? (
+              <div className="card p-12 flex flex-col items-center justify-center text-center space-y-4 border-dashed">
+                <div className="p-4 bg-surface-2 rounded-full text-text-muted">
+                  <Lock size={32} strokeWidth={1} />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="font-bold text-text-primary uppercase tracking-wider">No Intelligence Found</h3>
+                  <p className="text-sm text-text-muted">No achievements found in this sector.</p>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredAchievements.map((ach) => {
+                  const unlockedAt = unlockedIds.get(ach.id);
+                  const unlocked = !!unlockedAt;
+                  return (
+                    <motion.div 
+                      key={ach.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className={cn(
+                        "card p-6 group h-full flex flex-col shadow-5",
+                        unlocked 
+                          ? "border-accent-primary/30 bg-accent-primary/5" 
+                          : "opacity-60 grayscale hover:opacity-100 hover:grayscale-0"
+                      )}
+                    >
+                      <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <Award size={80} className={unlocked ? "text-accent-primary" : "text-text-muted"} />
+                      </div>
+                      
+                      <div className="flex flex-col h-full space-y-4 relative z-10">
+                        <div className="flex items-start justify-between">
+                          <div className="text-4xl filter drop-shadow-lg group-hover:scale-110 transition-transform duration-500">
+                            {ach.icon_url || '🎯'}
+                          </div>
+                          {unlocked ? (
+                             <div className="p-1.5 bg-accent-success/20 rounded-full">
+                               <CheckCircle2 size={14} className="text-accent-success" />
+                             </div>
+                           ) : (
+                             <div className="p-1.5 bg-surface-2 rounded-full border border-surface-3">
+                               <Lock size={12} className="text-text-muted/50" />
+                             </div>
+                          )}
+                        </div>
+
+                         <div className="space-y-1 flex-1">
+                           <h3 className="font-display font-bold text-lg text-text-primary uppercase tracking-tight group-hover:text-accent-primary transition-colors">
+                             {ach.name}
+                           </h3>
+                           <p className="text-[11px] text-text-muted leading-relaxed font-medium italic">
+                            "{ach.description}"
+                          </p>
+
+                          <div className="pt-3">
+                             <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider mb-1">
+                               <span className={unlocked ? "text-accent-primary" : "text-text-muted"}>Progress</span>
+                               <span className={unlocked ? "text-accent-primary" : "text-text-muted"}>{unlocked ? '100%' : 'Locked'}</span>
+                             </div>
+                             <div className="h-1 bg-surface-2 rounded-full overflow-hidden border border-surface-3">
+                               <motion.div
+                                 initial={{ width: 0 }}
+                                 animate={{ width: unlocked ? '100%' : '0%' }}
+                                 transition={{ duration: 1, ease: "easeOut" }}
+                                 className={cn("h-full", unlocked ? "bg-accent-primary shadow-glow-primary" : "bg-text-muted/30")}
+                               />
+                             </div>
+                          </div>
+                        </div>
+
+                         <div className="flex items-center gap-3 pt-4 border-t border-surface-3">
+                           <div className="flex items-center gap-1.5 px-2 py-1 bg-accent-primary/10 rounded-lg border border-accent-primary/20 text-[10px] font-bold text-accent-primary">
+                             +{ach.xp_reward} XP
+                           </div>
+                           <div className="flex items-center gap-1.5 px-2 py-1 bg-accent-success/10 rounded-lg border border-accent-success/20 text-[10px] font-bold text-accent-success">
+                             +{ach.coin_reward} CR
+                           </div>
+                         </div>
+                        {unlockedAt && (
+                          <div className="text-[10px] text-muted text-right font-medium italic">
+                            Unlocked {new Date(unlockedAt).toLocaleDateString()}
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       </div>

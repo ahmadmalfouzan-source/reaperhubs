@@ -1,11 +1,16 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getCurrentUser } from '../lib/reaperhub/queries';
+import { getCurrentUser, updateProfile } from '../lib/reaperhub/queries';
 import { supabase } from '../lib/supabase';
-import { User, Camera, LogOut, ShieldCheck, Mail, MapPin, Zap, Save, Loader2, Sparkles } from 'lucide-react';
-import { toast } from 'sonner';
-import Skeleton from '../components/Skeleton';
+import { 
+  User, Camera, LogOut, ShieldCheck, Mail, MapPin, 
+  Zap, Save, Loader2, Sparkles, AlertCircle, Terminal
+} from 'lucide-react';
+import { toast } from '../lib/toastUtils';
+import { MediaCardSkeleton } from '../components/Skeleton';
 import ImageCropper from '../components/ImageCropper';
+import { cn } from '../lib/utils';
+import { TacticalGrid, ScanlineOverlay } from '../components/Decorative';
 
 export default function Settings() {
   const [user, setUser] = useState<any>(null);
@@ -45,11 +50,8 @@ export default function Settings() {
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     try {
+      if (!e.target.files || e.target.files.length === 0) return;
       setUploading(true);
-      
-      if (!e.target.files || e.target.files.length === 0) {
-        return;
-      }
       
       const file = e.target.files[0];
       const fileExt = file.name.split('.').pop();
@@ -70,10 +72,9 @@ export default function Settings() {
         .getPublicUrl(filePath);
 
       setAvatarUrl(publicUrl);
-      toast.success("Visual feed updated. Finalize config to save.");
+      toast.success("Visual feed updated.", "Finalize config to save changes.");
     } catch (err: any) {
-      console.error('CRITICAL UPLOAD ERROR OBJECT:', JSON.stringify(err, null, 2));
-      console.error('Error Stack:', err.stack);
+      console.error('Upload error:', err);
       toast.error(`Protocol Failure: ${err.message || 'Unknown storage error'}`);
     } finally {
       setUploading(false);
@@ -85,14 +86,14 @@ export default function Settings() {
       const reader = new FileReader();
       reader.addEventListener('load', () => setCoverToCrop(reader.result?.toString() || null));
       reader.readAsDataURL(e.target.files[0]);
-      e.target.value = ''; // Reset input so same file can be selected again
+      e.target.value = '';
     }
   };
 
   const handleCoverUpload = async (croppedImageBlob: Blob) => {
     try {
       setUploadingCover(true);
-      setCoverToCrop(null); // Close cropper modal
+      setCoverToCrop(null);
       
       const fileName = `${Math.random().toString(36).substring(2)}.webp`;
       const filePath = `${user.id}/${fileName}`;
@@ -112,9 +113,9 @@ export default function Settings() {
         .getPublicUrl(filePath);
 
       setCoverUrl(publicUrl);
-      toast.success("Cover field updated. Finalize config to save.");
+      toast.success("Cover field updated.", "Finalize config to save changes.");
     } catch (err: any) {
-      console.error('CRITICAL COVER UPLOAD ERROR:', JSON.stringify(err, null, 2));
+      console.error('Cover upload error:', err);
       toast.error(`Protocol Failure: ${err.message || 'Unknown storage error'}`);
     } finally {
       setUploadingCover(false);
@@ -127,7 +128,6 @@ export default function Settings() {
     setSaving(true);
     
     try {
-      const { updateProfile } = await import('../lib/reaperhub/queries');
       const res = await updateProfile({
         display_name: displayName,
         bio,
@@ -138,9 +138,9 @@ export default function Settings() {
       if (!res.success) throw new Error(res.message);
       
       setProfile({ ...profile, display_name: displayName, bio, avatar_url: avatarUrl, cover_url: coverUrl });
-      toast.success('System configuration updated.');
+      toast.success('System configuration updated.', 'Mission parameters synchronized.');
     } catch (err: any) {
-      toast.error('Error updating settings: ' + err.message);
+      toast.error('Sync Error', err.message);
     } finally {
       setSaving(false);
     }
@@ -152,217 +152,213 @@ export default function Settings() {
     window.location.reload();
   };
 
-  const SettingsSkeleton = () => (
-    <div className="max-w-xl mx-auto space-y-8">
-      <Skeleton className="h-10 w-1/3 rounded-xl" />
-      <div className="bg-surface border border-border rounded-[40px] p-10 space-y-10">
-        <div className="flex flex-col items-center gap-4">
-           <Skeleton className="w-24 h-24 rounded-full" />
-           <Skeleton className="h-4 w-24" />
+  if (loading) {
+    return (
+      <div className="max-w-2xl mx-auto space-y-10 px-4 py-12">
+        <div className="space-y-4">
+          <div className="h-10 w-48 bg-surface-2 animate-pulse rounded-lg" />
+          <div className="h-4 w-64 bg-surface-2 animate-pulse rounded-lg" />
         </div>
-        <div className="space-y-6">
-           <Skeleton className="h-12 w-full rounded-2xl" />
-           <Skeleton className="h-12 w-full rounded-2xl" />
-           <Skeleton className="h-32 w-full rounded-2xl" />
+        <div className="card p-0 overflow-hidden">
+          <div className="h-48 md:h-64 bg-surface-2 animate-pulse" />
+          <div className="p-8 pt-24 space-y-8">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="space-y-2">
+                <div className="h-4 w-32 bg-surface-2 animate-pulse rounded" />
+                <div className="h-14 w-full bg-surface-2 animate-pulse rounded-xl" />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  }
 
-  if (loading) return <SettingsSkeleton />;
   if (!profile) return (
-    <div className="text-center py-20 text-muted">
-      <p>Unable to load operative profile. Please try again later.</p>
-      <button onClick={() => navigate('/login')} className="mt-4 px-6 py-2 bg-primary text-black font-bold rounded-xl">
-        Return to Login
-      </button>
-    </div>
-  );
-
-  const hasChanges = username !== (profile?.username || '') || 
-                     displayName !== (profile?.display_name || '') ||
-                     bio !== (profile?.bio || '') || 
-                     avatarUrl !== (profile?.avatar_url || '') || coverUrl !== (profile?.cover_url || '');
-
-  return (
-    <div className="max-w-xl mx-auto space-y-10 animate-in fade-in duration-700 pb-20">
-      <div className="space-y-2">
-        <h1 className="font-display font-bold text-4xl uppercase tracking-tighter text-white">Registry Tuning</h1>
-        <p className="text-muted text-sm font-medium">Configure your operative parameters and field identifiers.</p>
-      </div>
-
-      <div className="bg-surface border-2 border-border/50 rounded-[48px] p-6 md:p-10 shadow-2xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[100px] pointer-events-none"></div>
-        
-        {/* Cover Image Upload Area */}
-        <div className="mb-10 w-full">
-          <label className="relative w-full h-32 md:h-48 rounded-[32px] bg-surface-2 border-2 border-border/50 cursor-pointer group overflow-hidden shadow-lg transition-all hover:border-primary block">
-            <input 
-              type="file" 
-              className="hidden" 
-              accept="image/jpeg,image/png,image/webp" 
-              onChange={handleCoverSelect}
-              disabled={uploadingCover}
-            />
-            {coverUrl ? (
-              <img src={coverUrl} alt="Cover" className="w-full h-full object-cover transition-transform group-hover:scale-105" onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=1000&q=80'; }} />
-            ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center text-muted/50 gap-2">
-                <Camera size={32} />
-                <span className="text-sm font-bold uppercase tracking-widest">Select Cover</span>
-              </div>
-            )}
-            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">
-              <span className="px-4 py-2 bg-black/60 text-white rounded-full text-sm font-bold uppercase tracking-widest flex items-center gap-2 border border-white/10">
-                <Camera size={14} /> Update Cover
-              </span>
-            </div>
-            {uploadingCover && (
-              <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center z-20 gap-3">
-                <Loader2 className="w-8 h-8 text-primary animate-spin" />
-                <span className="text-primary font-bold uppercase tracking-widest text-xs">Uploading...</span>
-              </div>
-            )}
-          </label>
+    <div className="max-w-md mx-auto text-center py-20 card p-10 mt-12 relative overflow-hidden">
+      <TacticalGrid />
+      <div className="relative z-10">
+        <div className="p-4 bg-accent-danger/10 text-accent-danger rounded-full w-fit mx-auto mb-6">
+          <AlertCircle size={48} />
         </div>
-        
-        <div className="flex flex-col items-center mb-12">
-          <label 
-            className="relative w-32 h-32 rounded-[40px] bg-surface-2 border-2 border-primary/30 cursor-pointer group overflow-hidden shadow-2xl transition-all hover:border-primary block"
-          >
-            <input 
-              type="file" 
-              className="hidden" 
-              accept="image/*" 
-              onChange={handleFileChange}
-              disabled={uploading}
-            />
-            {avatarUrl ? (
-              <img loading="lazy" src={avatarUrl} alt="Avatar" className="w-full h-full object-cover transition-transform group-hover:scale-110"  onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=300&q=80'; }} />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-primary/30">
-                <User size={50} />
-              </div>
-            )}
-            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">
-              <Camera className="text-white" size={30} />
-            </div>
-            {uploading && (
-              <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-20">
-                <Loader2 className="w-8 h-8 text-primary animate-spin" />
-              </div>
-            )}
-          </label>
-          
-          <label className="mt-6 flex items-center gap-2 group cursor-pointer">
-            <input 
-              type="file" 
-              className="hidden" 
-              accept="image/*" 
-              onChange={handleFileChange}
-              disabled={uploading}
-            />
-            <span className="text-sm font-bold text-muted group-hover:text-primary transition-colors uppercase tracking-[0.3em]">
-              Update Visual Feed
-            </span>
-            <Sparkles size={12} className="text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
-          </label>
-        </div>
-
-        <form onSubmit={handleUpdate} className="space-y-8">
-          <div className="grid grid-cols-1 gap-8">
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-sm text-muted font-bold uppercase tracking-[0.2em] ml-2">
-                <Mail size={12} /> Communication Node
-              </label>
-              <div className="w-full bg-surface-2/50 border border-border/50 rounded-2xl p-4 text-muted/50 cursor-not-allowed flex items-center gap-3 italic">
-                 {user.email}
-                 <ShieldCheck size={14} className="text-success ml-auto" />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-sm text-muted font-bold uppercase tracking-[0.2em] ml-2">
-                <User size={12} /> System Identifier
-              </label>
-              <input
-                type="text"
-                inputMode="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="w-full bg-surface-2/30 border border-border/50 rounded-2xl p-4 text-base min-h-[44px] text-white focus:outline-none focus:border-primary transition-all font-medium italic"
-                placeholder="Agent code name"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-sm text-muted font-bold uppercase tracking-[0.2em] ml-2">
-                <Zap size={12} /> Public Designation
-              </label>
-              <input
-                type="text"
-                inputMode="text"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                className="w-full bg-surface-2/30 border border-border/50 rounded-2xl p-4 text-base min-h-[44px] text-white focus:outline-none focus:border-primary transition-all font-medium italic"
-                placeholder="Tactical display name"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-sm text-muted font-bold uppercase tracking-[0.2em] ml-2">
-                <MapPin size={12} /> Tactical Intelligence (Bio)
-              </label>
-              <textarea
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                className="w-full bg-surface-2/30 border border-border/50 rounded-2xl p-4 text-white focus:outline-none focus:border-primary transition-all min-h-[120px] resize-none font-medium italic"
-                placeholder="Brief mission objectives / background summary..."
-              />
-            </div>
-          </div>
-
-          <div className="flex justify-end pt-6 border-t border-border/30">
-            <button
-              type="submit"
-              disabled={saving || !hasChanges || uploading}
-              className="bg-primary hover:bg-primary/90 text-black font-bold rounded-2xl px-12 py-4 transition-all disabled:opacity-30 disabled:scale-100 flex items-center gap-3 shadow-2xl shadow-primary/20 group active:scale-95 transform overflow-hidden relative"
-            >
-              {saving ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <>
-                  <Save size={18} />
-                  <span>Finalize Config</span>
-                </>
-              )}
-            </button>
-          </div>
-        </form>
-      </div>
-
-      <div className="bg-surface/50 border border-danger/20 rounded-[40px] p-8 flex flex-col md:flex-row items-center justify-between gap-6">
-        <div className="space-y-1 text-center md:text-left">
-           <h2 className="font-display font-bold text-xl text-danger uppercase tracking-tight">Decommission Session</h2>
-           <p className="text-sm text-muted italic">Terminate secure link and purge temporary local cache.</p>
-        </div>
-        <button
-          onClick={handleSignOut}
-          className="flex items-center gap-3 px-8 py-3 bg-danger/10 hover:bg-danger text-danger hover:text-white border border-danger/20 rounded-2xl font-bold text-sm uppercase tracking-widest transition-all shadow-lg active:scale-95"
-        >
-          <LogOut size={16} />
-          Terminal Exit
+        <h2 className="text-xl font-bold uppercase tracking-tight mb-2 italic text-text-primary">Registry Access Failure</h2>
+        <p className="text-text-muted text-sm mb-8 italic">Unable to load operative profile. Connection unstable.</p>
+        <button onClick={() => navigate('/login')} className="btn btn-primary w-full">
+          Re-authenticate
         </button>
       </div>
+    </div>
+  );
 
-      {coverToCrop && (
-        <ImageCropper
-          imageSrc={coverToCrop}
-          onCropComplete={handleCoverUpload}
-          onCancel={() => setCoverToCrop(null)}
-          aspectRatio={3 / 1}
-        />
-      )}
+  const hasChanges = displayName !== (profile?.display_name || '') ||
+                     bio !== (profile?.bio || '') || 
+                     avatarUrl !== (profile?.avatar_url || '') || 
+                     coverUrl !== (profile?.cover_url || '');
+
+  return (
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      <TacticalGrid />
+      <ScanlineOverlay opacity={0.03} />
+
+      <div className="relative z-10 max-w-2xl mx-auto px-4 py-12 space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
+        <div className="space-y-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-accent-primary/10 rounded-full border border-accent-primary/20 text-[10px] font-bold text-accent-primary uppercase tracking-[0.2em] mb-2">
+            <Terminal size={12} /> System Parameters
+          </div>
+          <h1 className="font-display font-bold text-4xl uppercase tracking-tighter text-text-primary italic">Registry Tuning</h1>
+          <p className="text-text-muted text-sm font-medium italic">Configure your operative parameters and field identifiers.</p>
+        </div>
+
+        <div className="card p-0 overflow-hidden shadow-5">
+          {/* Cover Image Upload Area */}
+          <div className="relative group">
+            <div className="h-48 md:h-64 bg-surface-2 relative overflow-hidden">
+              {coverUrl ? (
+                <img 
+                  src={coverUrl} 
+                  alt="Cover" 
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+                />
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center text-text-muted/30 gap-2 relative">
+                  <TacticalGrid />
+                  <Sparkles size={48} strokeWidth={1} />
+                  <span className="text-[10px] font-bold uppercase tracking-[0.3em] relative z-10">No Cover Active</span>
+                </div>
+              )}
+              
+              <label className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px] flex items-center justify-center cursor-pointer">
+                <input 
+                  type="file" 
+                  className="hidden" 
+                  accept="image/*" 
+                  onChange={handleCoverSelect}
+                  disabled={uploadingCover}
+                />
+                <div className="btn btn-secondary border-white/10 text-text-primary bg-bg-elevated/40 hover:bg-bg-elevated/60">
+                  <Camera size={16} /> 
+                  {uploadingCover ? 'Synchronizing...' : 'Update Cover Intel'}
+                </div>
+              </label>
+            </div>
+            
+            {/* Avatar Upload Area */}
+            <div className="absolute left-1/2 -translate-x-1/2 -bottom-16">
+              <div className="relative group/avatar">
+                <div className="w-32 h-32 rounded-[40px] bg-bg-base border-4 border-bg-base overflow-hidden shadow-5 relative">
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover transition-all group-hover/avatar:scale-110" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-text-muted/30 relative">
+                      <TacticalGrid />
+                      <User size={60} strokeWidth={1} className="relative z-10" />
+                    </div>
+                  )}
+                  
+                  <label className="absolute inset-0 bg-bg-base/60 opacity-0 group-hover/avatar:opacity-100 transition-opacity backdrop-blur-[2px] flex items-center justify-center cursor-pointer">
+                    <input 
+                      type="file" 
+                      className="hidden" 
+                      accept="image/*" 
+                      onChange={handleFileChange}
+                      disabled={uploading}
+                    />
+                    <Camera className="text-text-primary" size={32} />
+                  </label>
+                </div>
+                
+                {uploading && (
+                  <div className="absolute inset-0 bg-bg-base/70 rounded-[40px] flex items-center justify-center z-20">
+                    <Loader2 className="w-8 h-8 text-accent-primary animate-spin" />
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="p-8 pt-24 space-y-10">
+            <form onSubmit={handleUpdate} className="space-y-8">
+              <div className="grid grid-cols-1 gap-8">
+                <div className="space-y-3">
+                  <label className="flex items-center gap-2 text-[10px] text-text-muted font-bold uppercase tracking-[0.2em] ml-1">
+                    <Mail size={12} className="text-accent-primary" /> Communication Node
+                  </label>
+                  <div className="input opacity-60 bg-surface-2 border-dashed flex items-center justify-between group cursor-not-allowed">
+                     <span className="font-mono text-xs">{user.email}</span>
+                     <ShieldCheck size={16} className="text-accent-success/50" />
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <label className="flex items-center gap-2 text-[10px] text-text-muted font-bold uppercase tracking-[0.2em] ml-1">
+                    <Zap size={12} className="text-accent-primary" /> Public Designation
+                  </label>
+                  <input
+                    type="text"
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    className="input font-medium italic"
+                    placeholder="Tactical display name"
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <label className="flex items-center gap-2 text-[10px] text-text-muted font-bold uppercase tracking-[0.2em] ml-1">
+                    <MapPin size={12} className="text-accent-primary" /> Tactical Intelligence (Bio)
+                  </label>
+                  <textarea
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
+                    className="input min-h-[140px] resize-none font-medium italic"
+                    placeholder="Brief mission objectives / background summary..."
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-6 border-t border-surface-3">
+                <button
+                  type="submit"
+                  disabled={saving || !hasChanges || uploading || uploadingCover}
+                  className="btn btn-primary px-10"
+                >
+                  {saving ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <>
+                      <Save size={18} />
+                      <span>Finalize Config</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div className="card p-8 border-accent-danger/20 bg-accent-danger/5 flex flex-col md:flex-row items-center justify-between gap-6 group overflow-hidden relative shadow-5">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-accent-danger/5 blur-[40px] pointer-events-none group-hover:bg-accent-danger/10 transition-all"></div>
+          <div className="space-y-1 text-center md:text-left relative z-10">
+             <h2 className="font-display font-bold text-xl text-accent-danger uppercase tracking-tight italic">Decommission Session</h2>
+             <p className="text-sm text-text-muted font-medium italic">Terminate secure link and purge temporary local cache.</p>
+          </div>
+          <button
+            onClick={handleSignOut}
+            className="btn btn-danger px-8 group relative z-10"
+          >
+            <LogOut size={16} className="group-hover:-translate-x-1 transition-transform" />
+            Terminal Exit
+          </button>
+        </div>
+
+        {coverToCrop && (
+          <ImageCropper
+            imageSrc={coverToCrop}
+            onCropComplete={handleCoverUpload}
+            onCancel={() => setCoverToCrop(null)}
+            aspectRatio={3 / 1}
+          />
+        )}
+      </div>
     </div>
   );
 }

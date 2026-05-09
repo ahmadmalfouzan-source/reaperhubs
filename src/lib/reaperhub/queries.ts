@@ -174,17 +174,21 @@ export async function addToLibrary(
   }
 }
 
-export async function getLibraryItems() {
+export async function getLibraryItems(userId?: string) {
   try {
-    const user = await getCurrentUser();
-    if (!user) {
-      return JSON.parse(localStorage.getItem('guest_library') || '[]');
+    let targetUserId = userId;
+    if (!targetUserId) {
+      const user = await getCurrentUser();
+      if (!user) {
+        return JSON.parse(localStorage.getItem('guest_library') || '[]');
+      }
+      targetUserId = user.id;
     }
 
     const { data, error } = await supabase
       .from('library_items')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', targetUserId)
       .order('created_at', { ascending: false });
 
     if (error) throw error;

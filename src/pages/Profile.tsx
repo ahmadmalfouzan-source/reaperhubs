@@ -4,7 +4,6 @@ import {
     getProfileWithPosts,
   getUserAchievements, 
   getLibraryItems, 
-    getLibrary,
   getCurrentUser, 
   updateProfile,
   followUser,
@@ -69,9 +68,9 @@ export default function Profile() {
           
           if (currentUser && res.user.id === currentUser.id) {
             setIsCurrentUser(true);
-            const libData = await getLibrary();
-            setLibrary(libData);
           }
+          const libData = await getLibraryItems(res.user.id);
+          setLibrary(libData);
           
           const [achs, stats, followingStatus, userStreak] = await Promise.all([
             getUserAchievements(res.user.id),
@@ -466,11 +465,11 @@ export default function Profile() {
                     }}
                     className="aspect-[2/3] rounded-xl md:rounded-2xl overflow-hidden relative group cursor-pointer shadow-xl border border-border/50"
                   >
-                    <img loading="lazy" src={item.media_items?.cover_url} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=300&q=80'; }} />
+                    <img loading="lazy" src={item.poster_url || item.cover_url} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=300&q=80'; }} />
                     <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80"></div>
                     <div className="absolute bottom-3 md:bottom-4 left-3 md:left-4 right-3 md:right-4">
-                      <p className="text-sm md:text-sm font-bold text-primary uppercase tracking-widest mb-1">{item.media_items?.type}</p>
-                      <p className="text-sm md:text-sm font-bold text-white line-clamp-1 italic">{item.media_items?.title}</p>
+                      <p className="text-sm md:text-sm font-bold text-primary uppercase tracking-widest mb-1">{item.media_type}</p>
+                      <p className="text-sm md:text-sm font-bold text-white line-clamp-1 italic">{item.title}</p>
                     </div>
                   </div>
                 ))}
